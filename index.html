@@ -3,148 +3,181 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>SPDA Campo — Inspeção e Laudo</title>
+<title>SPDA Campo — Inspeção, Progresso e Laudo</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon.svg">
-<meta name="theme-color" content="#1F3A5F">
+<meta name="theme-color" content="#1c2421">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap">
 <style>
+/* Layout estilo prancha técnica EPLAN — faixa de progresso, abas operacionais, linhas tipo carimbo */
 :root{
-  --bg:#f4f6f9;--c:#fff;--t:#1b1f27;--m:#5c6675;--p:#1F3A5F;--p2:#2b5082;
-  --ok:#e9a3c0;--good:#2e8b57;--nc:#e04b4b;--warn:#d97706;--ln:#d5dae2;--wa:#1fa855;--drv:#1a73e8;
+  --bg:#f5f6f4;--panel:#ffffff;--fg:#1c2421;--muted:#5f6b66;--line:#d6dbd8;
+  --accent:#c98a00;--ok:#2f7d4f;--warn:#b5561c;--nc:#d13b3b;--info:#2b5f8a;--chip:#eef0ee;
+  --wa:#1fa855;--drv:#1a73e8;--pink:#d66094;
+  --f-disp:"Barlow Condensed",Impact,system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;
 }
-@media(prefers-color-scheme:dark){
-  :root{
-    --bg:#12161c;--c:#1c222b;--t:#eef1f5;--m:#9aa5b4;--ln:#333c48;--p:#5b8fd6;--p2:#3b6db3;
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#131816;--panel:#1b2220;--fg:#e4e9e6;--muted:#97a39e;--line:#2d3633;
+    --accent:#f0b429;--ok:#5cc28a;--warn:#f08a4b;--nc:#f26464;--info:#6fa8d6;--chip:#232b29;
+    color-scheme:dark;
   }
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{
-  margin:0;background:var(--bg);color:var(--t);
-  font:15px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
-  padding:env(safe-area-inset-top) 0 calc(env(safe-area-inset-bottom) + 24px);
+  margin:0;background:var(--bg);color:var(--fg);font:15px/1.45 var(--f-body);
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:calc(env(safe-area-inset-bottom,0px) + 28px);
 }
-header{
-  position:sticky;top:0;background:#1F3A5F;color:#fff;
-  padding:10px 12px;display:flex;gap:8px;align-items:center;z-index:20;
-  box-shadow:0 2px 8px rgba(0,0,0,.18);
+.wrap{
+  max-width:1080px;margin:0 auto;padding-block:14px 40px;
+  padding-left:max(12px,env(safe-area-inset-left,0px));
+  padding-right:max(12px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:14px;
 }
-header b{flex:1;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-header button{
-  background:#ffffff22;color:#fff;border:0;border-radius:8px;
-  padding:8px 11px;font-size:14px;cursor:pointer;font-weight:600;
+header.top-stamp{
+  display:flex;flex-wrap:wrap;gap:10px 18px;align-items:flex-end;justify-content:space-between;
+  border-bottom:3px solid var(--fg);padding-bottom:10px;
 }
-header button:active{opacity:.8}
-main{padding:10px;max-width:760px;margin:auto}
-.card{
-  background:var(--c);border:1px solid var(--ln);border-radius:12px;
-  padding:12px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.04);
+h1{font:700 1.95rem/1 var(--f-disp);letter-spacing:.02em;margin:0;text-transform:uppercase}
+.sub{color:var(--muted);font-size:.86rem;margin-top:4px}
+.meta{font:500 .76rem/1.45 var(--f-mono);color:var(--muted);text-align:right}
+.prog{display:flex;flex-direction:column;gap:5px;background:var(--panel);border:1px solid var(--line);padding:10px 12px}
+.bar{height:10px;background:var(--chip);border:1px solid var(--line);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);width:0;transition:width .3s}
+.bar i.ok-bar{background:var(--ok)}
+.prog .lbl{display:flex;justify-content:space-between;font:500 .8rem var(--f-mono);color:var(--muted)}
+.prog .lbl b{color:var(--fg)}
+.next{
+  background:var(--panel);border:1px solid var(--line);border-left:5px solid var(--accent);
+  padding:10px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px;cursor:pointer;
 }
+.next:active{opacity:.85}
+.next .k{font:600 .7rem var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.next .v{font-weight:600;margin-top:2px;font-size:.94rem}
+nav.tabs{display:flex;flex-wrap:wrap;gap:5px}
+nav.tabs button{
+  font:600 .83rem var(--f-body);background:var(--chip);color:var(--fg);
+  border:1px solid var(--line);padding:8px 11px;cursor:pointer;flex:1 1 auto;text-align:center;
+}
+nav.tabs button[aria-selected="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+section.box{background:var(--panel);border:1px solid var(--line)}
+section.box h2{
+  font:700 1.15rem var(--f-disp);text-transform:uppercase;letter-spacing:.03em;
+  margin:0;padding:10px 14px;border-bottom:1px solid var(--line);
+  display:flex;justify-content:space-between;align-items:center;gap:8px;
+}
+.filt{display:flex;flex-wrap:wrap;gap:6px;padding:10px 12px;border-bottom:1px solid var(--line);align-items:center}
+.filt button{
+  font:600 .74rem var(--f-mono);background:none;color:var(--muted);
+  border:1px solid var(--line);padding:5px 9px;cursor:pointer;
+}
+.filt button[aria-pressed="true"]{color:var(--bg);background:var(--fg);border-color:var(--fg)}
+.scroll{overflow-x:auto}
+table.tbl{width:100%;border-collapse:collapse;font-size:.88rem}
+table.tbl th,table.tbl td{text-align:left;padding:8px 9px;border-bottom:1px solid var(--line);vertical-align:middle}
+table.tbl th{
+  font:600 .7rem var(--f-mono);text-transform:uppercase;letter-spacing:.05em;
+  color:var(--muted);background:var(--chip);white-space:nowrap;
+}
+td.n{font:600 .84rem var(--f-mono);white-space:nowrap}
+code,.mono{font-family:var(--f-mono);font-size:.8rem}
+tr.done td:not(.c):not(.no-strike){opacity:.58}
+td.c{width:34px;text-align:center}
+input[type=checkbox]{width:18px;height:18px;accent-color:var(--ok);cursor:pointer}
+.tag{
+  display:inline-block;font:600 .68rem var(--f-mono);padding:2px 6px;
+  border:1px solid currentColor;white-space:nowrap;text-transform:uppercase;
+}
+.tag.CONCLUIDO{color:var(--ok)}
+.tag.ANDAMENTO{color:var(--info)}
+.tag.NC{color:var(--nc)}
+.tag.PENDENTE{color:var(--muted)}
+.note{padding:10px 14px;color:var(--muted);font-size:.82rem;border-top:1px solid var(--line)}
+.card{background:var(--panel);border:1px solid var(--line);padding:12px;margin-bottom:10px}
 .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .grow{flex:1}
-h3{margin:2px 0 10px;font-size:13px;color:var(--p);text-transform:uppercase;letter-spacing:.4px}
+h3{margin:2px 0 10px;font:700 1rem var(--f-disp);color:var(--fg);text-transform:uppercase;letter-spacing:.04em}
 button.b,.seg button{
-  border:1px solid var(--ln);background:var(--c);color:var(--t);
-  border-radius:10px;padding:9px 12px;font-size:14px;cursor:pointer;font-weight:500;
+  border:1px solid var(--line);background:var(--chip);color:var(--fg);
+  padding:8px 11px;font:600 .82rem var(--f-body);cursor:pointer;
 }
 button.b:active,.seg button:active{transform:scale(.98)}
 .seg{display:inline-flex;gap:4px;flex-wrap:wrap}
-.seg button.on{background:var(--p);color:#fff;border-color:var(--p)}
-.seg button.on.bad{background:var(--nc);border-color:var(--nc)}
-.seg button.on.good{background:var(--good);border-color:var(--good)}
-.seg button.on.pink{background:#d66094;border-color:#d66094}
-input,select,textarea{
-  width:100%;padding:10px;border:1px solid var(--ln);border-radius:10px;
-  background:var(--c);color:var(--t);font-size:16px;font-family:inherit;
+.seg button.on{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.seg button.on.bad{background:var(--nc);color:#fff;border-color:var(--nc)}
+.seg button.on.good{background:var(--ok);color:#fff;border-color:var(--ok)}
+.seg button.on.pink{background:var(--pink);color:#fff;border-color:var(--pink)}
+input:not([type=checkbox]),select,textarea{
+  width:100%;padding:9px 10px;border:1px solid var(--line);
+  background:var(--bg);color:var(--fg);font:15px var(--f-body);
 }
-label{font-size:12px;color:var(--m);display:block;margin:6px 0 3px;font-weight:500}
-.li{
-  display:flex;justify-content:space-between;align-items:center;gap:8px;
-  padding:12px 10px;border-bottom:1px solid var(--ln);cursor:pointer;
-}
-.li:last-child{border-bottom:0}
-.li:active{background:rgba(128,128,128,.08)}
-.pill{padding:3px 8px;border-radius:99px;font-size:11px;font-weight:600;background:var(--ln);display:inline-block}
-.pill.ok{background:var(--good);color:#fff}
-.pill.nc{background:var(--nc);color:#fff}
-.pill.info{background:#1F3A5F;color:#fff}
-.d{border-left:5px solid var(--ln)}
-.d.ok{border-left-color:var(--good)}
+label{font:600 .73rem var(--f-mono);color:var(--muted);display:block;margin:6px 0 3px;text-transform:uppercase}
+.d{border-left:5px solid var(--line)}
+.d.ok{border-left-color:var(--ok)}
 .d.nc{border-left-color:var(--nc)}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .g3{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-small{color:var(--m);font-size:12px}
+small{color:var(--muted);font-size:12px}
 .big{
-  width:100%;padding:13px 14px;font-size:15px;font-weight:600;border-radius:12px;
-  border:0;background:#1F3A5F;color:#fff;margin:5px 0;cursor:pointer;
+  width:100%;padding:12px 14px;font:700 .95rem var(--f-disp);letter-spacing:.03em;text-transform:uppercase;
+  border:1px solid var(--fg);background:var(--fg);color:var(--bg);margin:4px 0;cursor:pointer;
   display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;
 }
-.big.wa{background:var(--wa)}
-.big.drv{background:var(--drv)}
-.big.sec{background:#475569}
-.big.out{background:var(--c);color:var(--t);border:1px solid var(--ln)}
-#st{font-size:12px;opacity:.95}
+.big.wa{background:var(--wa);border-color:var(--wa);color:#fff}
+.big.drv{background:var(--drv);border-color:var(--drv);color:#fff}
+.big.out{background:var(--panel);color:var(--fg);border:1px solid var(--line)}
 .thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
 .th{
-  position:relative;width:68px;height:68px;border-radius:8px;overflow:hidden;
-  border:1px solid var(--ln);background:#000;flex-shrink:0;
+  position:relative;width:82px;height:82px;overflow:hidden;
+  border:1px solid var(--line);background:#000;flex-shrink:0;
 }
 .th img{width:100%;height:100%;object-fit:cover;display:block;cursor:pointer}
 .th button{
-  position:absolute;top:2px;right:2px;width:22px;height:22px;border-radius:50%;
-  border:0;background:rgba(224,75,75,.92);color:#fff;font-size:12px;line-height:1;
+  position:absolute;top:2px;right:2px;width:22px;height:22px;
+  border:0;background:rgba(209,59,59,.92);color:#fff;font-size:12px;
   cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;
 }
-.stats-bar{
-  display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px;
-}
-.stat-box{
-  background:var(--c);border:1px solid var(--ln);border-radius:10px;padding:8px 6px;text-align:center;
-}
-.stat-box b{display:block;font-size:17px;color:var(--p)}
-.stat-box small{font-size:11px}
 .modal-bg{
-  position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:50;
+  position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:60;
   display:flex;align-items:center;justify-content:center;padding:14px;
 }
 .modal{
-  background:var(--c);color:var(--t);border-radius:14px;max-width:480px;width:100%;
-  max-height:90vh;overflow-y:auto;padding:16px;border:1px solid var(--ln);
+  background:var(--panel);color:var(--fg);max-width:520px;width:100%;
+  max-height:92vh;overflow-y:auto;padding:16px;border:2px solid var(--fg);
 }
 .inline-edit{
-  border:1px dashed var(--ln);border-radius:8px;padding:4px 8px;font-weight:700;
-  font-size:15px;width:auto;min-width:90px;max-width:190px;background:transparent;
+  border:1px dashed var(--line);padding:4px 8px;font:600 .9rem var(--f-mono);
+  width:auto;min-width:85px;max-width:170px;background:transparent;
 }
-.team-card{
-  border:1px solid var(--ln);border-radius:10px;padding:10px;background:rgba(26,115,232,.05);margin-top:8px;
+.chk-pill{
+  display:inline-flex;align-items:center;gap:3px;font:500 .72rem var(--f-mono);
+  padding:2px 5px;border:1px solid var(--line);background:var(--chip);cursor:pointer;margin-right:3px;
 }
-/* Print / PDF styles */
+.chk-pill.on{background:var(--ok);color:#fff;border-color:var(--ok)}
+.foot{font:.76rem var(--f-mono);color:var(--muted);display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center}
+/* Print / PDF A4 */
 #print-area{display:none}
 @media print{
-  header,main,.modal-bg{display:none!important}
+  .wrap,.modal-bg{display:none!important}
   body{background:#fff!important;color:#000!important;padding:0!important;font-size:12px}
   #print-area{display:block!important;padding:10mm}
-  .p-card{border:1px solid #ccc;border-radius:6px;padding:8px;margin-bottom:10px;page-break-inside:avoid}
+  .p-card{border:1px solid #bbb;padding:8px;margin-bottom:10px;page-break-inside:avoid}
   .p-tbl{width:100%;border-collapse:collapse;margin:6px 0;font-size:11px}
-  .p-tbl th,.p-tbl td{border:1px solid #bbb;padding:4px 6px;text-align:left}
-  .p-tbl th{background:#e9eef5}
-  .p-grid-ph{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px}
-  .p-ph{border:1px solid #ccc;border-radius:4px;padding:4px;text-align:center;page-break-inside:avoid}
-  .p-ph img{max-width:100%;height:130px;object-fit:contain}
+  .p-tbl th,.p-tbl td{border:1px solid #999;padding:4px 6px;text-align:left}
+  .p-tbl th{background:#eee}
+  .p-grid-ph{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:8px}
+  .p-ph{border:1px solid #ccc;padding:4px;text-align:center;page-break-inside:avoid}
+  .p-ph img{max-width:100%;height:190px;object-fit:contain}
 }
 </style>
 </head>
 <body>
-<header>
-  <button id="back" style="display:none" onclick="go('')">← Voltar</button>
-  <b id="ttl">SPDA Campo</b>
-  <span id="st"></span>
-  <button onclick="go('exp')" title="Exportar PDF / Drive / WhatsApp">📄 Laudo / Drive</button>
-  <button onclick="go('cfg')" title="Configurações">⚙</button>
-</header>
-<main id="m"></main>
+<div class="wrap" id="app-wrap"></div>
 <div id="modal-root"></div>
 <div id="print-area"></div>
 
@@ -204,14 +237,30 @@ const CHK = [
   ["mass","Massas metálicas aterradas?"]
 ];
 
+const LIB_CHK = [
+  "Todos os blocos da Equipe A (Dupla 1) inspecionados e medidos",
+  "Todos os blocos da Equipe B (Dupla 2) inspecionados e medidos",
+  "Continuidade elétrica das descidas conferida (critério ≤ 0,2 Ω — NBR 5419-3)",
+  "Resistência de aterramento medida nas caixas/BEP (critério ≤ 10 Ω)",
+  "BEPs (Bloco N, Quadra, Portaria e Reservatório) verificados e fotografados",
+  "DPS do QDG da Portaria verificado",
+  "Todas as fotos em HD com carimbo (Local -- Ponto + Data/Hora) conferidas",
+  "Pontos conformes (Rosa) e não conformes (Vermelho) pintados na planta A3",
+  "Não conformidades (NC) críticas classificadas com severidade A/B/C",
+  "Pacote (Laudo PDF + JSON + Fotos HD) enviado para o Google Drive das Equipes A e B"
+];
+
 let S = {
   cfg: {
     cliente: "Amigos do Bem",
-    local: "",
+    local: "Inajá - PE",
+    proposta: "NBR 5419:2015",
     data: new Date().toISOString().slice(0,10),
     equipeAtiva: 1,
     driveA: DRIVE_FOLDERS[1].url,
     driveB: DRIVE_FOLDERS[2].url,
+    resFoto: 2560, // HD / 4K com carimbo
+    carimboOn: 1,
     resp: "",
     crea: "",
     limC: 0.2,
@@ -222,16 +271,17 @@ let S = {
     ap: ""
   },
   blocos: null,
+  lib: {},
   f: {}
 };
 
-let db, view = "", searchQ = "", filterDupla = 0, photoURLCache = {};
+let db, view = "", activeTab = "blocos", searchQ = "", filterMode = "ALL", filterDupla = 0, photoURLCache = {};
 
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
 function teamLabel(d) {
-  return d == 2 ? "Equipe B (Dupla 2)" : (d == 1 ? "Equipe A (Dupla 1)" : "Equipe " + d);
+  return d == 2 ? "Equipe B (Dupla 2)" : "Equipe A (Dupla 1)";
 }
 
 function getDriveUrl(teamNum) {
@@ -279,7 +329,7 @@ const pdel = k => tx("ph", "readwrite", s => s.delete(k));
 let tm;
 function save() {
   clearTimeout(tm);
-  tm = setTimeout(() => kset("S", S), 180);
+  tm = setTimeout(() => kset("S", S), 160);
 }
 
 const R = i => ({
@@ -328,8 +378,39 @@ function judge(r) {
   return bad;
 }
 
-function go(v) {
+function blockStats(b) {
+  const f = F(b[0]);
+  const o = b[3] || "";
+  const isOnly = o.includes("only");
+  const totR = f.rows.length;
+  const medR = f.rows.filter(r => r.cont !== "" || r.terra !== "").length;
+  const ncsRows = f.rows.filter(r => judge(r).length || [r.barra, r.eld, r.cx].includes("NC")).length;
+  const totNC = f.ncs.length + ncsRows;
+  const totPh = (f.bepPh || []).length + f.rows.reduce((a, r) => a + (r.ph || []).length, 0) + f.ncs.reduce((a, n) => a + (n.ph || []).length, 0);
+  const chkCount = Object.values(f.chk || {}).filter(Boolean).length;
+
+  const isCompleted = !!(f.done && f.done.vis && f.done.med && f.done.foto && f.done.pl) ||
+    (isOnly ? (f.bepOk && (f.bepC || f.bepT) && totPh > 0) : (totR > 0 && medR === totR && chkCount >= 3 && totPh > 0));
+  const isStarted = !!(medR > 0 || chkCount > 0 || totPh > 0 || f.bepOk || f.bepC || f.bepT || f.hi || f.done.vis || f.done.med);
+
+  let status = "PENDENTE";
+  if (totNC > 0 && !f.done.pl) status = "NC";
+  else if (isCompleted) status = "CONCLUIDO";
+  else if (isStarted) status = "ANDAMENTO";
+
+  const missing = [];
+  if (!isOnly && chkCount < CHK.length && !f.done.vis) missing.push(`Checklist (${chkCount}/${CHK.length})`);
+  if (!isOnly && medR < totR && !f.done.med) missing.push(`Medições (${medR}/${totR})`);
+  if ((o.includes("bep") || isOnly) && !f.bepC && !f.bepT) missing.push("Medir BEP");
+  if (totPh === 0 && !f.done.foto) missing.push("Fotos HD");
+  if (!f.done.pl) missing.push("Planta A3");
+
+  return {f, totR, medR, totNC, totPh, chkCount, isCompleted, isStarted, status, missing};
+}
+
+function go(v, tab) {
   view = v;
+  if (tab) activeTab = tab;
   render();
   scrollTo(0, 0);
 }
@@ -340,6 +421,28 @@ function set(id, path, v, rr) {
   o[k[0]] = v;
   save();
   if (rr) render();
+}
+
+function toggleDone(id, key) {
+  const f = F(id);
+  f.done[key] = f.done[key] ? 0 : 1;
+  save();
+  render();
+}
+
+function toggleBlockAllDone(id, checked) {
+  const f = F(id);
+  const v = checked ? 1 : 0;
+  f.done = {vis: v, med: v, foto: v, pl: v};
+  save();
+  render();
+}
+
+function toggleLib(idx, checked) {
+  S.lib ??= {};
+  S.lib["k" + idx] = checked ? 1 : 0;
+  save();
+  render();
 }
 
 const seg = (id, path, cur, opts) =>
@@ -371,7 +474,7 @@ function renderThumbs(id, list, kind, idx) {
   if (!list || !list.length) return "";
   return `<div class="thumbs">${list.map((name, pi) => `
     <div class="th">
-      <img data-ph="${esc(name)}" alt="Foto" onclick="viewPhoto('${esc(name)}')">
+      <img data-ph="${esc(name)}" alt="Foto HD" onclick="viewPhoto('${esc(name)}')">
       <button type="button" title="Excluir foto" onclick="delPhoto('${esc(id)}','${kind}',${idx},${pi},'${esc(name)}')">✕</button>
     </div>
   `).join("")}</div>`;
@@ -385,12 +488,15 @@ async function viewPhoto(name) {
     <div class="modal-bg" onclick="closeModal()">
       <div class="modal" onclick="event.stopPropagation()" style="text-align:center">
         <div class="row" style="margin-bottom:8px">
-          <b class="grow" style="font-size:13px;word-break:break-all">${esc(name)}</b>
+          <b class="grow mono" style="font-size:12px;word-break:break-all">${esc(name)}</b>
           <button class="b" onclick="closeModal()">Fechar</button>
         </div>
-        <img src="${u}" style="max-width:100%;max-height:70vh;border-radius:8px">
+        <img src="${u}" style="max-width:100%;max-height:72vh;border:1px solid var(--line)">
+        <div style="margin-top:8px;font-size:12px;color:var(--muted)">
+          ${esc(rec.stampTitle || "")} • ${esc(rec.stampDate || "")}
+        </div>
         <div style="margin-top:10px">
-          <a href="${u}" download="${esc(name)}" class="big" style="text-decoration:none">📥 Baixar esta foto</a>
+          <a href="${u}" download="${esc(name)}" class="big" style="text-decoration:none">📥 Baixar Foto HD no Celular</a>
         </div>
       </div>
     </div>`;
@@ -413,6 +519,776 @@ async function delPhoto(id, kind, idx, pi, name) {
 
 function closeModal() {
   $("#modal-root").innerHTML = "";
+}
+
+/* ============================================================================
+   CAPTURA DE FOTO EM HD / RESOLUÇÃO MÁXIMA + CARIMBO (MODELO DA IMAGEM ANEXA)
+   Exemplo na foto:
+   [ edifício A--Bepe          ]
+   [ 15 de nov. de 2026 14:45:38 ]
+   ============================================================================ */
+function formatStampDate(d) {
+  const meses = ["jan.", "fev.", "mar.", "abr.", "mai.", "jun.", "jul.", "ago.", "set.", "out.", "nov.", "dez."];
+  const dia = d.getDate();
+  const mes = meses[d.getMonth()];
+  const ano = d.getFullYear();
+  const hh = String(d.getHours()).padStart(2, "0");
+  const mm = String(d.getMinutes()).padStart(2, "0");
+  const ss = String(d.getSeconds()).padStart(2, "0");
+  return `${dia} de ${mes} de ${ano} ${hh}:${mm}:${ss}`;
+}
+
+function roundRectCanvas(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function processPhotoHDWithStamp(file, stampLine1, stampLine2) {
+  return new Promise(res => {
+    const img = new Image();
+    img.onload = () => {
+      const maxDim = Number(S.cfg.resFoto) || 2560; // HD / 4K nativo
+      const scale = maxDim > 0 ? Math.min(1, maxDim / Math.max(img.width, img.height)) : 1;
+      const W = Math.round(img.width * scale);
+      const H = Math.round(img.height * scale);
+
+      const c = document.createElement("canvas");
+      c.width = W;
+      c.height = H;
+      const ctx = c.getContext("2d");
+      ctx.drawImage(img, 0, 0, W, H);
+
+      // Desenha o carimbo idêntico à referência no canto superior esquerdo
+      if (S.cfg.carimboOn !== 0) {
+        const refSide = Math.min(W, H);
+        const marginX = Math.round(refSide * 0.038);
+        const marginY = Math.round(refSide * 0.038);
+        const fontTitle = Math.max(18, Math.round(refSide * 0.036));
+        const fontSub = Math.max(15, Math.round(refSide * 0.030));
+        const padX = Math.round(fontTitle * 0.75);
+        const padY = Math.round(fontTitle * 0.65);
+        const lineGap = Math.round(fontTitle * 0.35);
+
+        ctx.font = `700 ${fontTitle}px system-ui, -apple-system, Roboto, Arial, sans-serif`;
+        const w1 = ctx.measureText(stampLine1).width;
+        ctx.font = `400 ${fontSub}px system-ui, -apple-system, Roboto, Arial, sans-serif`;
+        const w2 = ctx.measureText(stampLine2).width;
+
+        const minBoxW = Math.round(W * 0.68);
+        const maxBoxW = W - marginX * 2;
+        const boxW = Math.min(maxBoxW, Math.max(minBoxW, Math.max(w1, w2) + padX * 2));
+        const boxH = padY * 2 + fontTitle + lineGap + fontSub;
+        const radius = Math.round(fontTitle * 0.55);
+
+        ctx.save();
+        roundRectCanvas(ctx, marginX, marginY, boxW, boxH, radius);
+        ctx.fillStyle = "rgba(28, 32, 36, 0.72)";
+        ctx.fill();
+
+        ctx.fillStyle = "#ffffff";
+        ctx.textBaseline = "top";
+        ctx.font = `700 ${fontTitle}px system-ui, -apple-system, Roboto, Arial, sans-serif`;
+        ctx.fillText(stampLine1, marginX + padX, marginY + padY);
+
+        ctx.font = `400 ${fontSub}px system-ui, -apple-system, Roboto, Arial, sans-serif`;
+        ctx.fillText(stampLine2, marginX + padX, marginY + padY + fontTitle + lineGap);
+        ctx.restore();
+      }
+
+      c.toBlob(blob => res(blob), "image/jpeg", 0.92);
+    };
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+function photo(id, ponto, ri, ni, useCam = true) {
+  const b = getB().find(x => x[0] == id) || [id, id, 1, ""];
+  const f = F(id);
+  let subLabel = ponto;
+  if (ri >= 0 && ri != null && f.rows[ri] && f.rows[ri].loc) {
+    subLabel = `${f.rows[ri].p} ${f.rows[ri].loc}`;
+  }
+
+  const i = document.createElement("input");
+  i.type = "file";
+  i.accept = "image/*";
+  if (useCam) i.capture = "environment";
+  else i.multiple = true;
+
+  i.onchange = async () => {
+    if (!i.files || !i.files.length) return;
+    const st = $("#st-msg");
+    if (st) st.textContent = "Processando foto HD com carimbo…";
+
+    for (const file of i.files) {
+      const d = new Date();
+      const stampLine1 = `${b[1]}--${subLabel}`;
+      const stampLine2 = formatStampDate(d);
+      const bl = await processPhotoHDWithStamp(file, stampLine1, stampLine2);
+
+      const hh = d.toTimeString().slice(0, 8).replace(/:/g, "");
+      const cleanPonto = String(ponto).replace(/[^a-zA-Z0-9_-]/g, "");
+      const name = `${id}_${cleanPonto}_${d.toISOString().slice(0, 10)}_${hh}_${Math.random().toString(36).slice(2, 5)}.jpg`;
+
+      await pset(name, {
+        b: bl,
+        id,
+        ponto,
+        stampTitle: stampLine1,
+        stampDate: stampLine2,
+        t: d.toISOString(),
+        s: 0
+      });
+
+      if (ri >= 0 && ri != null && ri !== undefined) f.rows[ri].ph.push(name);
+      else if (ni != null && ni >= 0) (f.ncs[ni].ph ??= []).push(name);
+      else (f.bepPh ??= []).push(name);
+    }
+    if (st) st.textContent = "";
+    save();
+    render();
+  };
+  i.click();
+}
+
+/* ============================================================================
+   RENDERIZAÇÃO PRINCIPAL (PRANCHA DE PROGRESSO + ABAS + FICHA DE CAMPO)
+   ============================================================================ */
+async function render() {
+  const wrap = $("#app-wrap");
+  const B = getB();
+  const c = S.cfg;
+
+  // Se estiver dentro de um Bloco ou tela de Ajustes, exibe a ficha dedicada
+  if (view === "cfg") {
+    wrap.innerHTML = renderConfigView();
+    return;
+  }
+  if (view && view !== "") {
+    wrap.innerHTML = renderBlockDetailView(view);
+    hydrateThumbs();
+    return;
+  }
+
+  // Cálculo das métricas globais de progresso
+  const filteredByTeam = filterDupla ? B.filter(b => b[2] == filterDupla) : B;
+  let doneBlocks = 0, totalDescidas = 0, measuredDescidas = 0, totalAlertas = 0;
+
+  const statsMap = {};
+  for (const b of B) {
+    const st = blockStats(b);
+    statsMap[b[0]] = st;
+    if (!filterDupla || b[2] == filterDupla) {
+      if (st.isCompleted) doneBlocks++;
+      totalDescidas += st.totR;
+      measuredDescidas += st.medR;
+      totalAlertas += st.totNC;
+    }
+  }
+
+  const libDone = LIB_CHK.filter((_, i) => S.lib && S.lib["k" + i]).length;
+  const pctBlocks = filteredByTeam.length ? Math.round((doneBlocks / filteredByTeam.length) * 100) : 0;
+  const pctMeasured = totalDescidas ? Math.round((measuredDescidas / totalDescidas) * 100) : 0;
+
+  // Próximo bloco pendente sugerido automaticamente
+  const nextBlock = filteredByTeam.find(b => !statsMap[b[0]].isCompleted);
+  const nextSt = nextBlock ? statsMap[nextBlock[0]] : null;
+
+  const phAll = await pall();
+  const activeTeam = filterDupla || c.equipeAtiva || 1;
+
+  let tabContent = "";
+
+  if (activeTab === "blocos") {
+    const rowsHtml = filteredByTeam.filter(b => {
+      const st = statsMap[b[0]];
+      if (filterMode === "OPEN" && st.isCompleted) return false;
+      if (filterMode === "NC" && st.totNC === 0) return false;
+      if (searchQ && !b[1].toLowerCase().includes(searchQ.toLowerCase()) && !b[0].toLowerCase().includes(searchQ.toLowerCase())) return false;
+      return true;
+    }).map(b => {
+      const st = statsMap[b[0]];
+      return `
+        <tr onclick="go('${esc(b[0])}')" style="cursor:pointer">
+          <td class="n">${esc(b[0])}</td>
+          <td>
+            <b>${esc(b[1])}</b><br>
+            <small>${b[2] == 2 ? "Equipe B (Dupla 2)" : "Equipe A (Dupla 1)"} • ${st.totR ? `${st.medR}/${st.totR} descidas` : "Somente BEP"} • ${st.totPh} foto(s)</small>
+          </td>
+          <td><span class="tag ${st.status}">${st.status === "NC" ? `${st.totNC} NC` : st.status}</span></td>
+          <td class="no-strike" style="text-align:right;white-space:nowrap" onclick="event.stopPropagation()">
+            <button class="b" style="padding:5px 8px;font-size:12px" title="Editar nome do lugar" onclick="openBlockModal('${esc(b[0])}')">✎</button>
+            <button class="b" style="padding:5px 10px;font-size:12px;background:var(--fg);color:var(--bg)" onclick="go('${esc(b[0])}')">Abrir ›</button>
+          </td>
+        </tr>`;
+    }).join("");
+
+    tabContent = `
+      <section class="box">
+        <h2>
+          <span>Locais de Inspeção (${filteredByTeam.length})</span>
+          <button class="b" style="font-size:12px;padding:5px 10px" onclick="openBlockModal()">+ Novo Local</button>
+        </h2>
+        <div class="filt">
+          <button data-f="0" aria-pressed="${filterDupla === 0}" onclick="filterDupla=0;render()">Todas Equipes</button>
+          <button data-f="1" aria-pressed="${filterDupla === 1}" onclick="filterDupla=1;S.cfg.equipeAtiva=1;save();render()">🅰 Equipe A</button>
+          <button data-f="2" aria-pressed="${filterDupla === 2}" onclick="filterDupla=2;S.cfg.equipeAtiva=2;save();render()">🅱 Equipe B</button>
+          <button aria-pressed="${filterMode === 'ALL'}" onclick="filterMode='ALL';render()">Todos</button>
+          <button aria-pressed="${filterMode === 'OPEN'}" onclick="filterMode='OPEN';render()">Pendentes</button>
+          <button aria-pressed="${filterMode === 'NC'}" onclick="filterMode='NC';render()">Com NC (${totalAlertas})</button>
+          <input style="max-width:210px;padding:5px 8px;font-size:13px;margin-left:auto" placeholder="🔍 Buscar local..." value="${esc(searchQ)}" oninput="searchQ=this.value;render()">
+        </div>
+        <div class="scroll">
+          <table class="tbl">
+            <thead>
+              <tr><th>Sigla</th><th>Local / Bloco</th><th>Status</th><th style="text-align:right">Ação</th></tr>
+            </thead>
+            <tbody>${rowsHtml || `<tr><td colspan="4" style="text-align:center;padding:18px;color:var(--muted)">Nenhum local para este filtro.</td></tr>`}</tbody>
+          </table>
+        </div>
+        <div class="note">
+          Toque em qualquer linha para abrir as medições de continuidade/terra e tirar fotos em HD com carimbo automático (<b>Local--Ponto + Data/Hora</b>).
+        </div>
+      </section>`;
+  }
+
+  else if (activeTab === "prog") {
+    const progRows = filteredByTeam.map(b => {
+      const st = statsMap[b[0]];
+      const f = st.f;
+      if (filterMode !== "ALL" && filterMode !== st.status && !(filterMode === "OPEN" && !st.isCompleted)) return "";
+      return `
+        <tr class="${st.isCompleted ? "done" : ""}">
+          <td class="c"><input type="checkbox" ${st.isCompleted ? "checked" : ""} onchange="toggleBlockAllDone('${esc(b[0])}',this.checked)" title="Marcar bloco como 100% concluído"></td>
+          <td class="n" onclick="go('${esc(b[0])}')" style="cursor:pointer">${esc(b[0])}</td>
+          <td onclick="go('${esc(b[0])}')" style="cursor:pointer"><b>${esc(b[1])}</b></td>
+          <td class="mono">${b[2] == 2 ? "Eq. B" : "Eq. A"}</td>
+          <td><span class="tag ${st.status}">${st.status === "NC" ? `${st.totNC} NC` : st.status}</span></td>
+          <td class="no-strike" style="white-space:nowrap">
+            <span class="chk-pill ${f.done.vis ? "on" : ""}" onclick="toggleDone('${esc(b[0])}','vis')">Vis</span>
+            <span class="chk-pill ${f.done.med ? "on" : ""}" onclick="toggleDone('${esc(b[0])}','med')">Med (${st.medR}/${st.totR})</span>
+            <span class="chk-pill ${f.done.foto ? "on" : ""}" onclick="toggleDone('${esc(b[0])}','foto')">Foto (${st.totPh})</span>
+            <span class="chk-pill ${f.done.pl ? "on" : ""}" onclick="toggleDone('${esc(b[0])}','pl')">Planta A3</span>
+          </td>
+          <td style="font-size:.8rem;color:var(--muted)">${st.missing.length ? esc(st.missing.join(" · ")) : "✓ Completo"}</td>
+        </tr>`;
+    }).join("");
+
+    tabContent = `
+      <section class="box">
+        <h2>Matriz de Progresso de Campo (Estilo Prancha)</h2>
+        <div class="filt">
+          <button aria-pressed="${filterMode === 'ALL'}" onclick="filterMode='ALL';render()">Todos</button>
+          <button aria-pressed="${filterMode === 'OPEN'}" onclick="filterMode='OPEN';render()">Só Abertos</button>
+          <button aria-pressed="${filterMode === 'ANDAMENTO'}" onclick="filterMode='ANDAMENTO';render()">Em Andamento</button>
+          <button aria-pressed="${filterMode === 'NC'}" onclick="filterMode='NC';render()">Com NC</button>
+          <button aria-pressed="${filterMode === 'CONCLUIDO'}" onclick="filterMode='CONCLUIDO';render()">Concluídos</button>
+        </div>
+        <div class="scroll">
+          <table class="tbl">
+            <thead>
+              <tr><th></th><th>Cód</th><th>Bloco / Local</th><th>Equipe</th><th>Status</th><th>Etapas (Toque p/ marcar)</th><th>O que falta</th></tr>
+            </thead>
+            <tbody>${progRows || `<tr><td colspan="7" style="text-align:center;padding:16px">Nenhum item neste filtro.</td></tr>`}</tbody>
+          </table>
+        </div>
+        <div class="note">
+          Ordem recomendada: 1) Inspeção visual e BEP → 2) Medição de continuidade e terra em sentido horário → 3) Fotos HD com carimbo → 4) Pintar Rosa (OK) ou Vermelho (NC) na planta A3.
+        </div>
+      </section>`;
+  }
+
+  else if (activeTab === "med") {
+    let medRows = "";
+    for (const b of filteredByTeam) {
+      const f = F(b[0]);
+      if ((b[3] || "").includes("bep") || (b[3] || "").includes("only")) {
+        medRows += `
+          <tr onclick="go('${esc(b[0])}')" style="cursor:pointer">
+            <td class="n">${esc(b[0])}</td>
+            <td><b>${esc(b[1])}</b> — BEP</td>
+            <td class="mono">Íntegro: ${esc(f.bepOk || "—")}</td>
+            <td class="mono"><b>${esc(f.bepC || "—")}</b> Ω</td>
+            <td class="mono"><b>${esc(f.bepT || "—")}</b> Ω</td>
+            <td class="mono">${(f.bepPh || []).length} foto(s)</td>
+            <td><span class="tag ${f.bepOk === "Não" ? "NC" : (f.bepC || f.bepT ? "CONCLUIDO" : "PENDENTE")}">${f.bepOk === "Não" ? "NC" : (f.bepC || f.bepT ? "MEDIDO" : "PENDENTE")}</span></td>
+          </tr>`;
+      }
+      for (const r of f.rows) {
+        const j = judge(r);
+        const hasNC = j.length || [r.barra, r.eld, r.cx].includes("NC");
+        const measured = r.cont !== "" || r.terra !== "";
+        if (filterMode === "NC" && !hasNC) continue;
+        if (filterMode === "OPEN" && measured) continue;
+        medRows += `
+          <tr onclick="go('${esc(b[0])}')" style="cursor:pointer">
+            <td class="n">${esc(b[0])}·${esc(r.p)}</td>
+            <td><b>${esc(b[1])}</b> ${r.loc ? `(${esc(r.loc)})` : ""}</td>
+            <td class="mono">B:${r.barra || "-"} E:${r.eld || "-"} C:${r.cx || "-"}</td>
+            <td class="mono" style="color:${num(r.cont) > c.limC ? "var(--nc);font-weight:700" : "inherit"}">${esc(r.cont || "—")} Ω</td>
+            <td class="mono" style="color:${num(r.terra) > c.limT ? "var(--nc);font-weight:700" : "inherit"}">${esc(r.terra || "—")} Ω</td>
+            <td class="mono">${esc(r.pl || "—")} · ${(r.ph || []).length}📷</td>
+            <td><span class="tag ${hasNC ? "NC" : (measured ? "CONCLUIDO" : "PENDENTE")}">${hasNC ? (j[0] || "NC VISUAL") : (measured ? "OK" : "ABERTO")}</span></td>
+          </tr>`;
+      }
+    }
+
+    tabContent = `
+      <section class="box">
+        <h2>Tabela Geral de Descidas e Medições (Continuidade ≤ ${c.limC} Ω | Terra ≤ ${c.limT} Ω)</h2>
+        <div class="filt">
+          <button aria-pressed="${filterMode === 'ALL'}" onclick="filterMode='ALL';render()">Todas</button>
+          <button aria-pressed="${filterMode === 'OPEN'}" onclick="filterMode='OPEN';render()">Sem Medição</button>
+          <button aria-pressed="${filterMode === 'NC'}" onclick="filterMode='NC';render()">Fora do Limite / NC</button>
+        </div>
+        <div class="scroll">
+          <table class="tbl">
+            <thead>
+              <tr><th>Ponto</th><th>Bloco / Referência</th><th>Inspeção (B/E/C)</th><th>Cont. (Ω)</th><th>Terra (Ω)</th><th>Planta / Foto</th><th>Avaliação</th></tr>
+            </thead>
+            <tbody>${medRows || `<tr><td colspan="7" style="text-align:center;padding:16px">Nenhum ponto para exibir.</td></tr>`}</tbody>
+          </table>
+        </div>
+      </section>`;
+  }
+
+  else if (activeTab === "ncs") {
+    let ncRows = "";
+    let idxGlobal = 1;
+    for (const b of filteredByTeam) {
+      const f = F(b[0]);
+      f.ncs.forEach((n, i) => {
+        const desc = COD[n.cod] ? COD[n.cod][0] : "Não especificado";
+        ncRows += `
+          <tr onclick="go('${esc(b[0])}')" style="cursor:pointer">
+            <td class="n">NC-${String(idxGlobal++).padStart(2, "0")}</td>
+            <td><b>${esc(b[1])}</b> · <span class="mono">${esc(n.ponto || "-")}</span></td>
+            <td class="mono">${esc(n.cod || "-")} — ${esc(desc)}</td>
+            <td><span class="tag ${n.sev === "A" ? "NC" : (n.sev === "B" ? "ANDAMENTO" : "PENDENTE")}">Sev. ${esc(n.sev || "-")}</span></td>
+            <td>${esc(n.det || "—")}</td>
+            <td class="mono">${(n.ph || []).length} 📷</td>
+          </tr>`;
+      });
+      f.rows.forEach(r => {
+        const j = judge(r);
+        if (j.length || [r.barra, r.eld, r.cx].includes("NC")) {
+          ncRows += `
+            <tr onclick="go('${esc(b[0])}')" style="cursor:pointer">
+              <td class="n">AUTO</td>
+              <td><b>${esc(b[1])}</b> · <span class="mono">${esc(r.p)}</span></td>
+              <td class="mono">${j.length ? esc(j.join(", ")) : "Item visual marcado NC"}</td>
+              <td><span class="tag NC">Alerta</span></td>
+              <td>Barra:${r.barra || "-"} | Eletrod:${r.eld || "-"} | Caixa:${r.cx || "-"}</td>
+              <td class="mono">${(r.ph || []).length} 📷</td>
+            </tr>`;
+        }
+      });
+    }
+
+    tabContent = `
+      <section class="box">
+        <h2>Não Conformidades e Alertas Técnicos</h2>
+        <div class="scroll">
+          <table class="tbl">
+            <thead>
+              <tr><th>#</th><th>Bloco / Ponto</th><th>Código / Desvio</th><th>Severidade</th><th>Detalhe / Reparo</th><th>Fotos</th></tr>
+            </thead>
+            <tbody>${ncRows || `<tr><td colspan="6" style="text-align:center;padding:18px;color:var(--ok)">✓ Nenhuma não conformidade registrada até o momento.</td></tr>`}</tbody>
+          </table>
+        </div>
+        <div class="note">
+          <b>Critérios fixados (NBR 5419):</b> Continuidade máx. ≤ ${c.limC} Ω | Resistência de aterramento ≤ ${c.limT} Ω | Severidade A = Crítica (risco imediato / malha aberta), B = Média (corrosão/conector), C = Leve (identificação/placa).
+        </div>
+      </section>`;
+  }
+
+  else if (activeTab === "lib") {
+    const chkRows = LIB_CHK.map((item, i) => {
+      const done = !!(S.lib && S.lib["k" + i]);
+      return `
+        <tr class="${done ? "done" : ""}">
+          <td class="c"><input type="checkbox" ${done ? "checked" : ""} onchange="toggleLib(${i},this.checked)"></td>
+          <td class="n">L${String(i + 1).padStart(2, "0")}</td>
+          <td>${esc(item)}</td>
+        </tr>`;
+    }).join("");
+
+    tabContent = `
+      <section class="box">
+        <h2>1. Envio Direto p/ Pastas do Google Drive (Equipes A e B)</h2>
+        <div style="padding:12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px">
+          <div class="card" style="margin:0">
+            <h3>🅰 Equipe A (Dupla 1)</h3>
+            <small>Blocos A, B, D, I, J, Quadra, Portaria, Reservatório</small>
+            <button class="big drv" style="margin-top:8px" onclick="sendToTeamDrive(1)">☁ Enviar Pacote HD p/ Drive Equipe A</button>
+            <a class="big out" href="${esc(getDriveUrl(1))}" target="_blank" rel="noopener">📁 Abrir Pasta Drive — Equipe A</a>
+          </div>
+          <div class="card" style="margin:0">
+            <h3>🅱 Equipe B (Dupla 2)</h3>
+            <small>Blocos E, G, H, K, L, N, Biblioteca</small>
+            <button class="big drv" style="margin-top:8px" onclick="sendToTeamDrive(2)">☁ Enviar Pacote HD p/ Drive Equipe B</button>
+            <a class="big out" href="${esc(getDriveUrl(2))}" target="_blank" rel="noopener">📁 Abrir Pasta Drive — Equipe B</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="box">
+        <h2>2. Exportar Laudo em PDF e Fotos HD (${phAll.length} fotos no aparelho)</h2>
+        <div style="padding:12px">
+          <div class="row" style="margin-bottom:10px">
+            <span class="mono" style="font-size:12px">Filtro do PDF:</span>
+            <span class="seg">
+              <button class="${filterDupla === 0 ? "on" : ""}" onclick="filterDupla=0;render()">Completo (A + B)</button>
+              <button class="${filterDupla === 1 ? "on" : ""}" onclick="filterDupla=1;render()">Só Equipe A</button>
+              <button class="${filterDupla === 2 ? "on" : ""}" onclick="filterDupla=2;render()">Só Equipe B</button>
+            </span>
+          </div>
+          <div class="g2">
+            <button class="big wa" onclick="sharePDF(${filterDupla})">📤 Enviar PDF (WhatsApp / Drive)</button>
+            <button class="big" onclick="downloadPDF(${filterDupla})">📥 Baixar PDF no Celular</button>
+          </div>
+          <div class="g2" style="margin-top:6px">
+            <button class="big out" onclick="printReport(${filterDupla})">🖨 Visualizar / Imprimir Laudo A4</button>
+            <button class="big out" onclick="downloadAllPhotosHD()">🖼 Baixar Todas as Fotos HD (${phAll.length})</button>
+          </div>
+          <div class="g2" style="margin-top:6px">
+            <button class="b" onclick="downloadJSONOnly()">📥 Baixar Backup JSON</button>
+            <button class="b" onclick="importJSONPrompt()">📂 Importar Backup JSON</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="box">
+        <h2>3. Checklist de Liberação de Campo (${libDone} / ${LIB_CHK.length})</h2>
+        <div class="scroll">
+          <table class="tbl"><tbody>${chkRows}</tbody></table>
+        </div>
+      </section>`;
+  }
+
+  wrap.innerHTML = `
+    <header class="top-stamp">
+      <div>
+        <h1>SPDA CAMPO · ${esc(c.cliente || "AMIGOS DO BEM")}</h1>
+        <div class="sub">${esc(c.proposta || "NBR 5419:2015")} · ${esc(c.local || "Inspeção Técnica")} · Cont. ≤ ${c.limC} Ω · Terra ≤ ${c.limT} Ω · Fotos HD c/ Carimbo</div>
+      </div>
+      <div class="meta">
+        DATA: ${esc(c.data)} · ${filterDupla ? teamLabel(filterDupla) : "EQUIPES A + B"}<br>
+        FOTOS HD: ${phAll.length} · <a href="javascript:void(0)" onclick="go('cfg')" style="color:var(--fg);font-weight:700">⚙ AJUSTES DA OBRA</a>
+      </div>
+    </header>
+
+    <div class="prog">
+      <div class="lbl"><span>Blocos / Locais Concluídos (${filterDupla ? teamLabel(filterDupla) : "Geral"})</span><b>${doneBlocks} / ${filteredByTeam.length} (${pctBlocks}%)</b></div>
+      <div class="bar"><i style="width:${pctBlocks}%"></i></div>
+      <div class="lbl"><span>Descidas Medidas & Checklist de Liberação</span><b>${measuredDescidas} / ${totalDescidas} descidas (${pctMeasured}%) · Liberação ${libDone}/${LIB_CHK.length}</b></div>
+      <div class="bar"><i class="ok-bar" style="width:${pctMeasured}%"></i></div>
+    </div>
+
+    <div class="next" onclick="${nextBlock ? `go('${esc(nextBlock[0])}')` : `go('','lib')`}">
+      <div>
+        <div class="k">Próximo Bloco Pendente (${filterDupla ? teamLabel(filterDupla) : "Ordem de Campo"})</div>
+        <div class="v">${nextBlock ? `${esc(nextBlock[0])} · ${esc(nextBlock[1])} (${teamLabel(nextBlock[2])}) — Falta: ${esc(nextSt.missing.join(", ") || "Conferir finalização")}` : "✓ Todos os blocos concluídos! Toque aqui para abrir Liberação & Envio ao Drive."}</div>
+      </div>
+      <span class="mono" style="font-weight:700;font-size:14px">ABRIR ›</span>
+    </div>
+
+    <nav class="tabs" role="tablist">
+      <button role="tab" aria-selected="${activeTab === 'blocos'}" onclick="activeTab='blocos';render()">1. Blocos (${filteredByTeam.length})</button>
+      <button role="tab" aria-selected="${activeTab === 'prog'}" onclick="activeTab='prog';render()">2. Progresso</button>
+      <button role="tab" aria-selected="${activeTab === 'med'}" onclick="activeTab='med';render()">3. Medições (${measuredDescidas})</button>
+      <button role="tab" aria-selected="${activeTab === 'ncs'}" onclick="activeTab='ncs';render()">4. NCs (${totalAlertas})</button>
+      <button role="tab" aria-selected="${activeTab === 'lib'}" onclick="activeTab='lib';render()">5. Liberação & Drive</button>
+    </nav>
+
+    <span id="st-msg" class="mono" style="color:var(--accent);font-weight:600"></span>
+
+    ${tabContent}
+
+    <div class="foot">
+      <span>Dados e fotos HD salvos offline neste aparelho. Pastas Drive Equipe A e B vinculadas.</span>
+      <div class="row">
+        <button class="b" style="padding:4px 8px;font-size:11px" onclick="go('cfg')">⚙ Ajustes</button>
+        <button class="b" style="padding:4px 8px;font-size:11px" onclick="sendToTeamDrive(${activeTeam})">☁ Subir p/ Drive ${activeTeam == 2 ? "Equipe B" : "Equipe A"}</button>
+      </div>
+    </div>`;
+}
+
+function renderBlockDetailView(blockId) {
+  const B = getB();
+  const b = B.find(x => x[0] == blockId);
+  if (!b) { view = ""; return ""; }
+  const st = blockStats(b);
+  const f = st.f, o = b[3] || "";
+
+  let h = `
+    <header class="top-stamp">
+      <div class="row" style="width:100%;justify-content:space-between">
+        <button class="b" onclick="go('')" style="font-weight:700">← Voltar ao Painel</button>
+        <span id="st-msg" class="mono" style="color:var(--accent)"></span>
+        <div class="row">
+          <button class="b" onclick="openBlockModal('${esc(blockId)}')">✎ Editar Local</button>
+          <button class="b" onclick="go('','lib')">📄 PDF / Drive</button>
+        </div>
+      </div>
+      <div style="width:100%;margin-top:4px">
+        <h1>${esc(b[1])} <span class="mono" style="font-size:1.1rem;color:var(--muted)">[${esc(b[0])}]</span></h1>
+        <div class="sub">${teamLabel(b[2])} · ${st.totR ? `${st.medR}/${st.totR} descidas medidas` : "Somente BEP"} · ${st.totPh} foto(s) HD com carimbo</div>
+      </div>
+    </header>
+
+    <div class="card">
+      <h3>Dados de Execução do Bloco</h3>
+      <div class="g3">
+        <div>
+          <label>Início <a href="javascript:void(0)" onclick="setNow('${esc(blockId)}','hi')" style="float:right;color:var(--fg)">[Agora]</a></label>
+          <input type="time" value="${esc(f.hi)}" onchange="set('${esc(blockId)}','hi',this.value)">
+        </div>
+        <div>
+          <label>Fim <a href="javascript:void(0)" onclick="setNow('${esc(blockId)}','hf')" style="float:right;color:var(--fg)">[Agora]</a></label>
+          <input type="time" value="${esc(f.hf)}" onchange="set('${esc(blockId)}','hf',this.value)">
+        </div>
+      </div>
+      <label>Condição do Solo</label>
+      ${seg(blockId, "solo", f.solo, [["Seco", "Seco"], ["Úmido", "Úmido"]])}
+      <label>Observações do Local / Bloco</label>
+      <input placeholder="Observação geral deste local..." value="${esc(f.obs || "")}" onchange="set('${esc(blockId)}','obs',this.value)">
+    </div>`;
+
+  if (!o.includes("only")) {
+    h += `
+      <div class="card">
+        <h3>A. Checklist Visual</h3>
+        ${CHK.map(([k, l]) => `
+          <div style="margin:8px 0;padding-bottom:8px;border-bottom:1px solid var(--line)">
+            <div style="margin-bottom:4px;font-weight:500">${l}</div>
+            ${seg(blockId, "chk." + k, f.chk[k] || "", [["Sim", "Sim", "good"], ["Não", "Não", "bad"], ["NA", "N/A"]])}
+          </div>`).join("")}
+      </div>`;
+  }
+
+  if (o.includes("bep") || o.includes("only")) {
+    h += `
+      <div class="card">
+        <h3>BEP (Barramento de Equipotencialização)</h3>
+        <div style="margin-bottom:4px">Barra, isoladores e conexões íntegros?</div>
+        ${seg(blockId, "bepOk", f.bepOk, [["Sim", "Sim", "good"], ["Não", "Não", "bad"]])}
+        <div class="g2">
+          <div>
+            <label>Continuidade BEP → malha (Ω)</label>
+            <input inputmode="decimal" placeholder="0,00" value="${esc(f.bepC)}" onchange="set('${esc(blockId)}','bepC',this.value)">
+          </div>
+          <div>
+            <label>Terra no BEP (Ω)</label>
+            <input inputmode="decimal" placeholder="0,00" value="${esc(f.bepT || "")}" onchange="set('${esc(blockId)}','bepT',this.value)">
+          </div>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <button class="b" onclick="photo('${esc(blockId)}','BEP',null,null,true)">📷 Câmera HD c/ Carimbo (${(f.bepPh || []).length})</button>
+          <button class="b" onclick="photo('${esc(blockId)}','BEP',null,null,false)">🖼 Galeria</button>
+        </div>
+        ${renderThumbs(blockId, f.bepPh || [], "bep", 0)}
+      </div>`;
+  }
+
+  if (o.includes("dps")) {
+    h += `
+      <div class="card">
+        <h3>DPS no QDG</h3>
+        ${seg(blockId, "dps", f.dps, [["Sim", "Instalado", "good"], ["Não", "Ausente", "bad"]])}
+      </div>`;
+  }
+
+  if (f.rows.length || !o.includes("only")) {
+    h += `<h3>B. Descidas e Caixas de Inspeção (Sentido Horário)</h3>`;
+    f.rows.forEach((r, i) => {
+      const j = judge(r);
+      const hasNC = j.length || [r.barra, r.eld, r.cx].includes("NC");
+      const isOk = !hasNC && (r.cont !== "" || r.terra !== "");
+      const cl = hasNC ? "nc" : (isOk ? "ok" : "");
+      h += `
+        <div class="card d ${cl}">
+          <div class="row">
+            <input class="inline-edit" value="${esc(r.p)}" title="Código da descida (vai no carimbo da foto)" onchange="set('${esc(blockId)}','rows.${i}.p',this.value)">
+            <input class="grow" style="padding:5px 8px;font-size:13px" placeholder="Referência p/ carimbo (ex.: Fachada N)" value="${esc(r.loc || "")}" onchange="set('${esc(blockId)}','rows.${i}.loc',this.value)">
+            ${j.map(x => `<span class="tag NC">${esc(x)}</span>`).join("")}
+          </div>
+          ${[["barra", "Barra + fixação"], ["eld", "Eletroduto + placa"], ["cx", "Caixa + bimetálico"]].map(([k, l]) => `
+            <div class="row" style="margin-top:6px">
+              <small class="grow" style="font-size:13px">${l}</small>
+              ${seg(blockId, `rows.${i}.${k}`, r[k], [["OK", "OK", "good"], ["NC", "NC", "bad"]])}
+            </div>`).join("")}
+          <div class="g3" style="margin-top:6px">
+            <div>
+              <label>Continuidade (Ω) ≤ ${S.cfg.limC}</label>
+              <input inputmode="decimal" placeholder="Ex: 0.12" value="${esc(r.cont)}" onchange="set('${esc(blockId)}','rows.${i}.cont',this.value,1)">
+            </div>
+            <div>
+              <label>Terra (Ω) ≤ ${S.cfg.limT}</label>
+              <input inputmode="decimal" placeholder="Ex: 4.5" value="${esc(r.terra)}" onchange="set('${esc(blockId)}','rows.${i}.terra',this.value,1)">
+            </div>
+          </div>
+          <div class="row" style="margin-top:8px">
+            <button class="b" onclick="photo('${esc(blockId)}','${esc(r.p)}',${i},null,true)">📷 Foto HD (${(r.ph || []).length})</button>
+            <button class="b" onclick="photo('${esc(blockId)}','${esc(r.p)}',${i},null,false)">🖼</button>
+            ${seg(blockId, `rows.${i}.pl`, r.pl, [["Rosa", "Rosa", "pink"], ["Verm", "Verm", "bad"]])}
+            <span class="grow"></span>
+            <button class="b" style="color:var(--nc)" onclick="if(confirm('Remover ${esc(r.p)}?')){F('${esc(blockId)}').rows.splice(${i},1);save();render()}">✕</button>
+          </div>
+          ${renderThumbs(blockId, r.ph || [], "row", i)}
+        </div>`;
+    });
+    h += `<button class="b" style="width:100%;margin-bottom:10px" onclick="F('${esc(blockId)}').rows.push(R(F('${esc(blockId)}').rows.length));save();render()">+ Adicionar Descida</button>`;
+  }
+
+  h += `
+    <div class="card">
+      <h3>C. Não Conformidades (NC)</h3>
+      ${f.ncs.map((n, i) => `
+        <div class="card d nc">
+          <div class="row">
+            <b class="grow mono">NC-${String(i + 1).padStart(2, "0")}</b>
+            <button class="b" style="color:var(--nc);padding:4px 8px;font-size:12px" onclick="F('${esc(blockId)}').ncs.splice(${i},1);save();render()">Excluir</button>
+          </div>
+          <div class="g3">
+            <div>
+              <label>Ponto / Descida</label>
+              <input placeholder="Ex.: D03, Topo..." value="${esc(n.ponto)}" onchange="set('${esc(blockId)}','ncs.${i}.ponto',this.value)">
+            </div>
+            <div>
+              <label>Código da NC</label>
+              <select onchange="set('${esc(blockId)}','ncs.${i}.cod',this.value);if(COD[this.value])set('${esc(blockId)}','ncs.${i}.sev',COD[this.value][1],1)">
+                <option value="">— Selecione —</option>
+                ${Object.entries(COD).map(([k, v]) => `<option value="${k}" ${n.cod == k ? "selected" : ""}>${k} - ${v[0]}</option>`).join("")}
+              </select>
+            </div>
+          </div>
+          <label>Severidade</label>
+          ${seg(blockId, `ncs.${i}.sev`, n.sev, [["A", "A (Crítica)", "bad"], ["B", "B (Média)"], ["C", "C (Leve)"]])}
+          <label>Detalhe / Reparo Recomendado</label>
+          <textarea rows="2" placeholder="Descreva o problema e reparo..." onchange="set('${esc(blockId)}','ncs.${i}.det',this.value)">${esc(n.det)}</textarea>
+          <div class="row" style="margin-top:6px">
+            <button class="b" onclick="photo('${esc(blockId)}','NC-${i + 1}',-1,${i},true)">📷 Câmera HD (${(n.ph || []).length})</button>
+            <button class="b" onclick="photo('${esc(blockId)}','NC-${i + 1}',-1,${i},false)">🖼 Galeria</button>
+          </div>
+          ${renderThumbs(blockId, n.ph || [], "nc", i)}
+        </div>`).join("")}
+      <button class="b" style="width:100%" onclick="F('${esc(blockId)}').ncs.push({ponto:'',cod:'',sev:'',det:'',ph:[]});save();render()">+ Adicionar Não Conformidade</button>
+    </div>
+
+    <div class="card">
+      <h3>D. Fechamento do Bloco (Atualiza Aba Progresso)</h3>
+      ${[["vis", "Inspeção visual concluída"], ["med", "Medições concluídas"], ["foto", "Fotos em HD c/ carimbo registradas"], ["pl", "Pintado na planta A3 (Rosa = OK / Vermelho = NC)"]].map(([k, l]) => `
+        <label style="display:flex;gap:10px;align-items:center;font-size:14px;color:var(--fg);padding:5px 0;text-transform:none">
+          <input type="checkbox" ${f.done[k] ? "checked" : ""} onchange="F('${esc(blockId)}').done.${k}=this.checked?1:0;save();render()">
+          ${l}
+        </label>`).join("")}
+      <button class="big" style="margin-top:10px" onclick="go('')">✓ Salvar e Voltar ao Painel</button>
+    </div>`;
+
+  return h;
+}
+
+function renderConfigView() {
+  const c = S.cfg;
+  return `
+    <header class="top-stamp">
+      <div class="row" style="width:100%;justify-content:space-between">
+        <button class="b" onclick="go('')">← Voltar ao Painel</button>
+        <b>AJUSTES GERAIS E RESOLUÇÃO HD</b>
+      </div>
+    </header>
+
+    <div class="card">
+      <h3>Qualidade da Foto e Carimbo Automático</h3>
+      <label>Resolução das Fotos Capturadas</label>
+      <select onchange="S.cfg.resFoto=parseInt(this.value);save()">
+        <option value="0" ${c.resFoto == 0 ? "selected" : ""}>Resolução Original Máxima da Câmera (12MP / 48MP)</option>
+        <option value="2560" ${(c.resFoto == 2560 || !c.resFoto) ? "selected" : ""}>Quad HD / 4K (2560 px — Recomendado: nítido e rápido)</option>
+        <option value="1920" ${c.resFoto == 1920 ? "selected" : ""}>Full HD (1920 px)</option>
+      </select>
+      <label style="display:flex;gap:10px;align-items:center;font-size:14px;color:var(--fg);margin-top:10px;text-transform:none">
+        <input type="checkbox" ${c.carimboOn !== 0 ? "checked" : ""} onchange="S.cfg.carimboOn=this.checked?1:0;save()">
+        Gravar carimbo escuro na foto (<b>Bloco--Ponto</b> + <b>15 de nov. de 2026 14:45:38</b>)
+      </label>
+    </div>
+
+    <div class="card">
+      <h3>Pastas do Google Drive por Equipe</h3>
+      <label>Equipe Ativa neste Celular</label>
+      <select onchange="S.cfg.equipeAtiva=parseInt(this.value);filterDupla=parseInt(this.value);save()">
+        <option value="1" ${c.equipeAtiva == 1 ? "selected" : ""}>Equipe A (Dupla 1)</option>
+        <option value="2" ${c.equipeAtiva == 2 ? "selected" : ""}>Equipe B (Dupla 2)</option>
+      </select>
+      <label>Link da Pasta Drive — Equipe A</label>
+      <input value="${esc(c.driveA || DRIVE_FOLDERS[1].url)}" onchange="S.cfg.driveA=this.value;save()">
+      <label>Link da Pasta Drive — Equipe B</label>
+      <input value="${esc(c.driveB || DRIVE_FOLDERS[2].url)}" onchange="S.cfg.driveB=this.value;save()">
+    </div>
+
+    <div class="card">
+      <h3>Dados da Obra e Carimbo do Laudo</h3>
+      <label>Cliente / Obra</label>
+      <input value="${esc(c.cliente)}" onchange="S.cfg.cliente=this.value;save()">
+      <div class="g2">
+        <div>
+          <label>Cidade / Unidade</label>
+          <input value="${esc(c.local || "")}" onchange="S.cfg.local=this.value;save()">
+        </div>
+        <div>
+          <label>Data</label>
+          <input type="date" value="${esc(c.data || "")}" onchange="S.cfg.data=this.value;save()">
+        </div>
+      </div>
+      <div class="g2">
+        <div>
+          <label>Responsável Técnico</label>
+          <input value="${esc(c.resp || "")}" onchange="S.cfg.resp=this.value;save()">
+        </div>
+        <div>
+          <label>CREA / CFT / ART</label>
+          <input value="${esc(c.crea || "")}" onchange="S.cfg.crea=this.value;save()">
+        </div>
+      </div>
+      <div class="g2">
+        <div>
+          <label>Equipe / Operadores</label>
+          <input value="${esc(c.eq)}" onchange="S.cfg.eq=this.value;save()">
+        </div>
+        <div>
+          <label>Aparelho Medidor / Série</label>
+          <input value="${esc(c.ap)}" onchange="S.cfg.ap=this.value;save()">
+        </div>
+      </div>
+      <div class="g2">
+        <div>
+          <label>Limite Continuidade (Ω)</label>
+          <input inputmode="decimal" value="${c.limC}" onchange="S.cfg.limC=num(this.value)||0.2;save()">
+        </div>
+        <div>
+          <label>Limite Terra (Ω)</label>
+          <input inputmode="decimal" value="${c.limT}" onchange="S.cfg.limT=num(this.value)||10;save()">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Gerenciar Locais e Reset</h3>
+      <div class="row">
+        <button class="b" onclick="openBlockModal()">+ Adicionar Local</button>
+        <button class="b" onclick="resetDefaultBlocks()">Restaurar Locais Padrão</button>
+        <button class="b" style="color:var(--nc)" onclick="clearAllData()">Zerar Todos os Dados</button>
+      </div>
+    </div>`;
 }
 
 function openBlockModal(editId) {
@@ -444,29 +1320,29 @@ function openBlockModal(editId) {
             </select>
           </div>
         </div>
-        <label>Nome do Lugar / Bloco</label>
-        <input id="mb-nome" value="${esc(nome)}" placeholder="Ex.: Bloco M, Subestação, Galpão...">
+        <label>Nome do Lugar / Edifício (aparece no carimbo da foto)</label>
+        <input id="mb-nome" value="${esc(nome)}" placeholder="Ex.: edifício A, Bloco M, Subestação...">
         ${!ex ? `
           <label>Quantidade inicial de descidas</label>
           <input id="mb-qtd" type="number" min="0" max="60" value="${qtdDesc}">
         ` : ""}
         <div style="margin-top:10px">
-          <label>Itens presentes neste local</label>
-          <label style="display:flex;gap:8px;align-items:center;font-size:14px;color:var(--t)">
-            <input type="checkbox" id="mb-bep" style="width:20px" ${hasBep ? "checked" : ""}> Possui BEP (Barramento de Equipotencialização)
+          <label>Configuração do Local</label>
+          <label style="display:flex;gap:8px;align-items:center;font-size:14px;color:var(--fg);text-transform:none">
+            <input type="checkbox" id="mb-bep" ${hasBep ? "checked" : ""}> Possui BEP (Barramento de Equipotencialização)
           </label>
-          <label style="display:flex;gap:8px;align-items:center;font-size:14px;color:var(--t)">
-            <input type="checkbox" id="mb-dps" style="width:20px" ${hasDps ? "checked" : ""}> Verificar DPS no QDG
+          <label style="display:flex;gap:8px;align-items:center;font-size:14px;color:var(--fg);text-transform:none">
+            <input type="checkbox" id="mb-dps" ${hasDps ? "checked" : ""}> Verificar DPS no QDG
           </label>
-          <label style="display:flex;gap:8px;align-items:center;font-size:14px;color:var(--t)">
-            <input type="checkbox" id="mb-only" style="width:20px" ${isOnly ? "checked" : ""}> Somente BEP / Aterramento (sem malha de descidas)
+          <label style="display:flex;gap:8px;align-items:center;font-size:14px;color:var(--fg);text-transform:none">
+            <input type="checkbox" id="mb-only" ${isOnly ? "checked" : ""}> Somente BEP / Aterramento (sem descidas)
           </label>
         </div>
         <div class="row" style="margin-top:14px">
-          ${ex ? `<button class="b" style="color:var(--nc);border-color:var(--nc)" onclick="deleteBlock('${esc(id)}')">🗑 Excluir</button>` : ""}
+          ${ex ? `<button class="b" style="color:var(--nc)" onclick="deleteBlock('${esc(id)}')">🗑 Excluir</button>` : ""}
           <span class="grow"></span>
           <button class="b" onclick="closeModal()">Cancelar</button>
-          <button class="b" style="background:var(--p);color:#fff;border-color:var(--p)" onclick="saveBlockModal('${esc(editId || "")}')">Salvar</button>
+          <button class="b" style="background:var(--fg);color:var(--bg)" onclick="saveBlockModal('${esc(editId || "")}')">Salvar</button>
         </div>
       </div>
     </div>`;
@@ -494,7 +1370,7 @@ function saveBlockModal(editId) {
     }
   } else {
     if (B.some(x => x[0] === id)) {
-      alert("Já existe um local com a sigla " + id + ". Escolha outra sigla.");
+      alert("Já existe um local com a sigla " + id + ".");
       return;
     }
     const qtd = Math.max(0, Math.min(60, parseInt($("#mb-qtd")?.value ?? 8)));
@@ -508,7 +1384,7 @@ function saveBlockModal(editId) {
 }
 
 function deleteBlock(id) {
-  if (!confirm("Tem certeza que deseja remover este local da lista?")) return;
+  if (!confirm("Remover este local da lista?")) return;
   S.blocos = getB().filter(x => x[0] !== id);
   delete S.f[id];
   save();
@@ -522,495 +1398,33 @@ function setNow(id, field) {
   set(id, field, now, 1);
 }
 
-async function render() {
-  const m = $("#m"), B = getB();
-  $("#back").style.display = view ? "" : "none";
-
-  if (view === "cfg") {
-    $("#ttl").textContent = "Ajustes e Pastas do Drive";
-    const c = S.cfg;
-    m.innerHTML = `
-      <div class="card">
-        <h3>Pastas do Google Drive por Equipe</h3>
-        <label>Equipe Ativa neste Aparelho</label>
-        <select onchange="S.cfg.equipeAtiva=parseInt(this.value);filterDupla=parseInt(this.value);save();render()">
-          <option value="1" ${c.equipeAtiva == 1 ? "selected" : ""}>Equipe A (Dupla 1)</option>
-          <option value="2" ${c.equipeAtiva == 2 ? "selected" : ""}>Equipe B (Dupla 2)</option>
-        </select>
-        <label>Pasta do Google Drive — Equipe A (Dupla 1)</label>
-        <div class="row">
-          <input class="grow" value="${esc(c.driveA || DRIVE_FOLDERS[1].url)}" onchange="S.cfg.driveA=this.value;save()">
-          <a class="b" href="${esc(getDriveUrl(1))}" target="_blank" rel="noopener" style="text-decoration:none">📁 Abrir</a>
-        </div>
-        <label>Pasta do Google Drive — Equipe B (Dupla 2)</label>
-        <div class="row">
-          <input class="grow" value="${esc(c.driveB || DRIVE_FOLDERS[2].url)}" onchange="S.cfg.driveB=this.value;save()">
-          <a class="b" href="${esc(getDriveUrl(2))}" target="_blank" rel="noopener" style="text-decoration:none">📁 Abrir</a>
-        </div>
-      </div>
-
-      <div class="card">
-        <h3>Dados do Cliente / Laudo</h3>
-        <label>Nome do Cliente / Obra</label>
-        <input value="${esc(c.cliente)}" placeholder="Ex.: Amigos do Bem" onchange="S.cfg.cliente=this.value;save()">
-        <div class="g2">
-          <div>
-            <label>Cidade / Localidade</label>
-            <input value="${esc(c.local || "")}" placeholder="Ex.: Inajá - PE" onchange="S.cfg.local=this.value;save()">
-          </div>
-          <div>
-            <label>Data da Inspeção</label>
-            <input type="date" value="${esc(c.data || "")}" onchange="S.cfg.data=this.value;save()">
-          </div>
-        </div>
-        <div class="g2">
-          <div>
-            <label>Responsável Técnico</label>
-            <input value="${esc(c.resp || "")}" placeholder="Nome do Engenheiro / Técnico" onchange="S.cfg.resp=this.value;save()">
-          </div>
-          <div>
-            <label>CREA / CFT / ART</label>
-            <input value="${esc(c.crea || "")}" placeholder="Registro / ART" onchange="S.cfg.crea=this.value;save()">
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <h3>Limites de Critério (Ω) — NBR 5419</h3>
-        <div class="g3">
-          <div>
-            <label>Continuidade máx. (Ω)</label>
-            <input inputmode="decimal" value="${c.limC}" onchange="S.cfg.limC=num(this.value)||0.2;save()">
-          </div>
-          <div>
-            <label>Terra máx. (Ω)</label>
-            <input inputmode="decimal" value="${c.limT}" onchange="S.cfg.limT=num(this.value)||10;save()">
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <h3>Equipe e Instrumentos</h3>
-        <label>Nomes dos Operadores da Equipe</label>
-        <input value="${esc(c.eq)}" placeholder="Ex.: João e Carlos" onchange="S.cfg.eq=this.value;save()">
-        <label>Aparelho Medidor (modelo / nº série / calibração)</label>
-        <input value="${esc(c.ap)}" placeholder="Ex.: Terrômetro / Microhmímetro..." onchange="S.cfg.ap=this.value;save()">
-      </div>
-
-      <div class="card">
-        <h3>Upload Direto Automático (Google Apps Script / Servidor)</h3>
-        <label>URL do App da Web (Google Apps Script) ou Servidor</label>
-        <input value="${esc(c.url)}" placeholder="https://script.google.com/macros/s/.../exec" onchange="S.cfg.url=this.value.replace(/\\/$/,'');save()">
-        <label>Token (opcional)</label>
-        <input value="${esc(c.tok)}" onchange="S.cfg.tok=this.value;save()">
-      </div>
-
-      <div class="card">
-        <h3>Gerenciar Locais e Dados</h3>
-        <div class="row">
-          <button class="b" onclick="openBlockModal()">+ Adicionar Local</button>
-          <button class="b" onclick="resetDefaultBlocks()">Restaurar Locais Padrão</button>
-          <button class="b" style="color:var(--nc)" onclick="clearAllData()">Limpar Tudo</button>
-        </div>
-      </div>`;
-    return;
-  }
-
-  if (view === "exp") {
-    $("#ttl").textContent = "Exportar PDF, Drive e WhatsApp";
-    const ph = await pall();
-    const unsent = ph.filter(p => !p.s).length;
-    const eqAtiva = filterDupla || S.cfg.equipeAtiva || 1;
-    m.innerHTML = `
-      <div class="card">
-        <h3>Pastas do Google Drive das Equipes</h3>
-        <p style="margin:2px 0 8px;font-size:13px;color:var(--m)">
-          Envie o PDF + Fotos ou abra diretamente a pasta do Google Drive da sua equipe:
-        </p>
-        <div class="team-card">
-          <b>🅰 Equipe A (Dupla 1)</b> — Blocos A, B, D, I, J, Q, Portaria, Reservatório
-          <div class="g2" style="margin-top:6px">
-            <button class="big drv" style="margin:0;padding:10px" onclick="sendToTeamDrive(1)">☁ Enviar p/ Drive Equipe A</button>
-            <a class="big out" style="margin:0;padding:10px" href="${esc(getDriveUrl(1))}" target="_blank" rel="noopener">📁 Abrir Pasta Equipe A</a>
-          </div>
-        </div>
-
-        <div class="team-card" style="margin-top:8px">
-          <b>🅱 Equipe B (Dupla 2)</b> — Blocos E, G, H, K, L, N, Biblioteca
-          <div class="g2" style="margin-top:6px">
-            <button class="big drv" style="margin:0;padding:10px" onclick="sendToTeamDrive(2)">☁ Enviar p/ Drive Equipe B</button>
-            <a class="big out" style="margin:0;padding:10px" href="${esc(getDriveUrl(2))}" target="_blank" rel="noopener">📁 Abrir Pasta Equipe B</a>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <h3>1º Jeito: Laudo Técnico em PDF (Com Fotos)</h3>
-        <label>Filtrar blocos no PDF por equipe:</label>
-        <div class="row" style="margin-bottom:8px">
-          <span class="seg">
-            <button class="${filterDupla === 0 ? "on" : ""}" onclick="filterDupla=0;render()">Completo (A + B)</button>
-            <button class="${filterDupla === 1 ? "on" : ""}" onclick="filterDupla=1;render()">Só Equipe A</button>
-            <button class="${filterDupla === 2 ? "on" : ""}" onclick="filterDupla=2;render()">Só Equipe B</button>
-          </span>
-        </div>
-        <button class="big wa" onclick="sharePDF(${filterDupla})">📤 Enviar PDF (WhatsApp / Salvar no Drive)</button>
-        <button class="big" onclick="downloadPDF(${filterDupla})">📥 Baixar PDF Direto no Celular</button>
-        <button class="big out" onclick="printReport(${filterDupla})">🖨 Abrir Laudo A4 Formatado / Imprimir PDF</button>
-      </div>
-
-      <div class="card">
-        <h3>2º Jeito: Pacote Completo (PDF + JSON + ${ph.length} Fotos)</h3>
-        <p style="margin:4px 0 10px;font-size:13px;color:var(--m)">
-          Compartilha ou baixa o pacote completo (Laudo PDF + <b>spda_dados.json</b> + <b>${ph.length} fotos</b>, sendo ${unsent} novas).
-        </p>
-        <button class="big drv" onclick="exp(false, ${eqAtiva})">☁ Compartilhar Pacote p/ Drive ou WhatsApp</button>
-        <button class="big sec" onclick="exp(true, ${eqAtiva})">☁ Reenviar Todas as Fotos + PDF + JSON</button>
-        <div class="g2" style="margin-top:8px">
-          <button class="b" onclick="downloadJSONOnly()">📥 Baixar JSON</button>
-          <button class="b" onclick="importJSONPrompt()">📂 Importar JSON</button>
-        </div>
-      </div>`;
-    return;
-  }
-
-  if (!view) {
-    $("#ttl").textContent = "SPDA Campo — " + (S.cfg.cliente || "Inspeção");
-    const ph = await pall();
-    let totMed = 0, totNC = 0;
-    B.forEach(b => {
-      if (filterDupla && b[2] != filterDupla) return;
-      const f = S.f[b[0]];
-      if (f) {
-        totMed += f.rows.filter(r => r.cont || r.terra).length;
-        totNC += f.ncs.length + f.rows.filter(r => judge(r).length || [r.barra, r.eld, r.cx].includes("NC")).length;
-      }
-    });
-
-    const filteredB = B.filter(b => {
-      if (filterDupla && b[2] != filterDupla) return false;
-      if (searchQ && !b[1].toLowerCase().includes(searchQ.toLowerCase()) && !b[0].toLowerCase().includes(searchQ.toLowerCase())) return false;
-      return true;
-    });
-
-    const activeTeam = filterDupla || S.cfg.equipeAtiva || 1;
-
-    m.innerHTML = `
-      <div class="stats-bar">
-        <div class="stat-box"><b>${filteredB.length}</b><small>Locais</small></div>
-        <div class="stat-box"><b>${totMed}</b><small>Medições</small></div>
-        <div class="stat-box"><b style="color:${totNC ? "var(--nc)" : "inherit"}">${totNC}</b><small>Alertas/NC</small></div>
-        <div class="stat-box"><b>${ph.length}</b><small>Fotos</small></div>
-      </div>
-
-      <div class="card" style="padding:10px">
-        <div class="row">
-          <input class="grow" style="padding:8px 10px;font-size:14px" placeholder="🔍 Buscar bloco ou local..." value="${esc(searchQ)}" oninput="searchQ=this.value;render()">
-          <button class="b" onclick="openBlockModal()">+ Local</button>
-        </div>
-        <div class="row" style="margin-top:8px;justify-content:space-between">
-          <span class="seg">
-            <button class="${filterDupla === 0 ? "on" : ""}" onclick="filterDupla=0;render()">Todos</button>
-            <button class="${filterDupla === 1 ? "on" : ""}" onclick="filterDupla=1;S.cfg.equipeAtiva=1;save();render()">Equipe A (Dupla 1)</button>
-            <button class="${filterDupla === 2 ? "on" : ""}" onclick="filterDupla=2;S.cfg.equipeAtiva=2;save();render()">Equipe B (Dupla 2)</button>
-          </span>
-        </div>
-        <div class="g2" style="margin-top:8px">
-          <a class="b" href="${esc(getDriveUrl(1))}" target="_blank" rel="noopener" style="text-decoration:none;text-align:center;font-size:13px">📁 Drive Equipe A</a>
-          <a class="b" href="${esc(getDriveUrl(2))}" target="_blank" rel="noopener" style="text-decoration:none;text-align:center;font-size:13px">📁 Drive Equipe B</a>
-        </div>
-      </div>
-
-      <div class="card" style="padding:4px 8px">
-        ${filteredB.map(b => {
-          const f = S.f[b[0]];
-          const n = f ? f.ncs.length + f.rows.filter(r => judge(r).length || [r.barra, r.eld, r.cx].includes("NC")).length : 0;
-          const fl = f ? f.rows.filter(r => r.cont || r.terra).length : 0;
-          const totR = f ? f.rows.length : (b[3]?.includes("only") ? 0 : 8);
-          return `
-            <div class="li" onclick="go('${esc(b[0])}')">
-              <div class="grow">
-                <b>${esc(b[1])}</b> <small style="opacity:.75">[${esc(b[0])}]</small><br>
-                <small>${teamLabel(b[2])} • ${totR ? `${fl}/${totR} descidas medidas` : "Somente BEP"}</small>
-              </div>
-              <div class="row" style="gap:6px">
-                ${n ? `<span class="pill nc">${n} NC</span>` : ""}
-                ${f && f.done.pl ? `<span class="pill ok">✓</span>` : ""}
-                <button class="b" style="padding:5px 8px;font-size:12px" title="Editar nome do local" onclick="event.stopPropagation();openBlockModal('${esc(b[0])}')">✎</button>
-                <span style="color:var(--m);font-size:18px">›</span>
-              </div>
-            </div>`;
-        }).join("") || `<div style="padding:16px;text-align:center;color:var(--m)">Nenhum local encontrado.</div>`}
-      </div>
-
-      <button class="big drv" onclick="sendToTeamDrive(${activeTeam})">☁ Enviar p/ Google Drive — ${activeTeam == 2 ? "Equipe B" : "Equipe A"}</button>
-      <button class="big wa" onclick="sharePDF(${filterDupla})">📤 Enviar Laudo PDF no WhatsApp / Drive</button>
-      <button class="big" onclick="downloadPDF(${filterDupla})">📥 Baixar Laudo PDF no Celular</button>
-      <div style="text-align:center;margin-top:4px">
-        <small>${ph.length} fotos salvas no aparelho • ${ph.filter(p => !p.s).length} pendentes de envio</small>
-      </div>`;
-    return;
-  }
-
-  const b = B.find(x => x[0] == view);
-  if (!b) { go(""); return; }
-  const f = F(view), o = b[3] || "";
-  $("#ttl").textContent = b[1];
-
-  let h = `
-    <div class="card">
-      <div class="row" style="margin-bottom:6px">
-        <b class="grow" style="font-size:16px">${esc(b[1])} <small>(${teamLabel(b[2])})</small></b>
-        <button class="b" style="padding:6px 10px;font-size:13px" onclick="openBlockModal('${esc(view)}')">✎ Editar Local</button>
-      </div>
-      <div class="g3">
-        <div>
-          <label>Início <a href="javascript:void(0)" onclick="setNow('${esc(view)}','hi')" style="float:right;color:var(--p)">Agora</a></label>
-          <input type="time" value="${esc(f.hi)}" onchange="set('${esc(view)}','hi',this.value)">
-        </div>
-        <div>
-          <label>Fim <a href="javascript:void(0)" onclick="setNow('${esc(view)}','hf')" style="float:right;color:var(--p)">Agora</a></label>
-          <input type="time" value="${esc(f.hf)}" onchange="set('${esc(view)}','hf',this.value)">
-        </div>
-      </div>
-      <label>Condição do Solo</label>
-      ${seg(view, "solo", f.solo, [["Seco", "Seco"], ["Úmido", "Úmido"]])}
-      <label>Observações do Local / Bloco</label>
-      <input placeholder="Opcional: observação geral deste bloco..." value="${esc(f.obs || "")}" onchange="set('${esc(view)}','obs',this.value)">
-    </div>`;
-
-  if (!o.includes("only")) {
-    h += `
-      <div class="card">
-        <h3>A. Checklist Visual</h3>
-        ${CHK.map(([k, l]) => `
-          <div style="margin:10px 0;padding-bottom:8px;border-bottom:1px solid var(--ln)">
-            <div style="margin-bottom:4px;font-weight:500">${l}</div>
-            ${seg(view, "chk." + k, f.chk[k] || "", [["Sim", "Sim", "good"], ["Não", "Não", "bad"], ["NA", "N/A"]])}
-          </div>`).join("")}
-      </div>`;
-  }
-
-  if (o.includes("bep") || o.includes("only")) {
-    h += `
-      <div class="card">
-        <h3>BEP (Barramento de Equipotencialização)</h3>
-        <div style="margin-bottom:4px">Barra, isoladores e conexões íntegros?</div>
-        ${seg(view, "bepOk", f.bepOk, [["Sim", "Sim", "good"], ["Não", "Não", "bad"]])}
-        <div class="g2">
-          <div>
-            <label>Continuidade BEP → malha (Ω)</label>
-            <input inputmode="decimal" placeholder="0,00" value="${esc(f.bepC)}" onchange="set('${esc(view)}','bepC',this.value)">
-          </div>
-          <div>
-            <label>Terra no BEP (Ω)</label>
-            <input inputmode="decimal" placeholder="0,00" value="${esc(f.bepT || "")}" onchange="set('${esc(view)}','bepT',this.value)">
-          </div>
-        </div>
-        <div class="row" style="margin-top:8px">
-          <button class="b" onclick="photo('${esc(view)}','BEP',null,null,true)">📷 Câmera (${(f.bepPh || []).length})</button>
-          <button class="b" onclick="photo('${esc(view)}','BEP',null,null,false)">🖼 Galeria</button>
-        </div>
-        ${renderThumbs(view, f.bepPh || [], "bep", 0)}
-      </div>`;
-  }
-
-  if (o.includes("dps")) {
-    h += `
-      <div class="card">
-        <h3>DPS no QDG</h3>
-        ${seg(view, "dps", f.dps, [["Sim", "Instalado", "good"], ["Não", "Ausente", "bad"]])}
-      </div>`;
-  }
-
-  if (f.rows.length || !o.includes("only")) {
-    h += `<h3 style="padding:0 4px">B. Descidas e Caixas (Sentido Horário)</h3>`;
-    f.rows.forEach((r, i) => {
-      const j = judge(r);
-      const hasNC = j.length || [r.barra, r.eld, r.cx].includes("NC");
-      const isOk = !hasNC && (r.cont !== "" || r.terra !== "");
-      const cl = hasNC ? "nc" : (isOk ? "ok" : "");
-      h += `
-        <div class="card d ${cl}">
-          <div class="row">
-            <input class="inline-edit" value="${esc(r.p)}" title="Editar código da descida" onchange="set('${esc(view)}','rows.${i}.p',this.value)">
-            <input class="grow" style="padding:5px 8px;font-size:13px" placeholder="Local/Referência (ex.: Lateral N)" value="${esc(r.loc || "")}" onchange="set('${esc(view)}','rows.${i}.loc',this.value)">
-            ${j.map(x => `<span class="pill nc">${esc(x)}</span>`).join("")}
-          </div>
-          ${[["barra", "Barra + fixação"], ["eld", "Eletroduto + placa"], ["cx", "Caixa + bimetálico"]].map(([k, l]) => `
-            <div class="row" style="margin-top:6px">
-              <small class="grow" style="font-size:13px">${l}</small>
-              ${seg(view, `rows.${i}.${k}`, r[k], [["OK", "OK", "good"], ["NC", "NC", "bad"]])}
-            </div>`).join("")}
-          <div class="g3" style="margin-top:6px">
-            <div>
-              <label>Continuidade (Ω) <small>(≤${S.cfg.limC})</small></label>
-              <input inputmode="decimal" placeholder="Ex: 0.12" value="${esc(r.cont)}" onchange="set('${esc(view)}','rows.${i}.cont',this.value,1)">
-            </div>
-            <div>
-              <label>Terra (Ω) <small>(≤${S.cfg.limT})</small></label>
-              <input inputmode="decimal" placeholder="Ex: 4.5" value="${esc(r.terra)}" onchange="set('${esc(view)}','rows.${i}.terra',this.value,1)">
-            </div>
-          </div>
-          <div class="row" style="margin-top:8px">
-            <button class="b" onclick="photo('${esc(view)}','${esc(r.p)}',${i},null,true)">📷 Foto (${(r.ph || []).length})</button>
-            <button class="b" onclick="photo('${esc(view)}','${esc(r.p)}',${i},null,false)">🖼</button>
-            ${seg(view, `rows.${i}.pl`, r.pl, [["Rosa", "Rosa", "pink"], ["Verm", "Verm", "bad"]])}
-            <span class="grow"></span>
-            <button class="b" style="color:var(--nc)" title="Remover descida" onclick="if(confirm('Remover ${esc(r.p)}?')){F('${esc(view)}').rows.splice(${i},1);save();render()}">✕</button>
-          </div>
-          ${renderThumbs(view, r.ph || [], "row", i)}
-        </div>`;
-    });
-    h += `<button class="b" style="width:100%;margin-bottom:10px;font-weight:600" onclick="F('${esc(view)}').rows.push(R(F('${esc(view)}').rows.length));save();render()">+ Adicionar Descida</button>`;
-  }
-
-  h += `
-    <div class="card">
-      <h3>C. Não Conformidades (NC)</h3>
-      ${f.ncs.map((n, i) => `
-        <div class="card d nc">
-          <div class="row">
-            <b class="grow">NC-${String(i + 1).padStart(2, "0")}</b>
-            <button class="b" style="color:var(--nc);padding:4px 8px;font-size:12px" onclick="F('${esc(view)}').ncs.splice(${i},1);save();render()">Excluir</button>
-          </div>
-          <div class="g3">
-            <div>
-              <label>Ponto / Descida</label>
-              <input placeholder="Ex.: D03, Topo..." value="${esc(n.ponto)}" onchange="set('${esc(view)}','ncs.${i}.ponto',this.value)">
-            </div>
-            <div>
-              <label>Código da NC</label>
-              <select onchange="set('${esc(view)}','ncs.${i}.cod',this.value);if(COD[this.value])set('${esc(view)}','ncs.${i}.sev',COD[this.value][1],1)">
-                <option value="">— Selecione —</option>
-                ${Object.entries(COD).map(([k, v]) => `<option value="${k}" ${n.cod == k ? "selected" : ""}>${k} - ${v[0]}</option>`).join("")}
-              </select>
-            </div>
-          </div>
-          <label>Severidade</label>
-          ${seg(view, `ncs.${i}.sev`, n.sev, [["A", "A (Crítica)", "bad"], ["B", "B (Média)"], ["C", "C (Leve)"]])}
-          <label>Detalhe / Reparo Recomendado</label>
-          <textarea rows="2" placeholder="Descreva o problema e reparo..." onchange="set('${esc(view)}','ncs.${i}.det',this.value)">${esc(n.det)}</textarea>
-          <div class="row" style="margin-top:6px">
-            <button class="b" onclick="photo('${esc(view)}','NC-${i + 1}',-1,${i},true)">📷 Câmera (${(n.ph || []).length})</button>
-            <button class="b" onclick="photo('${esc(view)}','NC-${i + 1}',-1,${i},false)">🖼 Galeria</button>
-          </div>
-          ${renderThumbs(view, n.ph || [], "nc", i)}
-        </div>`).join("")}
-      <button class="b" style="width:100%;font-weight:600" onclick="F('${esc(view)}').ncs.push({ponto:'',cod:'',sev:'',det:'',ph:[]});save();render()">+ Adicionar Não Conformidade</button>
-    </div>
-
-    <div class="card">
-      <h3>D. Painel de Controle do Bloco</h3>
-      ${[["vis", "Inspeção visual concluída"], ["med", "Medições concluídas"], ["foto", "Fotos registradas"], ["pl", "Pintado na planta A3"]].map(([k, l]) => `
-        <label style="display:flex;gap:10px;align-items:center;font-size:15px;color:var(--t);padding:4px 0">
-          <input type="checkbox" style="width:22px;height:22px" ${f.done[k] ? "checked" : ""} onchange="F('${esc(view)}').done.${k}=this.checked?1:0;save()">
-          ${l}
-        </label>`).join("")}
-    </div>`;
-
-  m.innerHTML = h;
-  hydrateThumbs();
-}
-
-function resize(file) {
-  return new Promise(r => {
-    const i = new Image();
-    i.onload = () => {
-      const k = Math.min(1, 1400 / Math.max(i.width, i.height));
-      const c = document.createElement("canvas");
-      c.width = Math.round(i.width * k);
-      c.height = Math.round(i.height * k);
-      c.getContext("2d").drawImage(i, 0, 0, c.width, c.height);
-      c.toBlob(r, "image/jpeg", 0.75);
-    };
-    i.src = URL.createObjectURL(file);
-  });
-}
-
-function photo(id, ponto, ri, ni, useCam = true) {
-  const i = document.createElement("input");
-  i.type = "file";
-  i.accept = "image/*";
-  if (useCam) i.capture = "environment";
-  else i.multiple = true;
-  i.onchange = async () => {
-    if (!i.files || !i.files.length) return;
-    for (const file of i.files) {
-      const bl = await resize(file);
-      const d = new Date(), hh = d.toTimeString().slice(0, 8).replace(/:/g, "");
-      const cleanPonto = String(ponto).replace(/[^a-zA-Z0-9_-]/g, "");
-      const name = `${id}_${cleanPonto}_${d.toISOString().slice(0, 10)}_${hh}_${Math.random().toString(36).slice(2, 5)}.jpg`;
-      await pset(name, {b: bl, id, ponto, t: d.toISOString(), s: 0});
-      const f = F(id);
-      if (ri >= 0 && ri != null && ri !== undefined) f.rows[ri].ph.push(name);
-      else if (ni != null && ni >= 0) (f.ncs[ni].ph ??= []).push(name);
-      else (f.bepPh ??= []).push(name);
-    }
-    save();
-    render();
-  };
-  i.click();
-}
-
 function snap() {
   return JSON.stringify({
     gerado: new Date().toISOString(),
     cfg: {...S.cfg, tok: undefined},
     blocos: getB(),
+    lib: S.lib,
     f: S.f
   }, null, 2);
 }
 
-function blobToBase64(blob) {
-  return new Promise(res => {
-    const fr = new FileReader();
-    fr.onload = () => {
-      const s = String(fr.result || "");
-      res(s.includes(",") ? s.split(",")[1] : s);
-    };
-    fr.readAsDataURL(blob);
-  });
+async function downloadAllPhotosHD() {
+  const ks = await pkeys();
+  if (!ks.length) { alert("Nenhuma foto salva no aparelho ainda."); return; }
+  for (const k of ks) {
+    const p = await pget(k);
+    if (!p || !p.b) continue;
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(p.b);
+    a.download = k;
+    a.click();
+    await new Promise(r => setTimeout(r, 220));
+  }
 }
 
 async function sendToTeamDrive(teamNum = 1) {
   const teamKey = teamNum == 2 ? "EquipeB" : "EquipeA";
-  const folderId = getDriveFolderId(teamNum);
   const folderUrl = getDriveUrl(teamNum);
-  const st = $("#st");
-
-  // 1. Se houver Google Apps Script WebApp configurado em S.cfg.url, envia direto para a pasta ID da equipe!
-  if (S.cfg.url && S.cfg.url.includes("script.google.com")) {
-    try {
-      st.textContent = `enviando p/ Drive ${teamKey}…`;
-      const pdfFile = await buildPDFFile(teamNum);
-      const filesPayload = [
-        {name: pdfFile.name, mimeType: "application/pdf", base64: await blobToBase64(pdfFile)},
-        {name: `${teamKey}_spda_dados.json`, mimeType: "application/json", base64: btoa(unescape(encodeURIComponent(snap())))}
-      ];
-      const ks = await pkeys();
-      const B = getB();
-      for (const k of ks) {
-        const p = await pget(k);
-        if (!p || p.s) continue;
-        const blk = B.find(x => x[0] === p.id);
-        if (blk && blk[2] != teamNum) continue;
-        filesPayload.push({name: k, mimeType: "image/jpeg", base64: await blobToBase64(p.b)});
-      }
-      await fetch(S.cfg.url, {
-        method: "POST",
-        mode: "no-cors",
-        body: JSON.stringify({equipe: teamNum == 2 ? "B" : "A", folderId, files: filesPayload})
-      });
-      st.textContent = `✓ enviado Drive ${teamKey}`;
-      alert(`Arquivos enviados para a pasta do Google Drive da ${teamLabel(teamNum)}!`);
-      return;
-    } catch (err) {
-      st.textContent = "";
-    }
-  }
-
-  // 2. No celular: monta o pacote (PDF da equipe + JSON + fotos da equipe) e abre o compartilhamento p/ salvar no Drive ou abre a pasta
   const pdfFile = await buildPDFFile(teamNum);
   const jsonFile = new File([snap()], `${teamKey}_spda_dados.json`, {type: "application/json"});
   const files = [pdfFile, jsonFile];
@@ -1018,10 +1432,10 @@ async function sendToTeamDrive(teamNum = 1) {
   const B = getB();
   for (const k of ks) {
     const p = await pget(k);
-    if (!p) continue;
+    if (!p || !p.b) continue;
     const blk = B.find(x => x[0] === p.id);
     if (blk && blk[2] != teamNum) continue;
-    if (!p.s) files.push(new File([p.b], k, {type: "image/jpeg"}));
+    files.push(new File([p.b], k, {type: "image/jpeg"}));
   }
 
   if (navigator.canShare && navigator.canShare({files})) {
@@ -1045,48 +1459,11 @@ async function sendToTeamDrive(teamNum = 1) {
     }
   }
 
-  // 3. Fallback: Baixa o PDF + JSON no aparelho e abre a pasta exata da equipe no Google Drive
   const a = document.createElement("a");
   a.href = URL.createObjectURL(pdfFile);
   a.download = pdfFile.name;
   a.click();
-  setTimeout(() => {
-    window.open(folderUrl, "_blank");
-  }, 400);
-}
-
-async function exp(includeAll = false, teamFilter = 0) {
-  const pdfFile = await buildPDFFile(teamFilter);
-  const files = [
-    pdfFile,
-    new File([snap()], "spda_dados.json", {type: "application/json"})
-  ];
-  const ks = await pkeys();
-  const B = getB();
-  for (const k of ks) {
-    const p = await pget(k);
-    if (!p) continue;
-    if (teamFilter) {
-      const blk = B.find(x => x[0] === p.id);
-      if (blk && blk[2] != teamFilter) continue;
-    }
-    if (includeAll || !p.s) files.push(new File([p.b], k, {type: "image/jpeg"}));
-  }
-  if (navigator.canShare && navigator.canShare({files})) {
-    try {
-      await navigator.share({files, title: "SPDA — " + (S.cfg.cliente || "Campo")});
-      for (const k of ks) {
-        const p = await pget(k);
-        p.s = 1;
-        await pset(k, p);
-      }
-      render();
-      return;
-    } catch (e) {
-      if (e.name === "AbortError") return;
-    }
-  }
-  downloadJSONOnly();
+  setTimeout(() => window.open(folderUrl, "_blank"), 400);
 }
 
 function downloadJSONOnly() {
@@ -1108,6 +1485,7 @@ function importJSONPrompt() {
       const data = JSON.parse(txt);
       if (data.cfg) S.cfg = {...S.cfg, ...data.cfg};
       if (Array.isArray(data.blocos)) S.blocos = data.blocos;
+      if (data.lib) S.lib = data.lib;
       if (data.f) S.f = data.f;
       await kset("S", S);
       alert("Dados importados com sucesso!");
@@ -1120,15 +1498,16 @@ function importJSONPrompt() {
 }
 
 function resetDefaultBlocks() {
-  if (!confirm("Restaurar a lista de blocos padrão (Bloco A até BEP Reservatório)? Os dados já preenchidos nos blocos serão mantidos.")) return;
+  if (!confirm("Restaurar a lista de blocos padrão (Bloco A até BEP Reservatório)?")) return;
   S.blocos = DEFAULT_B.map(x => [...x]);
   save();
   render();
 }
 
 async function clearAllData() {
-  if (!confirm("ATENÇÃO: Isso apagará todas as medições e fotos salvas neste aparelho. Deseja continuar?")) return;
+  if (!confirm("ATENÇÃO: Isso apagará todas as medições e fotos salvas neste aparelho. Confirmar?")) return;
   S.f = {};
+  S.lib = {};
   const ks = await pkeys();
   for (const k of ks) await pdel(k);
   photoURLCache = {};
@@ -1137,7 +1516,7 @@ async function clearAllData() {
 }
 
 /* ============================================================================
-   GERADOR DE LAUDO PDF (100% OFFLINE + FOTOS EMBUTIDAS + FILTRO POR EQUIPE)
+   GERADOR DE LAUDO PDF (OTIMIZA CÓPIA DAS FOTOS P/ NÃO TRAVAR RAM DO CELULAR)
    ============================================================================ */
 function pdfClean(str) {
   return String(str ?? "")
@@ -1152,26 +1531,30 @@ function pdfClean(str) {
     .replace(/([()\\])/g, "\\$1");
 }
 
-function blobToUint8(blob) {
-  return new Promise(res => {
-    const fr = new FileReader();
-    fr.onload = () => res(new Uint8Array(fr.result));
-    fr.readAsArrayBuffer(blob);
-  });
-}
-
-function getImageDimensions(blob) {
+function downscaleForPDF(blob) {
   return new Promise(res => {
     const img = new Image();
-    img.onload = () => res({w: img.width, h: img.height});
-    img.onerror = () => res({w: 400, h: 300});
+    img.onload = () => {
+      const k = Math.min(1, 900 / Math.max(img.width, img.height));
+      const w = Math.round(img.width * k), h = Math.round(img.height * k);
+      const c = document.createElement("canvas");
+      c.width = w;
+      c.height = h;
+      c.getContext("2d").drawImage(img, 0, 0, w, h);
+      c.toBlob(b => {
+        const fr = new FileReader();
+        fr.onload = () => res({bytes: new Uint8Array(fr.result), w, h});
+        fr.readAsArrayBuffer(b);
+      }, "image/jpeg", 0.78);
+    };
+    img.onerror = () => res(null);
     img.src = URL.createObjectURL(blob);
   });
 }
 
 async function buildPDFFile(teamFilter = 0) {
-  const st = $("#st");
-  st.textContent = "gerando PDF…";
+  const st = $("#st-msg");
+  if (st) st.textContent = "Montando PDF com fotos carimbadas…";
   const allB = getB();
   const B = teamFilter ? allB.filter(b => b[2] == teamFilter) : allB;
   const c = S.cfg;
@@ -1188,7 +1571,7 @@ async function buildPDFFile(teamFilter = 0) {
     if (curOps.length) pages.push(curOps.join("\n"));
     curOps = [];
     y = PH - MT;
-    rectFill(ML, PH - 34, CW, 18, 0.12, 0.23, 0.37);
+    rectFill(ML, PH - 34, CW, 18, 0.11, 0.14, 0.13);
     textAt(`LAUDO TECNICO DE INSPECAO E MEDICAO DE SPDA - ${teamTag}`, ML + 6, PH - 28, 8.5, true, 1, 1, 1);
     textAt(c.cliente || "SPDA Campo", PW - MR - 140, PH - 28, 8.5, false, 1, 1, 1);
     y = PH - 52;
@@ -1211,36 +1594,20 @@ async function buildPDFFile(teamFilter = 0) {
     curOps.push(`BT /${bold ? "F2" : "F1"} ${size} Tf ${r.toFixed(2)} ${g.toFixed(2)} ${b.toFixed(2)} rg ${x.toFixed(2)} ${ty.toFixed(2)} Td (${s}) Tj ET`);
   }
 
-  function wrapLines(str, maxChars) {
-    const words = pdfClean(str).split(/\s+/);
-    const lines = [];
-    let cur = "";
-    for (const w of words) {
-      if ((cur + " " + w).trim().length > maxChars) {
-        if (cur) lines.push(cur);
-        cur = w;
-      } else {
-        cur = (cur + " " + w).trim();
-      }
-    }
-    if (cur) lines.push(cur);
-    return lines.length ? lines : [""];
-  }
-
   newPage();
 
-  rectFill(ML, y - 54, CW, 54, 0.95, 0.96, 0.98);
+  rectFill(ML, y - 54, CW, 54, 0.95, 0.96, 0.95);
   rectStroke(ML, y - 54, CW, 54);
-  textAt(`CLIENTE / OBRA: ${c.cliente || "Amigos do Bem"}   [${teamTag}]`, ML + 8, y - 14, 10.5, true, 0.12, 0.23, 0.37);
+  textAt(`CLIENTE / OBRA: ${c.cliente || "Amigos do Bem"}   [${teamTag}]`, ML + 8, y - 14, 10.5, true, 0.11, 0.14, 0.13);
   textAt("Local: " + (c.local || "-") + "   |   Data: " + (c.data || new Date().toISOString().slice(0, 10)), ML + 8, y - 27, 9, false);
   textAt("Operadores: " + (c.eq || "-") + "   |   Aparelho: " + (c.ap || "-"), ML + 8, y - 39, 9, false);
-  textAt(`Resp. Tecnico: ${c.resp || "-"} (${c.crea || "-"})   |   Limites: Cont. <= ${c.limC} Ohm / Terra <= ${c.limT} Ohm`, ML + 8, y - 50, 8.5, false, 0.3, 0.35, 0.4);
+  textAt(`Resp. Tecnico: ${c.resp || "-"} (${c.crea || "-"})   |   Limites: Cont. <= ${c.limC} Ohm / Terra <= ${c.limT} Ohm`, ML + 8, y - 50, 8.5, false, 0.3, 0.35, 0.33);
   y -= 66;
 
   ensureSpace(40);
-  textAt("1. RESUMO GERAL DOS LOCAIS / BLOCOS INSPECIONADOS", ML, y, 10, true, 0.12, 0.23, 0.37);
+  textAt("1. QUADRO GERAL DE PROGRESSO E STATUS DOS BLOCOS", ML, y, 10, true, 0.11, 0.14, 0.13);
   y -= 6;
-  rectFill(ML, y - 15, CW, 15, 0.88, 0.91, 0.95);
+  rectFill(ML, y - 15, CW, 15, 0.88, 0.9, 0.89);
   textAt("Sigla", ML + 4, y - 11, 8.5, true);
   textAt("Local / Bloco", ML + 42, y - 11, 8.5, true);
   textAt("Equipe", ML + 205, y - 11, 8.5, true);
@@ -1252,51 +1619,35 @@ async function buildPDFFile(teamFilter = 0) {
 
   for (const b of B) {
     ensureSpace(16);
-    const f = S.f[b[0]];
-    const fl = f ? f.rows.filter(r => r.cont || r.terra).length : 0;
-    const totR = f ? f.rows.length : (b[3]?.includes("only") ? 0 : 8);
-    const ncs = f ? f.ncs.length + f.rows.filter(r => judge(r).length || [r.barra, r.eld, r.cx].includes("NC")).length : 0;
-    rectStroke(ML, y - 14, CW, 14, 0.85, 0.87, 0.9);
+    const bs = blockStats(b);
+    const f = bs.f;
+    rectStroke(ML, y - 14, CW, 14, 0.85, 0.87, 0.86);
     textAt(b[0], ML + 4, y - 10, 8.5, true);
     textAt((b[1] || "").slice(0, 30), ML + 42, y - 10, 8.5);
     textAt(b[2] == 2 ? "Eq. B" : "Eq. A", ML + 205, y - 10, 8.5);
     textAt(f && (f.hi || f.hf) ? `${f.hi || "--"} a ${f.hf || "--"}` : "-", ML + 255, y - 10, 8);
     textAt(f?.solo || "-", ML + 325, y - 10, 8);
-    textAt(totR ? `${fl}/${totR}` : "BEP", ML + 382, y - 10, 8.5);
-    if (ncs > 0) textAt(`${ncs} NC(s)`, ML + 440, y - 10, 8.5, true, 0.82, 0.18, 0.18);
-    else if (fl > 0 || (f && (f.bepC || f.bepT))) textAt("CONFORME", ML + 440, y - 10, 8.5, true, 0.15, 0.52, 0.32);
-    else textAt("Pendente", ML + 440, y - 10, 8, false, 0.45, 0.48, 0.52);
+    textAt(bs.totR ? `${bs.medR}/${bs.totR}` : "BEP", ML + 382, y - 10, 8.5);
+    if (bs.totNC > 0) textAt(`${bs.totNC} NC(s)`, ML + 440, y - 10, 8.5, true, 0.82, 0.18, 0.18);
+    else if (bs.isCompleted) textAt("CONCLUIDO", ML + 440, y - 10, 8.5, true, 0.18, 0.49, 0.31);
+    else textAt(bs.status, ML + 440, y - 10, 8, false, 0.45, 0.48, 0.46);
     y -= 14;
   }
 
   y -= 14;
 
   for (const b of B) {
-    const f = S.f[b[0]];
-    if (!f) continue;
-    const hasAnyData = f.hi || f.hf || f.solo || f.obs || f.bepOk || f.bepC || f.bepT || f.dps ||
-      Object.keys(f.chk || {}).length || f.rows.some(r => r.barra || r.eld || r.cx || r.cont || r.terra || (r.ph && r.ph.length)) ||
-      f.ncs.length || (f.bepPh && f.bepPh.length);
-    if (!hasAnyData) continue;
+    const bs = blockStats(b);
+    const f = bs.f;
+    if (!bs.isStarted && !bs.totNC) continue;
 
     ensureSpace(65);
-    rectFill(ML, y - 18, CW, 18, 0.12, 0.23, 0.37);
+    rectFill(ML, y - 18, CW, 18, 0.11, 0.14, 0.13);
     textAt(`BLOCO / LOCAL: ${b[1]} [${b[0]}]  -  ${teamLabel(b[2])}`, ML + 6, y - 13, 9.5, true, 1, 1, 1);
     y -= 22;
 
     textAt(`Inicio: ${f.hi || "-"}  |  Fim: ${f.hf || "-"}  |  Solo: ${f.solo || "-"}  |  DPS QDG: ${f.dps || "N/A"}`, ML + 2, y - 8, 8.5, false);
     y -= 12;
-    if (f.obs) {
-      textAt(`Obs: ${f.obs.slice(0, 95)}`, ML + 2, y - 8, 8.5, false, 0.3, 0.3, 0.35);
-      y -= 12;
-    }
-
-    if (!b[3]?.includes("only")) {
-      ensureSpace(26);
-      const chkStr = CHK.map(([k, l]) => `${l.split(" ")[0]}: ${f.chk[k] || "-"}`).join("   |   ");
-      textAt("Checklist Visual: " + chkStr, ML + 2, y - 8, 8, false, 0.2, 0.25, 0.3);
-      y -= 13;
-    }
 
     if (b[3]?.includes("bep") || b[3]?.includes("only")) {
       ensureSpace(18);
@@ -1306,7 +1657,7 @@ async function buildPDFFile(teamFilter = 0) {
 
     if (f.rows && f.rows.length) {
       ensureSpace(32);
-      rectFill(ML, y - 14, CW, 14, 0.9, 0.92, 0.95);
+      rectFill(ML, y - 14, CW, 14, 0.9, 0.92, 0.91);
       textAt("Ponto / Ref.", ML + 4, y - 10, 8, true);
       textAt("Barra", ML + 115, y - 10, 8, true);
       textAt("Eletrod.", ML + 165, y - 10, 8, true);
@@ -1321,7 +1672,7 @@ async function buildPDFFile(teamFilter = 0) {
         ensureSpace(14);
         const j = judge(r);
         const isBad = j.length || [r.barra, r.eld, r.cx].includes("NC");
-        rectStroke(ML, y - 13, CW, 13, 0.88, 0.9, 0.92);
+        rectStroke(ML, y - 13, CW, 13, 0.88, 0.9, 0.89);
         const label = r.loc ? `${r.p} (${r.loc.slice(0, 14)})` : r.p;
         textAt(label, ML + 4, y - 9.5, 8, true);
         textAt(r.barra || "-", ML + 118, y - 9.5, 8);
@@ -1330,72 +1681,50 @@ async function buildPDFFile(teamFilter = 0) {
         textAt(r.cont || "-", ML + 276, y - 9.5, 8);
         textAt(r.terra || "-", ML + 342, y - 9.5, 8);
         textAt(r.pl || "-", ML + 402, y - 9.5, 8);
-        if (isBad) {
-          textAt(j.length ? j.join(" ") : "NC Visual", ML + 445, y - 9.5, 7.5, true, 0.82, 0.18, 0.18);
-        } else if (r.cont || r.terra) {
-          textAt("OK", ML + 445, y - 9.5, 8, true, 0.15, 0.52, 0.32);
-        } else {
-          textAt("-", ML + 445, y - 9.5, 8);
-        }
+        if (isBad) textAt(j.length ? j.join(" ") : "NC Visual", ML + 445, y - 9.5, 7.5, true, 0.82, 0.18, 0.18);
+        else if (r.cont || r.terra) textAt("OK", ML + 445, y - 9.5, 8, true, 0.18, 0.49, 0.31);
+        else textAt("-", ML + 445, y - 9.5, 8);
         y -= 13;
       }
       y -= 6;
     }
 
-    if (f.ncs && f.ncs.length) {
-      ensureSpace(24);
-      textAt("Nao Conformidades Registradas:", ML + 2, y - 9, 8.5, true, 0.8, 0.15, 0.15);
-      y -= 13;
-      for (let i = 0; i < f.ncs.length; i++) {
-        const n = f.ncs[i];
-        const desc = COD[n.cod] ? COD[n.cod][0] : "";
-        const line = `NC-${String(i + 1).padStart(2, "0")} [${n.ponto || "-"}] ${n.cod || ""} (${desc}) - Sev. ${n.sev || "-"}: ${n.det || ""}`;
-        const wrapped = wrapLines(line, 98);
-        for (const wl of wrapped) {
-          ensureSpace(12);
-          textAt(wl, ML + 8, y - 9, 8, false, 0.2, 0.1, 0.1);
-          y -= 11;
-        }
-      }
-      y -= 4;
-    }
-
     const blockPhotos = [];
-    for (const k of (f.bepPh || [])) blockPhotos.push({k, cap: `${b[1]} - BEP`});
+    for (const k of (f.bepPh || [])) blockPhotos.push({k, cap: `${b[1]}--BEP`});
     for (const r of (f.rows || [])) {
-      for (const k of (r.ph || [])) blockPhotos.push({k, cap: `${b[1]} - ${r.p}`});
+      for (const k of (r.ph || [])) blockPhotos.push({k, cap: `${b[1]}--${r.p}`});
     }
     for (let i = 0; i < (f.ncs || []).length; i++) {
-      for (const k of (f.ncs[i].ph || [])) blockPhotos.push({k, cap: `${b[1]} - NC-${i + 1} (${f.ncs[i].ponto || ""})`});
+      for (const k of (f.ncs[i].ph || [])) blockPhotos.push({k, cap: `${b[1]}--NC-${i + 1}`});
     }
 
     if (blockPhotos.length) {
-      ensureSpace(145);
-      textAt(`Relatorio Fotografico - ${b[1]} (${blockPhotos.length} foto(s)):`, ML + 2, y - 9, 8.5, true, 0.12, 0.23, 0.37);
+      ensureSpace(175);
+      textAt(`Relatorio Fotografico c/ Carimbo (${blockPhotos.length} foto(s)):`, ML + 2, y - 9, 8.5, true, 0.11, 0.14, 0.13);
       y -= 14;
       let col = 0;
-      const boxW = (CW - 16) / 3, boxH = 120;
+      const boxW = (CW - 12) / 2, boxH = 155;
       for (const item of blockPhotos) {
         const rec = await pget(item.k);
         if (!rec || !rec.b) continue;
         if (col === 0) ensureSpace(boxH + 18);
-        const bytes = await blobToUint8(rec.b);
-        const dims = await getImageDimensions(rec.b);
+        const scaled = await downscaleForPDF(rec.b);
+        if (!scaled) continue;
         const imgId = "Im" + (images.length + 1);
-        images.push({id: imgId, bytes, w: dims.w, h: dims.h});
+        images.push({id: imgId, bytes: scaled.bytes, w: scaled.w, h: scaled.h});
 
-        const bx = ML + col * (boxW + 8);
+        const bx = ML + col * (boxW + 12);
         const by = y - boxH;
-        rectStroke(bx, by - 12, boxW, boxH + 12, 0.8, 0.82, 0.86);
+        rectStroke(bx, by - 12, boxW, boxH + 12, 0.8, 0.82, 0.81);
 
-        const sc = Math.min((boxW - 8) / dims.w, (boxH - 8) / dims.h);
-        const dw = dims.w * sc, dh = dims.h * sc;
+        const sc = Math.min((boxW - 8) / scaled.w, (boxH - 8) / scaled.h);
+        const dw = scaled.w * sc, dh = scaled.h * sc;
         const ix = bx + (boxW - dw) / 2, iy = by + (boxH - dh) / 2;
         curOps.push(`q ${dw.toFixed(2)} 0 0 ${dh.toFixed(2)} ${ix.toFixed(2)} ${iy.toFixed(2)} cm /${imgId} Do Q`);
-        textAt(item.cap.slice(0, 30), bx + 4, by - 9, 7.5, false, 0.2, 0.2, 0.25);
+        textAt(item.cap.slice(0, 42), bx + 4, by - 9, 7.5, true, 0.2, 0.22, 0.2);
 
         col++;
-        if (col === 3) {
+        if (col === 2) {
           col = 0;
           y -= (boxH + 18);
         }
@@ -1436,17 +1765,9 @@ async function buildPDFFile(teamFilter = 0) {
   const firstPageObj = firstImgObj + images.length;
   const pageKids = [];
 
-  startObj(1);
-  pushStr(`<< /Type /Catalog /Pages 2 0 R >>`);
-  endObj();
-
-  startObj(3);
-  pushStr(`<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>`);
-  endObj();
-
-  startObj(4);
-  pushStr(`<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>`);
-  endObj();
+  startObj(1); pushStr(`<< /Type /Catalog /Pages 2 0 R >>`); endObj();
+  startObj(3); pushStr(`<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>`); endObj();
+  startObj(4); pushStr(`<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>`); endObj();
 
   const xobjEntries = [];
   for (let i = 0; i < images.length; i++) {
@@ -1489,7 +1810,7 @@ async function buildPDFFile(teamFilter = 0) {
   }
   pushStr(`trailer\n<< /Size ${totalObjs} /Root 1 0 R >>\nstartxref\n${xrefPos}\n%%EOF`);
 
-  st.textContent = "";
+  if (st) st.textContent = "";
   const pdfBlob = new Blob(chunks, {type: "application/pdf"});
   const eqPrefix = teamFilter == 1 ? "EquipeA_" : (teamFilter == 2 ? "EquipeB_" : "");
   const fname = `${eqPrefix}Laudo_SPDA_${(c.cliente || "Campo").replace(/[^a-zA-Z0-9_-]/g, "_")}_${(c.data || new Date().toISOString().slice(0, 10))}.pdf`;
@@ -1511,7 +1832,7 @@ async function sharePDF(teamFilter = 0) {
       await navigator.share({
         files: [file],
         title: "Laudo SPDA — " + (S.cfg.cliente || "Campo"),
-        text: "Segue em anexo o Laudo Técnico de Inspeção e Medição de SPDA (" + (S.cfg.cliente || "Campo") + ")."
+        text: "Segue o Laudo Técnico de Inspeção e Medição de SPDA (" + (S.cfg.cliente || "Campo") + ")."
       });
       return;
     } catch (e) {
@@ -1522,43 +1843,39 @@ async function sharePDF(teamFilter = 0) {
   a.href = URL.createObjectURL(file);
   a.download = file.name;
   a.click();
-  alert("O PDF foi baixado no seu aparelho! Agora você pode anexá-lo no WhatsApp ou Google Drive.");
 }
 
 async function printReport(teamFilter = 0) {
   const allB = getB(), c = S.cfg;
   const B = teamFilter ? allB.filter(b => b[2] == teamFilter) : allB;
   let html = `
-    <div style="border-bottom:3px solid #1F3A5F;padding-bottom:8px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:flex-end">
+    <div style="border-bottom:3px solid #1c2421;padding-bottom:8px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:flex-end">
       <div>
-        <h2 style="margin:0;color:#1F3A5F">LAUDO TÉCNICO DE INSPEÇÃO DE SPDA (NBR 5419)</h2>
-        <div><b>Cliente / Obra:</b> ${esc(c.cliente || "Amigos do Bem")} ${c.local ? `— ${esc(c.local)}` : ""}</div>
+        <h2 style="margin:0">LAUDO TÉCNICO DE INSPEÇÃO DE SPDA (NBR 5419)</h2>
+        <div><b>Cliente / Obra:</b> ${esc(c.cliente || "Amigos do Bem")} — ${esc(c.local || "")}</div>
         <div><b>Equipe:</b> ${esc(c.eq || "-")} | <b>Aparelho:</b> ${esc(c.ap || "-")}</div>
         <div><b>Resp. Técnico:</b> ${esc(c.resp || "-")} | <b>CREA/CFT:</b> ${esc(c.crea || "-")}</div>
       </div>
       <div style="text-align:right;font-size:11px">
-        <b>Data:</b> ${esc(c.data || new Date().toISOString().slice(0, 10))}<br>
-        <b>Limite Cont.:</b> ≤ ${c.limC} Ω<br>
-        <b>Limite Terra:</b> ≤ ${c.limT} Ω
+        <b>Data:</b> ${esc(c.data)}<br>
+        <b>Limite Cont.:</b> ≤ ${c.limC} Ω | <b>Terra:</b> ≤ ${c.limT} Ω
       </div>
     </div>`;
 
   for (const b of B) {
-    const f = S.f[b[0]];
-    if (!f) continue;
-    const hasAny = f.hi || f.hf || f.solo || f.bepOk || f.bepC || f.bepT || f.rows.some(r => r.cont || r.terra || r.barra) || f.ncs.length;
-    if (!hasAny) continue;
+    const bs = blockStats(b);
+    const f = bs.f;
+    if (!bs.isStarted && !bs.totNC) continue;
 
     const photos = [];
-    for (const k of (f.bepPh || [])) photos.push({k, cap: "BEP"});
-    for (const r of (f.rows || [])) for (const k of (r.ph || [])) photos.push({k, cap: r.p});
-    for (let i = 0; i < (f.ncs || []).length; i++) for (const k of (f.ncs[i].ph || [])) photos.push({k, cap: `NC-${i + 1}`});
+    for (const k of (f.bepPh || [])) photos.push({k, cap: `${b[1]}--BEP`});
+    for (const r of (f.rows || [])) for (const k of (r.ph || [])) photos.push({k, cap: `${b[1]}--${r.p}`});
+    for (let i = 0; i < (f.ncs || []).length; i++) for (const k of (f.ncs[i].ph || [])) photos.push({k, cap: `${b[1]}--NC-${i + 1}`});
 
     html += `
       <div class="p-card">
-        <h3 style="margin:0 0 6px;color:#1F3A5F">${esc(b[1])} [${esc(b[0])}] — ${teamLabel(b[2])}</h3>
-        <div><b>Horário:</b> ${esc(f.hi || "-")} às ${esc(f.hf || "-")} | <b>Solo:</b> ${esc(f.solo || "-")} ${f.dps ? `| <b>DPS QDG:</b> ${esc(f.dps)}` : ""}</div>
-        ${f.bepOk || f.bepC || f.bepT ? `<div><b>BEP Íntegro:</b> ${esc(f.bepOk || "-")} | <b>Cont. BEP:</b> ${esc(f.bepC || "-")} Ω | <b>Terra BEP:</b> ${esc(f.bepT || "-")} Ω</div>` : ""}
+        <h3 style="margin:0 0 6px">${esc(b[1])} [${esc(b[0])}] — ${teamLabel(b[2])}</h3>
+        <div><b>Horário:</b> ${esc(f.hi || "-")} às ${esc(f.hf || "-")} | <b>Solo:</b> ${esc(f.solo || "-")}</div>
         ${f.rows.length ? `
           <table class="p-tbl">
             <thead><tr><th>Ponto</th><th>Barra</th><th>Eletroduto</th><th>Caixa</th><th>Cont. (Ω)</th><th>Terra (Ω)</th><th>Planta</th><th>Status</th></tr></thead>
@@ -1574,20 +1891,14 @@ async function printReport(teamFilter = 0) {
                   <td>${esc(r.cont || "-")}</td>
                   <td>${esc(r.terra || "-")}</td>
                   <td>${esc(r.pl || "-")}</td>
-                  <td style="color:${bad ? "#c00" : "#1a7f37"};font-weight:bold">${bad ? (j.join(", ") || "NC") : (r.cont || r.terra ? "OK" : "-")}</td>
+                  <td style="font-weight:bold">${bad ? (j.join(", ") || "NC") : (r.cont || r.terra ? "OK" : "-")}</td>
                 </tr>`;
               }).join("")}
             </tbody>
           </table>` : ""}
-        ${f.ncs.length ? `
-          <div style="margin-top:6px"><b>Não Conformidades:</b>
-            <ul style="margin:4px 0;padding-left:18px">
-              ${f.ncs.map((n, i) => `<li><b>NC-${i + 1} (${esc(n.ponto)}):</b> ${esc(n.cod)} ${COD[n.cod] ? esc(COD[n.cod][0]) : ""} [Sev. ${esc(n.sev)}] — ${esc(n.det)}</li>`).join("")}
-            </ul>
-          </div>` : ""}
         ${photos.length ? `
           <div class="p-grid-ph">
-            ${photos.map(p => `<div class="p-ph"><img data-ph="${esc(p.k)}"><div style="font-size:10px;margin-top:2px">${esc(b[1])} — ${esc(p.cap)}</div></div>`).join("")}
+            ${photos.map(p => `<div class="p-ph"><img data-ph="${esc(p.k)}"><div style="font-size:10px;margin-top:2px">${esc(p.cap)}</div></div>`).join("")}
           </div>` : ""}
       </div>`;
   }
@@ -1603,11 +1914,14 @@ async function printReport(teamFilter = 0) {
   if (saved) S = saved;
   S.cfg = {
     cliente: "Amigos do Bem",
-    local: "",
+    local: "Inajá - PE",
+    proposta: "NBR 5419:2015",
     data: new Date().toISOString().slice(0, 10),
     equipeAtiva: 1,
     driveA: DRIVE_FOLDERS[1].url,
     driveB: DRIVE_FOLDERS[2].url,
+    resFoto: 2560,
+    carimboOn: 1,
     resp: "",
     crea: "",
     limC: 0.2,
@@ -1618,8 +1932,7 @@ async function printReport(teamFilter = 0) {
     ap: "",
     ...S.cfg
   };
-  if (!S.cfg.driveA) S.cfg.driveA = DRIVE_FOLDERS[1].url;
-  if (!S.cfg.driveB) S.cfg.driveB = DRIVE_FOLDERS[2].url;
+  S.lib ??= {};
   getB();
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
     navigator.serviceWorker.register("sw.js").catch(() => {});
