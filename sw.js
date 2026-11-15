@@ -1,4 +1,4 @@
-const C = "spda-v2", F = ["./", "index.html", "manifest.json", "icon.svg"];
+const C = "spda-v3", F = ["./", "index.html", "manifest.json", "icon.svg"];
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(C).then(c => c.addAll(F)));
   self.skipWaiting();

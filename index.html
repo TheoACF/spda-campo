@@ -13,7 +13,7 @@
 <style>
 :root{
   --bg:#f4f6f9;--c:#fff;--t:#1b1f27;--m:#5c6675;--p:#1F3A5F;--p2:#2b5082;
-  --ok:#e9a3c0;--good:#2e8b57;--nc:#e04b4b;--warn:#d97706;--ln:#d5dae2;--wa:#1fa855;
+  --ok:#e9a3c0;--good:#2e8b57;--nc:#e04b4b;--warn:#d97706;--ln:#d5dae2;--wa:#1fa855;--drv:#1a73e8;
 }
 @media(prefers-color-scheme:dark){
   :root{
@@ -75,14 +75,14 @@ label{font-size:12px;color:var(--m);display:block;margin:6px 0 3px;font-weight:5
 .d.nc{border-left-color:var(--nc)}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .g3{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-@media(min-width:520px){.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}}
 small{color:var(--m);font-size:12px}
 .big{
   width:100%;padding:13px 14px;font-size:15px;font-weight:600;border-radius:12px;
   border:0;background:#1F3A5F;color:#fff;margin:5px 0;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;gap:8px;
+  display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;
 }
 .big.wa{background:var(--wa)}
+.big.drv{background:var(--drv)}
 .big.sec{background:#475569}
 .big.out{background:var(--c);color:var(--t);border:1px solid var(--ln)}
 #st{font-size:12px;opacity:.95}
@@ -117,6 +117,9 @@ small{color:var(--m);font-size:12px}
   border:1px dashed var(--ln);border-radius:8px;padding:4px 8px;font-weight:700;
   font-size:15px;width:auto;min-width:90px;max-width:190px;background:transparent;
 }
+.team-card{
+  border:1px solid var(--ln);border-radius:10px;padding:10px;background:rgba(26,115,232,.05);margin-top:8px;
+}
 /* Print / PDF styles */
 #print-area{display:none}
 @media print{
@@ -138,7 +141,7 @@ small{color:var(--m);font-size:12px}
   <button id="back" style="display:none" onclick="go('')">← Voltar</button>
   <b id="ttl">SPDA Campo</b>
   <span id="st"></span>
-  <button onclick="go('exp')" title="Exportar PDF / Enviar">📄 Laudo</button>
+  <button onclick="go('exp')" title="Exportar PDF / Drive / WhatsApp">📄 Laudo / Drive</button>
   <button onclick="go('cfg')" title="Configurações">⚙</button>
 </header>
 <main id="m"></main>
@@ -146,6 +149,21 @@ small{color:var(--m);font-size:12px}
 <div id="print-area"></div>
 
 <script>
+const DRIVE_FOLDERS = {
+  1: {
+    label: "Equipe A (Dupla 1)",
+    short: "EquipeA",
+    id: "1Yb-zWeo4lCsbByDpDlL0YMxbF3GlqHqA",
+    url: "https://drive.google.com/drive/folders/1Yb-zWeo4lCsbByDpDlL0YMxbF3GlqHqA?usp=drive_link"
+  },
+  2: {
+    label: "Equipe B (Dupla 2)",
+    short: "EquipeB",
+    id: "1HgzIPxKpqCl9-1c6H2LZIW46egbPU75r",
+    url: "https://drive.google.com/drive/folders/1HgzIPxKpqCl9-1c6H2LZIW46egbPU75r?usp=drive_link"
+  }
+};
+
 const DEFAULT_B = [
   ["A","Bloco A",1,""],
   ["B","Bloco B",1,""],
@@ -191,6 +209,9 @@ let S = {
     cliente: "Amigos do Bem",
     local: "",
     data: new Date().toISOString().slice(0,10),
+    equipeAtiva: 1,
+    driveA: DRIVE_FOLDERS[1].url,
+    driveB: DRIVE_FOLDERS[2].url,
     resp: "",
     crea: "",
     limC: 0.2,
@@ -208,6 +229,22 @@ let db, view = "", searchQ = "", filterDupla = 0, photoURLCache = {};
 
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function teamLabel(d) {
+  return d == 2 ? "Equipe B (Dupla 2)" : (d == 1 ? "Equipe A (Dupla 1)" : "Equipe " + d);
+}
+
+function getDriveUrl(teamNum) {
+  if (teamNum == 2) return S.cfg.driveB || DRIVE_FOLDERS[2].url;
+  return S.cfg.driveA || DRIVE_FOLDERS[1].url;
+}
+
+function getDriveFolderId(teamNum) {
+  const u = getDriveUrl(teamNum);
+  const m = String(u).match(/folders\/([a-zA-Z0-9_-]+)/);
+  if (m) return m[1];
+  return teamNum == 2 ? DRIVE_FOLDERS[2].id : DRIVE_FOLDERS[1].id;
+}
 
 function getB() {
   if (!Array.isArray(S.blocos) || !S.blocos.length) {
@@ -383,7 +420,7 @@ function openBlockModal(editId) {
   const ex = editId ? B.find(x => x[0] === editId) : null;
   const id = ex ? ex[0] : "";
   const nome = ex ? ex[1] : "";
-  const dupla = ex ? ex[2] : 1;
+  const dupla = ex ? ex[2] : (filterDupla || S.cfg.equipeAtiva || 1);
   const opts = ex ? (ex[3] || "") : "";
   const hasBep = opts.includes("bep");
   const hasDps = opts.includes("dps");
@@ -400,11 +437,10 @@ function openBlockModal(editId) {
             <input id="mb-id" value="${esc(id)}" placeholder="Ex.: M, Galp1" ${ex ? "readonly style='opacity:.7'" : ""}>
           </div>
           <div>
-            <label>Dupla / Equipe</label>
+            <label>Equipe Responsável</label>
             <select id="mb-dupla">
-              <option value="1" ${dupla == 1 ? "selected" : ""}>Dupla 1</option>
-              <option value="2" ${dupla == 2 ? "selected" : ""}>Dupla 2</option>
-              <option value="3" ${dupla == 3 ? "selected" : ""}>Dupla 3</option>
+              <option value="1" ${dupla == 1 ? "selected" : ""}>Equipe A (Dupla 1)</option>
+              <option value="2" ${dupla == 2 ? "selected" : ""}>Equipe B (Dupla 2)</option>
             </select>
           </div>
         </div>
@@ -491,9 +527,28 @@ async function render() {
   $("#back").style.display = view ? "" : "none";
 
   if (view === "cfg") {
-    $("#ttl").textContent = "Ajustes e Dados da Obra";
+    $("#ttl").textContent = "Ajustes e Pastas do Drive";
     const c = S.cfg;
     m.innerHTML = `
+      <div class="card">
+        <h3>Pastas do Google Drive por Equipe</h3>
+        <label>Equipe Ativa neste Aparelho</label>
+        <select onchange="S.cfg.equipeAtiva=parseInt(this.value);filterDupla=parseInt(this.value);save();render()">
+          <option value="1" ${c.equipeAtiva == 1 ? "selected" : ""}>Equipe A (Dupla 1)</option>
+          <option value="2" ${c.equipeAtiva == 2 ? "selected" : ""}>Equipe B (Dupla 2)</option>
+        </select>
+        <label>Pasta do Google Drive — Equipe A (Dupla 1)</label>
+        <div class="row">
+          <input class="grow" value="${esc(c.driveA || DRIVE_FOLDERS[1].url)}" onchange="S.cfg.driveA=this.value;save()">
+          <a class="b" href="${esc(getDriveUrl(1))}" target="_blank" rel="noopener" style="text-decoration:none">📁 Abrir</a>
+        </div>
+        <label>Pasta do Google Drive — Equipe B (Dupla 2)</label>
+        <div class="row">
+          <input class="grow" value="${esc(c.driveB || DRIVE_FOLDERS[2].url)}" onchange="S.cfg.driveB=this.value;save()">
+          <a class="b" href="${esc(getDriveUrl(2))}" target="_blank" rel="noopener" style="text-decoration:none">📁 Abrir</a>
+        </div>
+      </div>
+
       <div class="card">
         <h3>Dados do Cliente / Laudo</h3>
         <label>Nome do Cliente / Obra</label>
@@ -536,17 +591,17 @@ async function render() {
 
       <div class="card">
         <h3>Equipe e Instrumentos</h3>
-        <label>Equipe / Operadores em campo</label>
-        <input value="${esc(c.eq)}" placeholder="Nomes da equipe" onchange="S.cfg.eq=this.value;save()">
+        <label>Nomes dos Operadores da Equipe</label>
+        <input value="${esc(c.eq)}" placeholder="Ex.: João e Carlos" onchange="S.cfg.eq=this.value;save()">
         <label>Aparelho Medidor (modelo / nº série / calibração)</label>
         <input value="${esc(c.ap)}" placeholder="Ex.: Terrômetro / Microhmímetro..." onchange="S.cfg.ap=this.value;save()">
       </div>
 
       <div class="card">
-        <h3>Servidor / Nuvem (Opcional)</h3>
-        <label>URL do Servidor ou Google Apps Script WebApp</label>
-        <input value="${esc(c.url)}" placeholder="https://..." onchange="S.cfg.url=this.value.replace(/\\/$/,'');save()">
-        <label>Token de Acesso</label>
+        <h3>Upload Direto Automático (Google Apps Script / Servidor)</h3>
+        <label>URL do App da Web (Google Apps Script) ou Servidor</label>
+        <input value="${esc(c.url)}" placeholder="https://script.google.com/macros/s/.../exec" onchange="S.cfg.url=this.value.replace(/\\/$/,'');save()">
+        <label>Token (opcional)</label>
         <input value="${esc(c.tok)}" onchange="S.cfg.tok=this.value;save()">
       </div>
 
@@ -562,32 +617,59 @@ async function render() {
   }
 
   if (view === "exp") {
-    $("#ttl").textContent = "Exportar Laudo e Nuvem";
+    $("#ttl").textContent = "Exportar PDF, Drive e WhatsApp";
     const ph = await pall();
     const unsent = ph.filter(p => !p.s).length;
+    const eqAtiva = filterDupla || S.cfg.equipeAtiva || 1;
     m.innerHTML = `
       <div class="card">
-        <h3>1º Jeito: Laudo Técnico em PDF (Com Fotos)</h3>
-        <p style="margin:4px 0 10px;font-size:13px;color:var(--m)">
-          Gera o relatório completo de inspeção SPDA com cabeçalho, tabelas de descidas, medições de continuidade/terra, não conformidades e fotos tiradas.
+        <h3>Pastas do Google Drive das Equipes</h3>
+        <p style="margin:2px 0 8px;font-size:13px;color:var(--m)">
+          Envie o PDF + Fotos ou abra diretamente a pasta do Google Drive da sua equipe:
         </p>
-        <button class="big wa" onclick="sharePDF()">📤 Enviar PDF (WhatsApp / Salvar no Drive)</button>
-        <button class="big" onclick="downloadPDF()">📥 Baixar PDF Direto no Celular</button>
-        <button class="big out" onclick="printReport()">🖨 Abrir Laudo A4 Formatado / Imprimir PDF</button>
+        <div class="team-card">
+          <b>🅰 Equipe A (Dupla 1)</b> — Blocos A, B, D, I, J, Q, Portaria, Reservatório
+          <div class="g2" style="margin-top:6px">
+            <button class="big drv" style="margin:0;padding:10px" onclick="sendToTeamDrive(1)">☁ Enviar p/ Drive Equipe A</button>
+            <a class="big out" style="margin:0;padding:10px" href="${esc(getDriveUrl(1))}" target="_blank" rel="noopener">📁 Abrir Pasta Equipe A</a>
+          </div>
+        </div>
+
+        <div class="team-card" style="margin-top:8px">
+          <b>🅱 Equipe B (Dupla 2)</b> — Blocos E, G, H, K, L, N, Biblioteca
+          <div class="g2" style="margin-top:6px">
+            <button class="big drv" style="margin:0;padding:10px" onclick="sendToTeamDrive(2)">☁ Enviar p/ Drive Equipe B</button>
+            <a class="big out" style="margin:0;padding:10px" href="${esc(getDriveUrl(2))}" target="_blank" rel="noopener">📁 Abrir Pasta Equipe B</a>
+          </div>
+        </div>
       </div>
 
       <div class="card">
-        <h3>2º Jeito: Pacote de Dados + Fotos Originais</h3>
+        <h3>1º Jeito: Laudo Técnico em PDF (Com Fotos)</h3>
+        <label>Filtrar blocos no PDF por equipe:</label>
+        <div class="row" style="margin-bottom:8px">
+          <span class="seg">
+            <button class="${filterDupla === 0 ? "on" : ""}" onclick="filterDupla=0;render()">Completo (A + B)</button>
+            <button class="${filterDupla === 1 ? "on" : ""}" onclick="filterDupla=1;render()">Só Equipe A</button>
+            <button class="${filterDupla === 2 ? "on" : ""}" onclick="filterDupla=2;render()">Só Equipe B</button>
+          </span>
+        </div>
+        <button class="big wa" onclick="sharePDF(${filterDupla})">📤 Enviar PDF (WhatsApp / Salvar no Drive)</button>
+        <button class="big" onclick="downloadPDF(${filterDupla})">📥 Baixar PDF Direto no Celular</button>
+        <button class="big out" onclick="printReport(${filterDupla})">🖨 Abrir Laudo A4 Formatado / Imprimir PDF</button>
+      </div>
+
+      <div class="card">
+        <h3>2º Jeito: Pacote Completo (PDF + JSON + ${ph.length} Fotos)</h3>
         <p style="margin:4px 0 10px;font-size:13px;color:var(--m)">
-          Envia ou baixa o arquivo <b>spda_dados.json</b> junto com as <b>${ph.length} fotos</b> armazenadas no celular (${unsent} novas).
+          Compartilha ou baixa o pacote completo (Laudo PDF + <b>spda_dados.json</b> + <b>${ph.length} fotos</b>, sendo ${unsent} novas).
         </p>
-        <button class="big" onclick="exp(false)">☁ Enviar para Google Drive / WhatsApp (Novas)</button>
-        <button class="big sec" onclick="exp(true)">☁ Reenviar Todas as Fotos + JSON (${ph.length} fotos)</button>
+        <button class="big drv" onclick="exp(false, ${eqAtiva})">☁ Compartilhar Pacote p/ Drive ou WhatsApp</button>
+        <button class="big sec" onclick="exp(true, ${eqAtiva})">☁ Reenviar Todas as Fotos + PDF + JSON</button>
         <div class="g2" style="margin-top:8px">
           <button class="b" onclick="downloadJSONOnly()">📥 Baixar JSON</button>
           <button class="b" onclick="importJSONPrompt()">📂 Importar JSON</button>
         </div>
-        ${S.cfg.url ? `<button class="big" style="background:#3b6db3;margin-top:8px" onclick="sync()">⇅ Sincronizar com Servidor Configurado</button>` : ""}
       </div>`;
     return;
   }
@@ -595,13 +677,13 @@ async function render() {
   if (!view) {
     $("#ttl").textContent = "SPDA Campo — " + (S.cfg.cliente || "Inspeção");
     const ph = await pall();
-    let totMed = 0, totNC = 0, totDone = 0;
+    let totMed = 0, totNC = 0;
     B.forEach(b => {
+      if (filterDupla && b[2] != filterDupla) return;
       const f = S.f[b[0]];
       if (f) {
         totMed += f.rows.filter(r => r.cont || r.terra).length;
         totNC += f.ncs.length + f.rows.filter(r => judge(r).length || [r.barra, r.eld, r.cx].includes("NC")).length;
-        if (f.done && f.done.pl) totDone++;
       }
     });
 
@@ -611,9 +693,11 @@ async function render() {
       return true;
     });
 
+    const activeTeam = filterDupla || S.cfg.equipeAtiva || 1;
+
     m.innerHTML = `
       <div class="stats-bar">
-        <div class="stat-box"><b>${B.length}</b><small>Locais</small></div>
+        <div class="stat-box"><b>${filteredB.length}</b><small>Locais</small></div>
         <div class="stat-box"><b>${totMed}</b><small>Medições</small></div>
         <div class="stat-box"><b style="color:${totNC ? "var(--nc)" : "inherit"}">${totNC}</b><small>Alertas/NC</small></div>
         <div class="stat-box"><b>${ph.length}</b><small>Fotos</small></div>
@@ -627,10 +711,13 @@ async function render() {
         <div class="row" style="margin-top:8px;justify-content:space-between">
           <span class="seg">
             <button class="${filterDupla === 0 ? "on" : ""}" onclick="filterDupla=0;render()">Todos</button>
-            <button class="${filterDupla === 1 ? "on" : ""}" onclick="filterDupla=1;render()">Dupla 1</button>
-            <button class="${filterDupla === 2 ? "on" : ""}" onclick="filterDupla=2;render()">Dupla 2</button>
+            <button class="${filterDupla === 1 ? "on" : ""}" onclick="filterDupla=1;S.cfg.equipeAtiva=1;save();render()">Equipe A (Dupla 1)</button>
+            <button class="${filterDupla === 2 ? "on" : ""}" onclick="filterDupla=2;S.cfg.equipeAtiva=2;save();render()">Equipe B (Dupla 2)</button>
           </span>
-          <small onclick="go('cfg')" style="cursor:pointer;text-decoration:underline">✎ Obra: ${esc(S.cfg.cliente)}</small>
+        </div>
+        <div class="g2" style="margin-top:8px">
+          <a class="b" href="${esc(getDriveUrl(1))}" target="_blank" rel="noopener" style="text-decoration:none;text-align:center;font-size:13px">📁 Drive Equipe A</a>
+          <a class="b" href="${esc(getDriveUrl(2))}" target="_blank" rel="noopener" style="text-decoration:none;text-align:center;font-size:13px">📁 Drive Equipe B</a>
         </div>
       </div>
 
@@ -644,7 +731,7 @@ async function render() {
             <div class="li" onclick="go('${esc(b[0])}')">
               <div class="grow">
                 <b>${esc(b[1])}</b> <small style="opacity:.75">[${esc(b[0])}]</small><br>
-                <small>Dupla ${b[2]} • ${totR ? `${fl}/${totR} descidas medidas` : "Somente BEP"}</small>
+                <small>${teamLabel(b[2])} • ${totR ? `${fl}/${totR} descidas medidas` : "Somente BEP"}</small>
               </div>
               <div class="row" style="gap:6px">
                 ${n ? `<span class="pill nc">${n} NC</span>` : ""}
@@ -656,10 +743,9 @@ async function render() {
         }).join("") || `<div style="padding:16px;text-align:center;color:var(--m)">Nenhum local encontrado.</div>`}
       </div>
 
-      <button class="big wa" onclick="sharePDF()">📤 Gerar PDF e Enviar (WhatsApp / Drive)</button>
-      <button class="big" onclick="downloadPDF()">📥 Baixar Laudo PDF no Celular</button>
-      <button class="big sec" onclick="exp(false)">☁ Enviar Pacote (JSON + Fotos) p/ Drive</button>
-      ${S.cfg.url ? `<button class="big" style="background:#667" onclick="sync()">⇅ Sincronizar com servidor</button>` : ""}
+      <button class="big drv" onclick="sendToTeamDrive(${activeTeam})">☁ Enviar p/ Google Drive — ${activeTeam == 2 ? "Equipe B" : "Equipe A"}</button>
+      <button class="big wa" onclick="sharePDF(${filterDupla})">📤 Enviar Laudo PDF no WhatsApp / Drive</button>
+      <button class="big" onclick="downloadPDF(${filterDupla})">📥 Baixar Laudo PDF no Celular</button>
       <div style="text-align:center;margin-top:4px">
         <small>${ph.length} fotos salvas no aparelho • ${ph.filter(p => !p.s).length} pendentes de envio</small>
       </div>`;
@@ -674,8 +760,8 @@ async function render() {
   let h = `
     <div class="card">
       <div class="row" style="margin-bottom:6px">
-        <b class="grow" style="font-size:16px">${esc(b[1])} <small>(Dupla ${b[2]})</small></b>
-        <button class="b" style="padding:6px 10px;font-size:13px" onclick="openBlockModal('${esc(view)}')">✎ Editar Nome / Local</button>
+        <b class="grow" style="font-size:16px">${esc(b[1])} <small>(${teamLabel(b[2])})</small></b>
+        <button class="b" style="padding:6px 10px;font-size:13px" onclick="openBlockModal('${esc(view)}')">✎ Editar Local</button>
       </div>
       <div class="g3">
         <div>
@@ -876,37 +962,114 @@ function snap() {
   }, null, 2);
 }
 
-async function sync() {
-  const c = S.cfg;
-  if (!c.url) { alert("Configure a URL do servidor em ⚙"); return; }
-  const st = $("#st"), H = {"X-Token": c.tok};
-  try {
-    st.textContent = "enviando dados…";
-    let r = await fetch(c.url + "/api/state", {method: "POST", headers: H, body: snap()});
-    if (!r.ok) throw 0;
-    const ks = await pkeys();
-    let n = 0;
-    for (const k of ks) {
-      const p = await pget(k);
-      if (p.s) continue;
-      st.textContent = `fotos ${++n}/${ks.length}`;
-      r = await fetch(c.url + "/api/photo?name=" + encodeURIComponent(k), {method: "POST", headers: H, body: p.b});
-      if (!r.ok) throw 0;
-      p.s = 1;
-      await pset(k, p);
-    }
-    st.textContent = "✓ sincronizado";
-  } catch (e) {
-    st.textContent = "falhou — verifique sinal/URL";
-  }
-  render();
+function blobToBase64(blob) {
+  return new Promise(res => {
+    const fr = new FileReader();
+    fr.onload = () => {
+      const s = String(fr.result || "");
+      res(s.includes(",") ? s.split(",")[1] : s);
+    };
+    fr.readAsDataURL(blob);
+  });
 }
 
-async function exp(includeAll = false) {
-  const files = [new File([snap()], "spda_dados.json", {type: "application/json"})];
+async function sendToTeamDrive(teamNum = 1) {
+  const teamKey = teamNum == 2 ? "EquipeB" : "EquipeA";
+  const folderId = getDriveFolderId(teamNum);
+  const folderUrl = getDriveUrl(teamNum);
+  const st = $("#st");
+
+  // 1. Se houver Google Apps Script WebApp configurado em S.cfg.url, envia direto para a pasta ID da equipe!
+  if (S.cfg.url && S.cfg.url.includes("script.google.com")) {
+    try {
+      st.textContent = `enviando p/ Drive ${teamKey}…`;
+      const pdfFile = await buildPDFFile(teamNum);
+      const filesPayload = [
+        {name: pdfFile.name, mimeType: "application/pdf", base64: await blobToBase64(pdfFile)},
+        {name: `${teamKey}_spda_dados.json`, mimeType: "application/json", base64: btoa(unescape(encodeURIComponent(snap())))}
+      ];
+      const ks = await pkeys();
+      const B = getB();
+      for (const k of ks) {
+        const p = await pget(k);
+        if (!p || p.s) continue;
+        const blk = B.find(x => x[0] === p.id);
+        if (blk && blk[2] != teamNum) continue;
+        filesPayload.push({name: k, mimeType: "image/jpeg", base64: await blobToBase64(p.b)});
+      }
+      await fetch(S.cfg.url, {
+        method: "POST",
+        mode: "no-cors",
+        body: JSON.stringify({equipe: teamNum == 2 ? "B" : "A", folderId, files: filesPayload})
+      });
+      st.textContent = `✓ enviado Drive ${teamKey}`;
+      alert(`Arquivos enviados para a pasta do Google Drive da ${teamLabel(teamNum)}!`);
+      return;
+    } catch (err) {
+      st.textContent = "";
+    }
+  }
+
+  // 2. No celular: monta o pacote (PDF da equipe + JSON + fotos da equipe) e abre o compartilhamento p/ salvar no Drive ou abre a pasta
+  const pdfFile = await buildPDFFile(teamNum);
+  const jsonFile = new File([snap()], `${teamKey}_spda_dados.json`, {type: "application/json"});
+  const files = [pdfFile, jsonFile];
   const ks = await pkeys();
+  const B = getB();
   for (const k of ks) {
     const p = await pget(k);
+    if (!p) continue;
+    const blk = B.find(x => x[0] === p.id);
+    if (blk && blk[2] != teamNum) continue;
+    if (!p.s) files.push(new File([p.b], k, {type: "image/jpeg"}));
+  }
+
+  if (navigator.canShare && navigator.canShare({files})) {
+    try {
+      await navigator.share({
+        files,
+        title: `SPDA ${teamLabel(teamNum)} — ${S.cfg.cliente || "Campo"}`,
+        text: `Pasta Drive ${teamLabel(teamNum)}: ${folderUrl}`
+      });
+      for (const k of ks) {
+        const p = await pget(k);
+        const blk = B.find(x => x[0] === p.id);
+        if (blk && blk[2] != teamNum) continue;
+        p.s = 1;
+        await pset(k, p);
+      }
+      render();
+      return;
+    } catch (e) {
+      if (e.name === "AbortError") return;
+    }
+  }
+
+  // 3. Fallback: Baixa o PDF + JSON no aparelho e abre a pasta exata da equipe no Google Drive
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(pdfFile);
+  a.download = pdfFile.name;
+  a.click();
+  setTimeout(() => {
+    window.open(folderUrl, "_blank");
+  }, 400);
+}
+
+async function exp(includeAll = false, teamFilter = 0) {
+  const pdfFile = await buildPDFFile(teamFilter);
+  const files = [
+    pdfFile,
+    new File([snap()], "spda_dados.json", {type: "application/json"})
+  ];
+  const ks = await pkeys();
+  const B = getB();
+  for (const k of ks) {
+    const p = await pget(k);
+    if (!p) continue;
+    if (teamFilter) {
+      const blk = B.find(x => x[0] === p.id);
+      if (blk && blk[2] != teamFilter) continue;
+    }
     if (includeAll || !p.s) files.push(new File([p.b], k, {type: "image/jpeg"}));
   }
   if (navigator.canShare && navigator.canShare({files})) {
@@ -924,7 +1087,6 @@ async function exp(includeAll = false) {
     }
   }
   downloadJSONOnly();
-  alert("Seu navegador baixou o arquivo spda_dados.json. Para enviar direto ao WhatsApp ou Drive com 1 toque, use o botão de Gerar PDF ou abra no Chrome/Safari do celular.");
 }
 
 function downloadJSONOnly() {
@@ -975,7 +1137,7 @@ async function clearAllData() {
 }
 
 /* ============================================================================
-   GERADOR DE LAUDO PDF (100% OFFLINE + FOTOS EMBUTIDAS + COMPARTILHAMENTO)
+   GERADOR DE LAUDO PDF (100% OFFLINE + FOTOS EMBUTIDAS + FILTRO POR EQUIPE)
    ============================================================================ */
 function pdfClean(str) {
   return String(str ?? "")
@@ -985,7 +1147,7 @@ function pdfClean(str) {
     .replace(/[—–]/g, "-")
     .replace(/✓/g, "OK")
     .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "") // remove accents for standard Type1 Helvetica
+    .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^\x20-\x7E]/g, "")
     .replace(/([()\\])/g, "\\$1");
 }
@@ -1007,17 +1169,18 @@ function getImageDimensions(blob) {
   });
 }
 
-async function buildPDFFile() {
+async function buildPDFFile(teamFilter = 0) {
   const st = $("#st");
   st.textContent = "gerando PDF…";
-  const B = getB();
+  const allB = getB();
+  const B = teamFilter ? allB.filter(b => b[2] == teamFilter) : allB;
   const c = S.cfg;
+  const teamTag = teamFilter == 1 ? "Equipe A (Dupla 1)" : (teamFilter == 2 ? "Equipe B (Dupla 2)" : "Equipes A e B");
 
-  // PDF Builder state (A4: 595.28 x 841.89 pt)
   const PW = 595.28, PH = 841.89, ML = 36, MR = 36, MT = 40, MB = 42;
   const CW = PW - ML - MR;
   const pages = [];
-  const images = []; // {name, bytes, w, h}
+  const images = [];
   let curOps = [];
   let y = PH - MT;
 
@@ -1025,10 +1188,9 @@ async function buildPDFFile() {
     if (curOps.length) pages.push(curOps.join("\n"));
     curOps = [];
     y = PH - MT;
-    // Header bar on every page
     rectFill(ML, PH - 34, CW, 18, 0.12, 0.23, 0.37);
-    textAt("LAUDO TECNICO DE INSPECAO E MEDICAO DE SPDA - NBR 5419", ML + 6, PH - 28, 8.5, true, 1, 1, 1);
-    textAt(c.cliente || "SPDA Campo", PW - MR - 150, PH - 28, 8.5, false, 1, 1, 1);
+    textAt(`LAUDO TECNICO DE INSPECAO E MEDICAO DE SPDA - ${teamTag}`, ML + 6, PH - 28, 8.5, true, 1, 1, 1);
+    textAt(c.cliente || "SPDA Campo", PW - MR - 140, PH - 28, 8.5, false, 1, 1, 1);
     y = PH - 52;
   }
 
@@ -1067,24 +1229,22 @@ async function buildPDFFile() {
 
   newPage();
 
-  // Title & Metadata Box
   rectFill(ML, y - 54, CW, 54, 0.95, 0.96, 0.98);
   rectStroke(ML, y - 54, CW, 54);
-  textAt("CLIENTE / OBRA: " + (c.cliente || "Amigos do Bem"), ML + 8, y - 14, 11, true, 0.12, 0.23, 0.37);
+  textAt(`CLIENTE / OBRA: ${c.cliente || "Amigos do Bem"}   [${teamTag}]`, ML + 8, y - 14, 10.5, true, 0.12, 0.23, 0.37);
   textAt("Local: " + (c.local || "-") + "   |   Data: " + (c.data || new Date().toISOString().slice(0, 10)), ML + 8, y - 27, 9, false);
-  textAt("Equipe: " + (c.eq || "-") + "   |   Aparelho: " + (c.ap || "-"), ML + 8, y - 39, 9, false);
+  textAt("Operadores: " + (c.eq || "-") + "   |   Aparelho: " + (c.ap || "-"), ML + 8, y - 39, 9, false);
   textAt(`Resp. Tecnico: ${c.resp || "-"} (${c.crea || "-"})   |   Limites: Cont. <= ${c.limC} Ohm / Terra <= ${c.limT} Ohm`, ML + 8, y - 50, 8.5, false, 0.3, 0.35, 0.4);
   y -= 66;
 
-  // Summary Table
   ensureSpace(40);
   textAt("1. RESUMO GERAL DOS LOCAIS / BLOCOS INSPECIONADOS", ML, y, 10, true, 0.12, 0.23, 0.37);
   y -= 6;
   rectFill(ML, y - 15, CW, 15, 0.88, 0.91, 0.95);
   textAt("Sigla", ML + 4, y - 11, 8.5, true);
   textAt("Local / Bloco", ML + 42, y - 11, 8.5, true);
-  textAt("Dupla", ML + 210, y - 11, 8.5, true);
-  textAt("Horario", ML + 250, y - 11, 8.5, true);
+  textAt("Equipe", ML + 205, y - 11, 8.5, true);
+  textAt("Horario", ML + 255, y - 11, 8.5, true);
   textAt("Solo", ML + 325, y - 11, 8.5, true);
   textAt("Medicoes", ML + 375, y - 11, 8.5, true);
   textAt("Status / NCs", ML + 440, y - 11, 8.5, true);
@@ -1098,9 +1258,9 @@ async function buildPDFFile() {
     const ncs = f ? f.ncs.length + f.rows.filter(r => judge(r).length || [r.barra, r.eld, r.cx].includes("NC")).length : 0;
     rectStroke(ML, y - 14, CW, 14, 0.85, 0.87, 0.9);
     textAt(b[0], ML + 4, y - 10, 8.5, true);
-    textAt((b[1] || "").slice(0, 32), ML + 42, y - 10, 8.5);
-    textAt(String(b[2]), ML + 218, y - 10, 8.5);
-    textAt(f && (f.hi || f.hf) ? `${f.hi || "--"} a ${f.hf || "--"}` : "-", ML + 250, y - 10, 8);
+    textAt((b[1] || "").slice(0, 30), ML + 42, y - 10, 8.5);
+    textAt(b[2] == 2 ? "Eq. B" : "Eq. A", ML + 205, y - 10, 8.5);
+    textAt(f && (f.hi || f.hf) ? `${f.hi || "--"} a ${f.hf || "--"}` : "-", ML + 255, y - 10, 8);
     textAt(f?.solo || "-", ML + 325, y - 10, 8);
     textAt(totR ? `${fl}/${totR}` : "BEP", ML + 382, y - 10, 8.5);
     if (ncs > 0) textAt(`${ncs} NC(s)`, ML + 440, y - 10, 8.5, true, 0.82, 0.18, 0.18);
@@ -1111,7 +1271,6 @@ async function buildPDFFile() {
 
   y -= 14;
 
-  // Detailed sections per block
   for (const b of B) {
     const f = S.f[b[0]];
     if (!f) continue;
@@ -1122,7 +1281,7 @@ async function buildPDFFile() {
 
     ensureSpace(65);
     rectFill(ML, y - 18, CW, 18, 0.12, 0.23, 0.37);
-    textAt(`BLOCO / LOCAL: ${b[1]} [${b[0]}]  -  Dupla ${b[2]}`, ML + 6, y - 13, 9.5, true, 1, 1, 1);
+    textAt(`BLOCO / LOCAL: ${b[1]} [${b[0]}]  -  ${teamLabel(b[2])}`, ML + 6, y - 13, 9.5, true, 1, 1, 1);
     y -= 22;
 
     textAt(`Inicio: ${f.hi || "-"}  |  Fim: ${f.hf || "-"}  |  Solo: ${f.solo || "-"}  |  DPS QDG: ${f.dps || "N/A"}`, ML + 2, y - 8, 8.5, false);
@@ -1132,7 +1291,6 @@ async function buildPDFFile() {
       y -= 12;
     }
 
-    // Checklist summary
     if (!b[3]?.includes("only")) {
       ensureSpace(26);
       const chkStr = CHK.map(([k, l]) => `${l.split(" ")[0]}: ${f.chk[k] || "-"}`).join("   |   ");
@@ -1140,14 +1298,12 @@ async function buildPDFFile() {
       y -= 13;
     }
 
-    // BEP info
     if (b[3]?.includes("bep") || b[3]?.includes("only")) {
       ensureSpace(18);
       textAt(`BEP Integro: ${f.bepOk || "-"}   |   Continuidade BEP->Malha: ${f.bepC || "-"} Ohm   |   Terra no BEP: ${f.bepT || "-"} Ohm`, ML + 2, y - 8, 8.5, true);
       y -= 14;
     }
 
-    // Rows table
     if (f.rows && f.rows.length) {
       ensureSpace(32);
       rectFill(ML, y - 14, CW, 14, 0.9, 0.92, 0.95);
@@ -1186,7 +1342,6 @@ async function buildPDFFile() {
       y -= 6;
     }
 
-    // NCs
     if (f.ncs && f.ncs.length) {
       ensureSpace(24);
       textAt("Nao Conformidades Registradas:", ML + 2, y - 9, 8.5, true, 0.8, 0.15, 0.15);
@@ -1205,7 +1360,6 @@ async function buildPDFFile() {
       y -= 4;
     }
 
-    // Collect photos for this block
     const blockPhotos = [];
     for (const k of (f.bepPh || [])) blockPhotos.push({k, cap: `${b[1]} - BEP`});
     for (const r of (f.rows || [])) {
@@ -1234,7 +1388,6 @@ async function buildPDFFile() {
         const by = y - boxH;
         rectStroke(bx, by - 12, boxW, boxH + 12, 0.8, 0.82, 0.86);
 
-        // Fit image inside boxW-8 x boxH-8
         const sc = Math.min((boxW - 8) / dims.w, (boxH - 8) / dims.h);
         const dw = dims.w * sc, dh = dims.h * sc;
         const ix = bx + (boxW - dw) / 2, iy = by + (boxH - dh) / 2;
@@ -1255,7 +1408,6 @@ async function buildPDFFile() {
 
   if (curOps.length) pages.push(curOps.join("\n"));
 
-  // Assemble binary PDF 1.4
   const chunks = [];
   let offset = 0;
   const offsets = [];
@@ -1280,7 +1432,6 @@ async function buildPDFFile() {
 
   pushStr("%PDF-1.4\n%\xFF\xFF\xFF\xFF\n");
 
-  // Obj 1: Catalog, Obj 2: Pages, Obj 3: Font F1, Obj 4: Font F2
   const firstImgObj = 5;
   const firstPageObj = firstImgObj + images.length;
   const pageKids = [];
@@ -1297,7 +1448,6 @@ async function buildPDFFile() {
   pushStr(`<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>`);
   endObj();
 
-  // Image XObjects
   const xobjEntries = [];
   for (let i = 0; i < images.length; i++) {
     const oid = firstImgObj + i;
@@ -1310,7 +1460,6 @@ async function buildPDFFile() {
     endObj();
   }
 
-  // Pages & Content streams
   for (let i = 0; i < pages.length; i++) {
     const pObj = firstPageObj + i * 2;
     const cObj = pObj + 1;
@@ -1328,7 +1477,6 @@ async function buildPDFFile() {
     endObj();
   }
 
-  // Write Obj 2 (Pages)
   startObj(2);
   pushStr(`<< /Type /Pages /Kids [ ${pageKids.join(" ")} ] /Count ${pages.length} >>`);
   endObj();
@@ -1343,20 +1491,21 @@ async function buildPDFFile() {
 
   st.textContent = "";
   const pdfBlob = new Blob(chunks, {type: "application/pdf"});
-  const fname = `Laudo_SPDA_${(c.cliente || "Campo").replace(/[^a-zA-Z0-9_-]/g, "_")}_${(c.data || new Date().toISOString().slice(0, 10))}.pdf`;
+  const eqPrefix = teamFilter == 1 ? "EquipeA_" : (teamFilter == 2 ? "EquipeB_" : "");
+  const fname = `${eqPrefix}Laudo_SPDA_${(c.cliente || "Campo").replace(/[^a-zA-Z0-9_-]/g, "_")}_${(c.data || new Date().toISOString().slice(0, 10))}.pdf`;
   return new File([pdfBlob], fname, {type: "application/pdf"});
 }
 
-async function downloadPDF() {
-  const file = await buildPDFFile();
+async function downloadPDF(teamFilter = 0) {
+  const file = await buildPDFFile(teamFilter);
   const a = document.createElement("a");
   a.href = URL.createObjectURL(file);
   a.download = file.name;
   a.click();
 }
 
-async function sharePDF() {
-  const file = await buildPDFFile();
+async function sharePDF(teamFilter = 0) {
+  const file = await buildPDFFile(teamFilter);
   if (navigator.canShare && navigator.canShare({files: [file]})) {
     try {
       await navigator.share({
@@ -1369,7 +1518,6 @@ async function sharePDF() {
       if (e.name === "AbortError") return;
     }
   }
-  // Fallback: download directly
   const a = document.createElement("a");
   a.href = URL.createObjectURL(file);
   a.download = file.name;
@@ -1377,8 +1525,9 @@ async function sharePDF() {
   alert("O PDF foi baixado no seu aparelho! Agora você pode anexá-lo no WhatsApp ou Google Drive.");
 }
 
-async function printReport() {
-  const B = getB(), c = S.cfg;
+async function printReport(teamFilter = 0) {
+  const allB = getB(), c = S.cfg;
+  const B = teamFilter ? allB.filter(b => b[2] == teamFilter) : allB;
   let html = `
     <div style="border-bottom:3px solid #1F3A5F;padding-bottom:8px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:flex-end">
       <div>
@@ -1407,7 +1556,7 @@ async function printReport() {
 
     html += `
       <div class="p-card">
-        <h3 style="margin:0 0 6px;color:#1F3A5F">${esc(b[1])} [${esc(b[0])}] — Dupla ${b[2]}</h3>
+        <h3 style="margin:0 0 6px;color:#1F3A5F">${esc(b[1])} [${esc(b[0])}] — ${teamLabel(b[2])}</h3>
         <div><b>Horário:</b> ${esc(f.hi || "-")} às ${esc(f.hf || "-")} | <b>Solo:</b> ${esc(f.solo || "-")} ${f.dps ? `| <b>DPS QDG:</b> ${esc(f.dps)}` : ""}</div>
         ${f.bepOk || f.bepC || f.bepT ? `<div><b>BEP Íntegro:</b> ${esc(f.bepOk || "-")} | <b>Cont. BEP:</b> ${esc(f.bepC || "-")} Ω | <b>Terra BEP:</b> ${esc(f.bepT || "-")} Ω</div>` : ""}
         ${f.rows.length ? `
@@ -1456,6 +1605,9 @@ async function printReport() {
     cliente: "Amigos do Bem",
     local: "",
     data: new Date().toISOString().slice(0, 10),
+    equipeAtiva: 1,
+    driveA: DRIVE_FOLDERS[1].url,
+    driveB: DRIVE_FOLDERS[2].url,
     resp: "",
     crea: "",
     limC: 0.2,
@@ -1466,6 +1618,8 @@ async function printReport() {
     ap: "",
     ...S.cfg
   };
+  if (!S.cfg.driveA) S.cfg.driveA = DRIVE_FOLDERS[1].url;
+  if (!S.cfg.driveB) S.cfg.driveB = DRIVE_FOLDERS[2].url;
   getB();
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
     navigator.serviceWorker.register("sw.js").catch(() => {});
