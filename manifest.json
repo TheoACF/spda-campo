@@ -1,0 +1,19 @@
+{
+  "name": "SPDA Campo — Inspeção e Laudo",
+  "short_name": "SPDA Campo",
+  "description": "Aplicativo de inspeção, medições e geração de laudo técnico de SPDA em campo",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1F3A5F",
+  "theme_color": "#1F3A5F",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

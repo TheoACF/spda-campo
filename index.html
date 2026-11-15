@@ -1,0 +1,1478 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>SPDA Campo — Inspeção e Laudo</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<meta name="theme-color" content="#1F3A5F">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+:root{
+  --bg:#f4f6f9;--c:#fff;--t:#1b1f27;--m:#5c6675;--p:#1F3A5F;--p2:#2b5082;
+  --ok:#e9a3c0;--good:#2e8b57;--nc:#e04b4b;--warn:#d97706;--ln:#d5dae2;--wa:#1fa855;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#12161c;--c:#1c222b;--t:#eef1f5;--m:#9aa5b4;--ln:#333c48;--p:#5b8fd6;--p2:#3b6db3;
+  }
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{
+  margin:0;background:var(--bg);color:var(--t);
+  font:15px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  padding:env(safe-area-inset-top) 0 calc(env(safe-area-inset-bottom) + 24px);
+}
+header{
+  position:sticky;top:0;background:#1F3A5F;color:#fff;
+  padding:10px 12px;display:flex;gap:8px;align-items:center;z-index:20;
+  box-shadow:0 2px 8px rgba(0,0,0,.18);
+}
+header b{flex:1;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+header button{
+  background:#ffffff22;color:#fff;border:0;border-radius:8px;
+  padding:8px 11px;font-size:14px;cursor:pointer;font-weight:600;
+}
+header button:active{opacity:.8}
+main{padding:10px;max-width:760px;margin:auto}
+.card{
+  background:var(--c);border:1px solid var(--ln);border-radius:12px;
+  padding:12px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.04);
+}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.grow{flex:1}
+h3{margin:2px 0 10px;font-size:13px;color:var(--p);text-transform:uppercase;letter-spacing:.4px}
+button.b,.seg button{
+  border:1px solid var(--ln);background:var(--c);color:var(--t);
+  border-radius:10px;padding:9px 12px;font-size:14px;cursor:pointer;font-weight:500;
+}
+button.b:active,.seg button:active{transform:scale(.98)}
+.seg{display:inline-flex;gap:4px;flex-wrap:wrap}
+.seg button.on{background:var(--p);color:#fff;border-color:var(--p)}
+.seg button.on.bad{background:var(--nc);border-color:var(--nc)}
+.seg button.on.good{background:var(--good);border-color:var(--good)}
+.seg button.on.pink{background:#d66094;border-color:#d66094}
+input,select,textarea{
+  width:100%;padding:10px;border:1px solid var(--ln);border-radius:10px;
+  background:var(--c);color:var(--t);font-size:16px;font-family:inherit;
+}
+label{font-size:12px;color:var(--m);display:block;margin:6px 0 3px;font-weight:500}
+.li{
+  display:flex;justify-content:space-between;align-items:center;gap:8px;
+  padding:12px 10px;border-bottom:1px solid var(--ln);cursor:pointer;
+}
+.li:last-child{border-bottom:0}
+.li:active{background:rgba(128,128,128,.08)}
+.pill{padding:3px 8px;border-radius:99px;font-size:11px;font-weight:600;background:var(--ln);display:inline-block}
+.pill.ok{background:var(--good);color:#fff}
+.pill.nc{background:var(--nc);color:#fff}
+.pill.info{background:#1F3A5F;color:#fff}
+.d{border-left:5px solid var(--ln)}
+.d.ok{border-left-color:var(--good)}
+.d.nc{border-left-color:var(--nc)}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.g3{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media(min-width:520px){.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}}
+small{color:var(--m);font-size:12px}
+.big{
+  width:100%;padding:13px 14px;font-size:15px;font-weight:600;border-radius:12px;
+  border:0;background:#1F3A5F;color:#fff;margin:5px 0;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.big.wa{background:var(--wa)}
+.big.sec{background:#475569}
+.big.out{background:var(--c);color:var(--t);border:1px solid var(--ln)}
+#st{font-size:12px;opacity:.95}
+.thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.th{
+  position:relative;width:68px;height:68px;border-radius:8px;overflow:hidden;
+  border:1px solid var(--ln);background:#000;flex-shrink:0;
+}
+.th img{width:100%;height:100%;object-fit:cover;display:block;cursor:pointer}
+.th button{
+  position:absolute;top:2px;right:2px;width:22px;height:22px;border-radius:50%;
+  border:0;background:rgba(224,75,75,.92);color:#fff;font-size:12px;line-height:1;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;
+}
+.stats-bar{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px;
+}
+.stat-box{
+  background:var(--c);border:1px solid var(--ln);border-radius:10px;padding:8px 6px;text-align:center;
+}
+.stat-box b{display:block;font-size:17px;color:var(--p)}
+.stat-box small{font-size:11px}
+.modal-bg{
+  position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:50;
+  display:flex;align-items:center;justify-content:center;padding:14px;
+}
+.modal{
+  background:var(--c);color:var(--t);border-radius:14px;max-width:480px;width:100%;
+  max-height:90vh;overflow-y:auto;padding:16px;border:1px solid var(--ln);
+}
+.inline-edit{
+  border:1px dashed var(--ln);border-radius:8px;padding:4px 8px;font-weight:700;
+  font-size:15px;width:auto;min-width:90px;max-width:190px;background:transparent;
+}
+/* Print / PDF styles */
+#print-area{display:none}
+@media print{
+  header,main,.modal-bg{display:none!important}
+  body{background:#fff!important;color:#000!important;padding:0!important;font-size:12px}
+  #print-area{display:block!important;padding:10mm}
+  .p-card{border:1px solid #ccc;border-radius:6px;padding:8px;margin-bottom:10px;page-break-inside:avoid}
+  .p-tbl{width:100%;border-collapse:collapse;margin:6px 0;font-size:11px}
+  .p-tbl th,.p-tbl td{border:1px solid #bbb;padding:4px 6px;text-align:left}
+  .p-tbl th{background:#e9eef5}
+  .p-grid-ph{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px}
+  .p-ph{border:1px solid #ccc;border-radius:4px;padding:4px;text-align:center;page-break-inside:avoid}
+  .p-ph img{max-width:100%;height:130px;object-fit:contain}
+}
+</style>
+</head>
+<body>
+<header>
+  <button id="back" style="display:none" onclick="go('')">← Voltar</button>
+  <b id="ttl">SPDA Campo</b>
+  <span id="st"></span>
+  <button onclick="go('exp')" title="Exportar PDF / Enviar">📄 Laudo</button>
+  <button onclick="go('cfg')" title="Configurações">⚙</button>
+</header>
+<main id="m"></main>
+<div id="modal-root"></div>
+<div id="print-area"></div>
+
+<script>
+const DEFAULT_B = [
+  ["A","Bloco A",1,""],
+  ["B","Bloco B",1,""],
+  ["D","Bloco D",1,""],
+  ["E","Bloco E",2,""],
+  ["G","Bloco G",2,""],
+  ["H","Bloco H",2,""],
+  ["I","Bloco I",1,""],
+  ["J","Bloco J",1,""],
+  ["K","Bloco K",2,""],
+  ["L","Bloco L",2,""],
+  ["N","Bloco N (+BEP)",2,"bep"],
+  ["Q","Quadra Coberta (+BEP)",1,"bep"],
+  ["Bi","Biblioteca",2,""],
+  ["P","Portaria (+BEP Principal)",1,"bep dps"],
+  ["R","BEP Reservatório",1,"only"]
+];
+
+const COD = {
+  C1:["Continuidade alta ou aberta","A"],
+  C2:["Falta conector bimetálico","B"],
+  C3:["Conector frouxo/oxidado","B"],
+  C4:["Caixa de inspeção sem tampa/quebrada","B"],
+  C5:["Falta placa Risco de Choque","C"],
+  C6:["Falta eletroduto PVC 1\"","C"],
+  C7:["Barra de Al amassada/solta","B"],
+  C8:["Cordoalha solta/suporte quebrado","A"],
+  C9:["Sem equipotencialização","B"],
+  C10:["Aterramento acima do limite/sem haste","A"],
+  C11:["Outro","C"]
+};
+
+const CHK = [
+  ["cap","Captação (cordoalha Cu 50 mm² e suportes) íntegra?"],
+  ["top","Conexão de topo Cu/Al firme, sem corrosão?"],
+  ["desc","Descidas retas e fixadas a cada 1 m?"],
+  ["prot","Eletroduto PVC e placa no pé da descida?"],
+  ["mass","Massas metálicas aterradas?"]
+];
+
+let S = {
+  cfg: {
+    cliente: "Amigos do Bem",
+    local: "",
+    data: new Date().toISOString().slice(0,10),
+    resp: "",
+    crea: "",
+    limC: 0.2,
+    limT: 10,
+    url: "",
+    tok: "",
+    eq: "",
+    ap: ""
+  },
+  blocos: null,
+  f: {}
+};
+
+let db, view = "", searchQ = "", filterDupla = 0, photoURLCache = {};
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function getB() {
+  if (!Array.isArray(S.blocos) || !S.blocos.length) {
+    S.blocos = DEFAULT_B.map(x => [...x]);
+  }
+  return S.blocos;
+}
+
+function idb() {
+  return new Promise(r => {
+    const q = indexedDB.open("spda", 1);
+    q.onupgradeneeded = () => {
+      if (!q.result.objectStoreNames.contains("kv")) q.result.createObjectStore("kv");
+      if (!q.result.objectStoreNames.contains("ph")) q.result.createObjectStore("ph");
+    };
+    q.onsuccess = () => r(q.result);
+  });
+}
+
+const tx = (st, m, f) => new Promise(r => {
+  const t = db.transaction(st, m), o = f(t.objectStore(st));
+  t.oncomplete = () => r(o && o.result);
+});
+const kget = k => tx("kv", "readonly", s => s.get(k));
+const kset = (k, v) => tx("kv", "readwrite", s => s.put(v, k));
+const pall = () => tx("ph", "readonly", s => s.getAll());
+const pkeys = () => tx("ph", "readonly", s => s.getAllKeys());
+const pset = (k, v) => tx("ph", "readwrite", s => s.put(v, k));
+const pget = k => tx("ph", "readonly", s => s.get(k));
+const pdel = k => tx("ph", "readwrite", s => s.delete(k));
+
+let tm;
+function save() {
+  clearTimeout(tm);
+  tm = setTimeout(() => kset("S", S), 180);
+}
+
+const R = i => ({
+  p: "D" + String(i + 1).padStart(2, "0"),
+  loc: "",
+  barra: "",
+  eld: "",
+  cx: "",
+  cont: "",
+  terra: "",
+  ph: [],
+  pl: "",
+  obs: ""
+});
+
+function F(id) {
+  const b = getB().find(x => x[0] == id) || [id, id, 1, ""];
+  return S.f[id] ??= (() => {
+    const o = b[3] || "";
+    return {
+      id,
+      hi: "",
+      hf: "",
+      solo: "",
+      obs: "",
+      dupla: b[2],
+      chk: {},
+      bepOk: "",
+      bepC: "",
+      bepT: "",
+      bepPh: [],
+      dps: "",
+      rows: o.includes("only") ? [] : Array.from({length: 8}, (_, i) => R(i)),
+      ncs: [],
+      done: {vis: 0, med: 0, foto: 0, pl: 0}
+    };
+  })();
+}
+
+const num = v => parseFloat(String(v ?? "").replace(",", "."));
+
+function judge(r) {
+  const c = num(r.cont), t = num(r.terra), bad = [];
+  if (!isNaN(c) && c > S.cfg.limC) bad.push("Cont. " + c + " Ω > " + S.cfg.limC);
+  if (!isNaN(t) && t > S.cfg.limT) bad.push("Terra " + t + " Ω > " + S.cfg.limT);
+  return bad;
+}
+
+function go(v) {
+  view = v;
+  render();
+  scrollTo(0, 0);
+}
+
+function set(id, path, v, rr) {
+  let o = F(id), k = path.split(".");
+  while (k.length > 1) o = o[k.shift()];
+  o[k[0]] = v;
+  save();
+  if (rr) render();
+}
+
+const seg = (id, path, cur, opts) =>
+  `<span class="seg">${opts.map(([v, l, c]) =>
+    `<button type="button" class="${cur === v ? "on " + (c || "") : ""}" onclick="set('${esc(id)}','${path}','${cur === v ? "" : v}',1)">${l}</button>`
+  ).join("")}</span>`;
+
+async function getThumbURL(name) {
+  if (photoURLCache[name]) return photoURLCache[name];
+  const rec = await pget(name);
+  if (rec && rec.b) {
+    const u = URL.createObjectURL(rec.b);
+    photoURLCache[name] = u;
+    return u;
+  }
+  return "";
+}
+
+async function hydrateThumbs() {
+  const imgs = document.querySelectorAll("img[data-ph]");
+  for (const img of imgs) {
+    const k = img.getAttribute("data-ph");
+    const u = await getThumbURL(k);
+    if (u) img.src = u;
+  }
+}
+
+function renderThumbs(id, list, kind, idx) {
+  if (!list || !list.length) return "";
+  return `<div class="thumbs">${list.map((name, pi) => `
+    <div class="th">
+      <img data-ph="${esc(name)}" alt="Foto" onclick="viewPhoto('${esc(name)}')">
+      <button type="button" title="Excluir foto" onclick="delPhoto('${esc(id)}','${kind}',${idx},${pi},'${esc(name)}')">✕</button>
+    </div>
+  `).join("")}</div>`;
+}
+
+async function viewPhoto(name) {
+  const rec = await pget(name);
+  if (!rec || !rec.b) return;
+  const u = await getThumbURL(name);
+  $("#modal-root").innerHTML = `
+    <div class="modal-bg" onclick="closeModal()">
+      <div class="modal" onclick="event.stopPropagation()" style="text-align:center">
+        <div class="row" style="margin-bottom:8px">
+          <b class="grow" style="font-size:13px;word-break:break-all">${esc(name)}</b>
+          <button class="b" onclick="closeModal()">Fechar</button>
+        </div>
+        <img src="${u}" style="max-width:100%;max-height:70vh;border-radius:8px">
+        <div style="margin-top:10px">
+          <a href="${u}" download="${esc(name)}" class="big" style="text-decoration:none">📥 Baixar esta foto</a>
+        </div>
+      </div>
+    </div>`;
+}
+
+async function delPhoto(id, kind, idx, pi, name) {
+  if (!confirm("Excluir esta foto?")) return;
+  const f = F(id);
+  if (kind === "bep") (f.bepPh || []).splice(pi, 1);
+  else if (kind === "row") f.rows[idx].ph.splice(pi, 1);
+  else if (kind === "nc") (f.ncs[idx].ph || []).splice(pi, 1);
+  await pdel(name);
+  if (photoURLCache[name]) {
+    URL.revokeObjectURL(photoURLCache[name]);
+    delete photoURLCache[name];
+  }
+  save();
+  render();
+}
+
+function closeModal() {
+  $("#modal-root").innerHTML = "";
+}
+
+function openBlockModal(editId) {
+  const B = getB();
+  const ex = editId ? B.find(x => x[0] === editId) : null;
+  const id = ex ? ex[0] : "";
+  const nome = ex ? ex[1] : "";
+  const dupla = ex ? ex[2] : 1;
+  const opts = ex ? (ex[3] || "") : "";
+  const hasBep = opts.includes("bep");
+  const hasDps = opts.includes("dps");
+  const isOnly = opts.includes("only");
+  const qtdDesc = editId && S.f[editId] ? S.f[editId].rows.length : 8;
+
+  $("#modal-root").innerHTML = `
+    <div class="modal-bg" onclick="closeModal()">
+      <div class="modal" onclick="event.stopPropagation()">
+        <h3 style="margin-top:0">${ex ? "Editar Local / Bloco" : "Novo Local / Bloco"}</h3>
+        <div class="g2">
+          <div>
+            <label>Sigla / Código</label>
+            <input id="mb-id" value="${esc(id)}" placeholder="Ex.: M, Galp1" ${ex ? "readonly style='opacity:.7'" : ""}>
+          </div>
+          <div>
+            <label>Dupla / Equipe</label>
+            <select id="mb-dupla">
+              <option value="1" ${dupla == 1 ? "selected" : ""}>Dupla 1</option>
+              <option value="2" ${dupla == 2 ? "selected" : ""}>Dupla 2</option>
+              <option value="3" ${dupla == 3 ? "selected" : ""}>Dupla 3</option>
+            </select>
+          </div>
+        </div>
+        <label>Nome do Lugar / Bloco</label>
+        <input id="mb-nome" value="${esc(nome)}" placeholder="Ex.: Bloco M, Subestação, Galpão...">
+        ${!ex ? `
+          <label>Quantidade inicial de descidas</label>
+          <input id="mb-qtd" type="number" min="0" max="60" value="${qtdDesc}">
+        ` : ""}
+        <div style="margin-top:10px">
+          <label>Itens presentes neste local</label>
+          <label style="display:flex;gap:8px;align-items:center;font-size:14px;color:var(--t)">
+            <input type="checkbox" id="mb-bep" style="width:20px" ${hasBep ? "checked" : ""}> Possui BEP (Barramento de Equipotencialização)
+          </label>
+          <label style="display:flex;gap:8px;align-items:center;font-size:14px;color:var(--t)">
+            <input type="checkbox" id="mb-dps" style="width:20px" ${hasDps ? "checked" : ""}> Verificar DPS no QDG
+          </label>
+          <label style="display:flex;gap:8px;align-items:center;font-size:14px;color:var(--t)">
+            <input type="checkbox" id="mb-only" style="width:20px" ${isOnly ? "checked" : ""}> Somente BEP / Aterramento (sem malha de descidas)
+          </label>
+        </div>
+        <div class="row" style="margin-top:14px">
+          ${ex ? `<button class="b" style="color:var(--nc);border-color:var(--nc)" onclick="deleteBlock('${esc(id)}')">🗑 Excluir</button>` : ""}
+          <span class="grow"></span>
+          <button class="b" onclick="closeModal()">Cancelar</button>
+          <button class="b" style="background:var(--p);color:#fff;border-color:var(--p)" onclick="saveBlockModal('${esc(editId || "")}')">Salvar</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function saveBlockModal(editId) {
+  const B = getB();
+  let id = ($("#mb-id").value || "").trim().replace(/[^a-zA-Z0-9_-]/g, "");
+  const nome = ($("#mb-nome").value || "").trim();
+  const dupla = parseInt($("#mb-dupla").value) || 1;
+  const flags = [];
+  if ($("#mb-bep").checked) flags.push("bep");
+  if ($("#mb-dps").checked) flags.push("dps");
+  if ($("#mb-only").checked) flags.push("only");
+  const optStr = flags.join(" ");
+
+  if (!nome) { alert("Informe o nome do local/bloco."); return; }
+  if (!id) id = nome.slice(0, 4).toUpperCase().replace(/\s+/g, "") + Math.floor(Math.random() * 90 + 10);
+
+  if (editId) {
+    const idx = B.findIndex(x => x[0] === editId);
+    if (idx >= 0) {
+      B[idx] = [editId, nome, dupla, optStr];
+      if (S.f[editId]) S.f[editId].dupla = dupla;
+    }
+  } else {
+    if (B.some(x => x[0] === id)) {
+      alert("Já existe um local com a sigla " + id + ". Escolha outra sigla.");
+      return;
+    }
+    const qtd = Math.max(0, Math.min(60, parseInt($("#mb-qtd")?.value ?? 8)));
+    B.push([id, nome, dupla, optStr]);
+    const f = F(id);
+    f.rows = optStr.includes("only") ? [] : Array.from({length: qtd}, (_, i) => R(i));
+  }
+  save();
+  closeModal();
+  render();
+}
+
+function deleteBlock(id) {
+  if (!confirm("Tem certeza que deseja remover este local da lista?")) return;
+  S.blocos = getB().filter(x => x[0] !== id);
+  delete S.f[id];
+  save();
+  closeModal();
+  if (view === id) view = "";
+  render();
+}
+
+function setNow(id, field) {
+  const now = new Date().toTimeString().slice(0, 5);
+  set(id, field, now, 1);
+}
+
+async function render() {
+  const m = $("#m"), B = getB();
+  $("#back").style.display = view ? "" : "none";
+
+  if (view === "cfg") {
+    $("#ttl").textContent = "Ajustes e Dados da Obra";
+    const c = S.cfg;
+    m.innerHTML = `
+      <div class="card">
+        <h3>Dados do Cliente / Laudo</h3>
+        <label>Nome do Cliente / Obra</label>
+        <input value="${esc(c.cliente)}" placeholder="Ex.: Amigos do Bem" onchange="S.cfg.cliente=this.value;save()">
+        <div class="g2">
+          <div>
+            <label>Cidade / Localidade</label>
+            <input value="${esc(c.local || "")}" placeholder="Ex.: Inajá - PE" onchange="S.cfg.local=this.value;save()">
+          </div>
+          <div>
+            <label>Data da Inspeção</label>
+            <input type="date" value="${esc(c.data || "")}" onchange="S.cfg.data=this.value;save()">
+          </div>
+        </div>
+        <div class="g2">
+          <div>
+            <label>Responsável Técnico</label>
+            <input value="${esc(c.resp || "")}" placeholder="Nome do Engenheiro / Técnico" onchange="S.cfg.resp=this.value;save()">
+          </div>
+          <div>
+            <label>CREA / CFT / ART</label>
+            <input value="${esc(c.crea || "")}" placeholder="Registro / ART" onchange="S.cfg.crea=this.value;save()">
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Limites de Critério (Ω) — NBR 5419</h3>
+        <div class="g3">
+          <div>
+            <label>Continuidade máx. (Ω)</label>
+            <input inputmode="decimal" value="${c.limC}" onchange="S.cfg.limC=num(this.value)||0.2;save()">
+          </div>
+          <div>
+            <label>Terra máx. (Ω)</label>
+            <input inputmode="decimal" value="${c.limT}" onchange="S.cfg.limT=num(this.value)||10;save()">
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Equipe e Instrumentos</h3>
+        <label>Equipe / Operadores em campo</label>
+        <input value="${esc(c.eq)}" placeholder="Nomes da equipe" onchange="S.cfg.eq=this.value;save()">
+        <label>Aparelho Medidor (modelo / nº série / calibração)</label>
+        <input value="${esc(c.ap)}" placeholder="Ex.: Terrômetro / Microhmímetro..." onchange="S.cfg.ap=this.value;save()">
+      </div>
+
+      <div class="card">
+        <h3>Servidor / Nuvem (Opcional)</h3>
+        <label>URL do Servidor ou Google Apps Script WebApp</label>
+        <input value="${esc(c.url)}" placeholder="https://..." onchange="S.cfg.url=this.value.replace(/\\/$/,'');save()">
+        <label>Token de Acesso</label>
+        <input value="${esc(c.tok)}" onchange="S.cfg.tok=this.value;save()">
+      </div>
+
+      <div class="card">
+        <h3>Gerenciar Locais e Dados</h3>
+        <div class="row">
+          <button class="b" onclick="openBlockModal()">+ Adicionar Local</button>
+          <button class="b" onclick="resetDefaultBlocks()">Restaurar Locais Padrão</button>
+          <button class="b" style="color:var(--nc)" onclick="clearAllData()">Limpar Tudo</button>
+        </div>
+      </div>`;
+    return;
+  }
+
+  if (view === "exp") {
+    $("#ttl").textContent = "Exportar Laudo e Nuvem";
+    const ph = await pall();
+    const unsent = ph.filter(p => !p.s).length;
+    m.innerHTML = `
+      <div class="card">
+        <h3>1º Jeito: Laudo Técnico em PDF (Com Fotos)</h3>
+        <p style="margin:4px 0 10px;font-size:13px;color:var(--m)">
+          Gera o relatório completo de inspeção SPDA com cabeçalho, tabelas de descidas, medições de continuidade/terra, não conformidades e fotos tiradas.
+        </p>
+        <button class="big wa" onclick="sharePDF()">📤 Enviar PDF (WhatsApp / Salvar no Drive)</button>
+        <button class="big" onclick="downloadPDF()">📥 Baixar PDF Direto no Celular</button>
+        <button class="big out" onclick="printReport()">🖨 Abrir Laudo A4 Formatado / Imprimir PDF</button>
+      </div>
+
+      <div class="card">
+        <h3>2º Jeito: Pacote de Dados + Fotos Originais</h3>
+        <p style="margin:4px 0 10px;font-size:13px;color:var(--m)">
+          Envia ou baixa o arquivo <b>spda_dados.json</b> junto com as <b>${ph.length} fotos</b> armazenadas no celular (${unsent} novas).
+        </p>
+        <button class="big" onclick="exp(false)">☁ Enviar para Google Drive / WhatsApp (Novas)</button>
+        <button class="big sec" onclick="exp(true)">☁ Reenviar Todas as Fotos + JSON (${ph.length} fotos)</button>
+        <div class="g2" style="margin-top:8px">
+          <button class="b" onclick="downloadJSONOnly()">📥 Baixar JSON</button>
+          <button class="b" onclick="importJSONPrompt()">📂 Importar JSON</button>
+        </div>
+        ${S.cfg.url ? `<button class="big" style="background:#3b6db3;margin-top:8px" onclick="sync()">⇅ Sincronizar com Servidor Configurado</button>` : ""}
+      </div>`;
+    return;
+  }
+
+  if (!view) {
+    $("#ttl").textContent = "SPDA Campo — " + (S.cfg.cliente || "Inspeção");
+    const ph = await pall();
+    let totMed = 0, totNC = 0, totDone = 0;
+    B.forEach(b => {
+      const f = S.f[b[0]];
+      if (f) {
+        totMed += f.rows.filter(r => r.cont || r.terra).length;
+        totNC += f.ncs.length + f.rows.filter(r => judge(r).length || [r.barra, r.eld, r.cx].includes("NC")).length;
+        if (f.done && f.done.pl) totDone++;
+      }
+    });
+
+    const filteredB = B.filter(b => {
+      if (filterDupla && b[2] != filterDupla) return false;
+      if (searchQ && !b[1].toLowerCase().includes(searchQ.toLowerCase()) && !b[0].toLowerCase().includes(searchQ.toLowerCase())) return false;
+      return true;
+    });
+
+    m.innerHTML = `
+      <div class="stats-bar">
+        <div class="stat-box"><b>${B.length}</b><small>Locais</small></div>
+        <div class="stat-box"><b>${totMed}</b><small>Medições</small></div>
+        <div class="stat-box"><b style="color:${totNC ? "var(--nc)" : "inherit"}">${totNC}</b><small>Alertas/NC</small></div>
+        <div class="stat-box"><b>${ph.length}</b><small>Fotos</small></div>
+      </div>
+
+      <div class="card" style="padding:10px">
+        <div class="row">
+          <input class="grow" style="padding:8px 10px;font-size:14px" placeholder="🔍 Buscar bloco ou local..." value="${esc(searchQ)}" oninput="searchQ=this.value;render()">
+          <button class="b" onclick="openBlockModal()">+ Local</button>
+        </div>
+        <div class="row" style="margin-top:8px;justify-content:space-between">
+          <span class="seg">
+            <button class="${filterDupla === 0 ? "on" : ""}" onclick="filterDupla=0;render()">Todos</button>
+            <button class="${filterDupla === 1 ? "on" : ""}" onclick="filterDupla=1;render()">Dupla 1</button>
+            <button class="${filterDupla === 2 ? "on" : ""}" onclick="filterDupla=2;render()">Dupla 2</button>
+          </span>
+          <small onclick="go('cfg')" style="cursor:pointer;text-decoration:underline">✎ Obra: ${esc(S.cfg.cliente)}</small>
+        </div>
+      </div>
+
+      <div class="card" style="padding:4px 8px">
+        ${filteredB.map(b => {
+          const f = S.f[b[0]];
+          const n = f ? f.ncs.length + f.rows.filter(r => judge(r).length || [r.barra, r.eld, r.cx].includes("NC")).length : 0;
+          const fl = f ? f.rows.filter(r => r.cont || r.terra).length : 0;
+          const totR = f ? f.rows.length : (b[3]?.includes("only") ? 0 : 8);
+          return `
+            <div class="li" onclick="go('${esc(b[0])}')">
+              <div class="grow">
+                <b>${esc(b[1])}</b> <small style="opacity:.75">[${esc(b[0])}]</small><br>
+                <small>Dupla ${b[2]} • ${totR ? `${fl}/${totR} descidas medidas` : "Somente BEP"}</small>
+              </div>
+              <div class="row" style="gap:6px">
+                ${n ? `<span class="pill nc">${n} NC</span>` : ""}
+                ${f && f.done.pl ? `<span class="pill ok">✓</span>` : ""}
+                <button class="b" style="padding:5px 8px;font-size:12px" title="Editar nome do local" onclick="event.stopPropagation();openBlockModal('${esc(b[0])}')">✎</button>
+                <span style="color:var(--m);font-size:18px">›</span>
+              </div>
+            </div>`;
+        }).join("") || `<div style="padding:16px;text-align:center;color:var(--m)">Nenhum local encontrado.</div>`}
+      </div>
+
+      <button class="big wa" onclick="sharePDF()">📤 Gerar PDF e Enviar (WhatsApp / Drive)</button>
+      <button class="big" onclick="downloadPDF()">📥 Baixar Laudo PDF no Celular</button>
+      <button class="big sec" onclick="exp(false)">☁ Enviar Pacote (JSON + Fotos) p/ Drive</button>
+      ${S.cfg.url ? `<button class="big" style="background:#667" onclick="sync()">⇅ Sincronizar com servidor</button>` : ""}
+      <div style="text-align:center;margin-top:4px">
+        <small>${ph.length} fotos salvas no aparelho • ${ph.filter(p => !p.s).length} pendentes de envio</small>
+      </div>`;
+    return;
+  }
+
+  const b = B.find(x => x[0] == view);
+  if (!b) { go(""); return; }
+  const f = F(view), o = b[3] || "";
+  $("#ttl").textContent = b[1];
+
+  let h = `
+    <div class="card">
+      <div class="row" style="margin-bottom:6px">
+        <b class="grow" style="font-size:16px">${esc(b[1])} <small>(Dupla ${b[2]})</small></b>
+        <button class="b" style="padding:6px 10px;font-size:13px" onclick="openBlockModal('${esc(view)}')">✎ Editar Nome / Local</button>
+      </div>
+      <div class="g3">
+        <div>
+          <label>Início <a href="javascript:void(0)" onclick="setNow('${esc(view)}','hi')" style="float:right;color:var(--p)">Agora</a></label>
+          <input type="time" value="${esc(f.hi)}" onchange="set('${esc(view)}','hi',this.value)">
+        </div>
+        <div>
+          <label>Fim <a href="javascript:void(0)" onclick="setNow('${esc(view)}','hf')" style="float:right;color:var(--p)">Agora</a></label>
+          <input type="time" value="${esc(f.hf)}" onchange="set('${esc(view)}','hf',this.value)">
+        </div>
+      </div>
+      <label>Condição do Solo</label>
+      ${seg(view, "solo", f.solo, [["Seco", "Seco"], ["Úmido", "Úmido"]])}
+      <label>Observações do Local / Bloco</label>
+      <input placeholder="Opcional: observação geral deste bloco..." value="${esc(f.obs || "")}" onchange="set('${esc(view)}','obs',this.value)">
+    </div>`;
+
+  if (!o.includes("only")) {
+    h += `
+      <div class="card">
+        <h3>A. Checklist Visual</h3>
+        ${CHK.map(([k, l]) => `
+          <div style="margin:10px 0;padding-bottom:8px;border-bottom:1px solid var(--ln)">
+            <div style="margin-bottom:4px;font-weight:500">${l}</div>
+            ${seg(view, "chk." + k, f.chk[k] || "", [["Sim", "Sim", "good"], ["Não", "Não", "bad"], ["NA", "N/A"]])}
+          </div>`).join("")}
+      </div>`;
+  }
+
+  if (o.includes("bep") || o.includes("only")) {
+    h += `
+      <div class="card">
+        <h3>BEP (Barramento de Equipotencialização)</h3>
+        <div style="margin-bottom:4px">Barra, isoladores e conexões íntegros?</div>
+        ${seg(view, "bepOk", f.bepOk, [["Sim", "Sim", "good"], ["Não", "Não", "bad"]])}
+        <div class="g2">
+          <div>
+            <label>Continuidade BEP → malha (Ω)</label>
+            <input inputmode="decimal" placeholder="0,00" value="${esc(f.bepC)}" onchange="set('${esc(view)}','bepC',this.value)">
+          </div>
+          <div>
+            <label>Terra no BEP (Ω)</label>
+            <input inputmode="decimal" placeholder="0,00" value="${esc(f.bepT || "")}" onchange="set('${esc(view)}','bepT',this.value)">
+          </div>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <button class="b" onclick="photo('${esc(view)}','BEP',null,null,true)">📷 Câmera (${(f.bepPh || []).length})</button>
+          <button class="b" onclick="photo('${esc(view)}','BEP',null,null,false)">🖼 Galeria</button>
+        </div>
+        ${renderThumbs(view, f.bepPh || [], "bep", 0)}
+      </div>`;
+  }
+
+  if (o.includes("dps")) {
+    h += `
+      <div class="card">
+        <h3>DPS no QDG</h3>
+        ${seg(view, "dps", f.dps, [["Sim", "Instalado", "good"], ["Não", "Ausente", "bad"]])}
+      </div>`;
+  }
+
+  if (f.rows.length || !o.includes("only")) {
+    h += `<h3 style="padding:0 4px">B. Descidas e Caixas (Sentido Horário)</h3>`;
+    f.rows.forEach((r, i) => {
+      const j = judge(r);
+      const hasNC = j.length || [r.barra, r.eld, r.cx].includes("NC");
+      const isOk = !hasNC && (r.cont !== "" || r.terra !== "");
+      const cl = hasNC ? "nc" : (isOk ? "ok" : "");
+      h += `
+        <div class="card d ${cl}">
+          <div class="row">
+            <input class="inline-edit" value="${esc(r.p)}" title="Editar código da descida" onchange="set('${esc(view)}','rows.${i}.p',this.value)">
+            <input class="grow" style="padding:5px 8px;font-size:13px" placeholder="Local/Referência (ex.: Lateral N)" value="${esc(r.loc || "")}" onchange="set('${esc(view)}','rows.${i}.loc',this.value)">
+            ${j.map(x => `<span class="pill nc">${esc(x)}</span>`).join("")}
+          </div>
+          ${[["barra", "Barra + fixação"], ["eld", "Eletroduto + placa"], ["cx", "Caixa + bimetálico"]].map(([k, l]) => `
+            <div class="row" style="margin-top:6px">
+              <small class="grow" style="font-size:13px">${l}</small>
+              ${seg(view, `rows.${i}.${k}`, r[k], [["OK", "OK", "good"], ["NC", "NC", "bad"]])}
+            </div>`).join("")}
+          <div class="g3" style="margin-top:6px">
+            <div>
+              <label>Continuidade (Ω) <small>(≤${S.cfg.limC})</small></label>
+              <input inputmode="decimal" placeholder="Ex: 0.12" value="${esc(r.cont)}" onchange="set('${esc(view)}','rows.${i}.cont',this.value,1)">
+            </div>
+            <div>
+              <label>Terra (Ω) <small>(≤${S.cfg.limT})</small></label>
+              <input inputmode="decimal" placeholder="Ex: 4.5" value="${esc(r.terra)}" onchange="set('${esc(view)}','rows.${i}.terra',this.value,1)">
+            </div>
+          </div>
+          <div class="row" style="margin-top:8px">
+            <button class="b" onclick="photo('${esc(view)}','${esc(r.p)}',${i},null,true)">📷 Foto (${(r.ph || []).length})</button>
+            <button class="b" onclick="photo('${esc(view)}','${esc(r.p)}',${i},null,false)">🖼</button>
+            ${seg(view, `rows.${i}.pl`, r.pl, [["Rosa", "Rosa", "pink"], ["Verm", "Verm", "bad"]])}
+            <span class="grow"></span>
+            <button class="b" style="color:var(--nc)" title="Remover descida" onclick="if(confirm('Remover ${esc(r.p)}?')){F('${esc(view)}').rows.splice(${i},1);save();render()}">✕</button>
+          </div>
+          ${renderThumbs(view, r.ph || [], "row", i)}
+        </div>`;
+    });
+    h += `<button class="b" style="width:100%;margin-bottom:10px;font-weight:600" onclick="F('${esc(view)}').rows.push(R(F('${esc(view)}').rows.length));save();render()">+ Adicionar Descida</button>`;
+  }
+
+  h += `
+    <div class="card">
+      <h3>C. Não Conformidades (NC)</h3>
+      ${f.ncs.map((n, i) => `
+        <div class="card d nc">
+          <div class="row">
+            <b class="grow">NC-${String(i + 1).padStart(2, "0")}</b>
+            <button class="b" style="color:var(--nc);padding:4px 8px;font-size:12px" onclick="F('${esc(view)}').ncs.splice(${i},1);save();render()">Excluir</button>
+          </div>
+          <div class="g3">
+            <div>
+              <label>Ponto / Descida</label>
+              <input placeholder="Ex.: D03, Topo..." value="${esc(n.ponto)}" onchange="set('${esc(view)}','ncs.${i}.ponto',this.value)">
+            </div>
+            <div>
+              <label>Código da NC</label>
+              <select onchange="set('${esc(view)}','ncs.${i}.cod',this.value);if(COD[this.value])set('${esc(view)}','ncs.${i}.sev',COD[this.value][1],1)">
+                <option value="">— Selecione —</option>
+                ${Object.entries(COD).map(([k, v]) => `<option value="${k}" ${n.cod == k ? "selected" : ""}>${k} - ${v[0]}</option>`).join("")}
+              </select>
+            </div>
+          </div>
+          <label>Severidade</label>
+          ${seg(view, `ncs.${i}.sev`, n.sev, [["A", "A (Crítica)", "bad"], ["B", "B (Média)"], ["C", "C (Leve)"]])}
+          <label>Detalhe / Reparo Recomendado</label>
+          <textarea rows="2" placeholder="Descreva o problema e reparo..." onchange="set('${esc(view)}','ncs.${i}.det',this.value)">${esc(n.det)}</textarea>
+          <div class="row" style="margin-top:6px">
+            <button class="b" onclick="photo('${esc(view)}','NC-${i + 1}',-1,${i},true)">📷 Câmera (${(n.ph || []).length})</button>
+            <button class="b" onclick="photo('${esc(view)}','NC-${i + 1}',-1,${i},false)">🖼 Galeria</button>
+          </div>
+          ${renderThumbs(view, n.ph || [], "nc", i)}
+        </div>`).join("")}
+      <button class="b" style="width:100%;font-weight:600" onclick="F('${esc(view)}').ncs.push({ponto:'',cod:'',sev:'',det:'',ph:[]});save();render()">+ Adicionar Não Conformidade</button>
+    </div>
+
+    <div class="card">
+      <h3>D. Painel de Controle do Bloco</h3>
+      ${[["vis", "Inspeção visual concluída"], ["med", "Medições concluídas"], ["foto", "Fotos registradas"], ["pl", "Pintado na planta A3"]].map(([k, l]) => `
+        <label style="display:flex;gap:10px;align-items:center;font-size:15px;color:var(--t);padding:4px 0">
+          <input type="checkbox" style="width:22px;height:22px" ${f.done[k] ? "checked" : ""} onchange="F('${esc(view)}').done.${k}=this.checked?1:0;save()">
+          ${l}
+        </label>`).join("")}
+    </div>`;
+
+  m.innerHTML = h;
+  hydrateThumbs();
+}
+
+function resize(file) {
+  return new Promise(r => {
+    const i = new Image();
+    i.onload = () => {
+      const k = Math.min(1, 1400 / Math.max(i.width, i.height));
+      const c = document.createElement("canvas");
+      c.width = Math.round(i.width * k);
+      c.height = Math.round(i.height * k);
+      c.getContext("2d").drawImage(i, 0, 0, c.width, c.height);
+      c.toBlob(r, "image/jpeg", 0.75);
+    };
+    i.src = URL.createObjectURL(file);
+  });
+}
+
+function photo(id, ponto, ri, ni, useCam = true) {
+  const i = document.createElement("input");
+  i.type = "file";
+  i.accept = "image/*";
+  if (useCam) i.capture = "environment";
+  else i.multiple = true;
+  i.onchange = async () => {
+    if (!i.files || !i.files.length) return;
+    for (const file of i.files) {
+      const bl = await resize(file);
+      const d = new Date(), hh = d.toTimeString().slice(0, 8).replace(/:/g, "");
+      const cleanPonto = String(ponto).replace(/[^a-zA-Z0-9_-]/g, "");
+      const name = `${id}_${cleanPonto}_${d.toISOString().slice(0, 10)}_${hh}_${Math.random().toString(36).slice(2, 5)}.jpg`;
+      await pset(name, {b: bl, id, ponto, t: d.toISOString(), s: 0});
+      const f = F(id);
+      if (ri >= 0 && ri != null && ri !== undefined) f.rows[ri].ph.push(name);
+      else if (ni != null && ni >= 0) (f.ncs[ni].ph ??= []).push(name);
+      else (f.bepPh ??= []).push(name);
+    }
+    save();
+    render();
+  };
+  i.click();
+}
+
+function snap() {
+  return JSON.stringify({
+    gerado: new Date().toISOString(),
+    cfg: {...S.cfg, tok: undefined},
+    blocos: getB(),
+    f: S.f
+  }, null, 2);
+}
+
+async function sync() {
+  const c = S.cfg;
+  if (!c.url) { alert("Configure a URL do servidor em ⚙"); return; }
+  const st = $("#st"), H = {"X-Token": c.tok};
+  try {
+    st.textContent = "enviando dados…";
+    let r = await fetch(c.url + "/api/state", {method: "POST", headers: H, body: snap()});
+    if (!r.ok) throw 0;
+    const ks = await pkeys();
+    let n = 0;
+    for (const k of ks) {
+      const p = await pget(k);
+      if (p.s) continue;
+      st.textContent = `fotos ${++n}/${ks.length}`;
+      r = await fetch(c.url + "/api/photo?name=" + encodeURIComponent(k), {method: "POST", headers: H, body: p.b});
+      if (!r.ok) throw 0;
+      p.s = 1;
+      await pset(k, p);
+    }
+    st.textContent = "✓ sincronizado";
+  } catch (e) {
+    st.textContent = "falhou — verifique sinal/URL";
+  }
+  render();
+}
+
+async function exp(includeAll = false) {
+  const files = [new File([snap()], "spda_dados.json", {type: "application/json"})];
+  const ks = await pkeys();
+  for (const k of ks) {
+    const p = await pget(k);
+    if (includeAll || !p.s) files.push(new File([p.b], k, {type: "image/jpeg"}));
+  }
+  if (navigator.canShare && navigator.canShare({files})) {
+    try {
+      await navigator.share({files, title: "SPDA — " + (S.cfg.cliente || "Campo")});
+      for (const k of ks) {
+        const p = await pget(k);
+        p.s = 1;
+        await pset(k, p);
+      }
+      render();
+      return;
+    } catch (e) {
+      if (e.name === "AbortError") return;
+    }
+  }
+  downloadJSONOnly();
+  alert("Seu navegador baixou o arquivo spda_dados.json. Para enviar direto ao WhatsApp ou Drive com 1 toque, use o botão de Gerar PDF ou abra no Chrome/Safari do celular.");
+}
+
+function downloadJSONOnly() {
+  const blob = new Blob([snap()], {type: "application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `spda_dados_${(S.cfg.cliente || "campo").replace(/\s+/g, "_")}.json`;
+  a.click();
+}
+
+function importJSONPrompt() {
+  const inp = document.createElement("input");
+  inp.type = "file";
+  inp.accept = ".json,application/json";
+  inp.onchange = async () => {
+    if (!inp.files || !inp.files[0]) return;
+    try {
+      const txt = await inp.files[0].text();
+      const data = JSON.parse(txt);
+      if (data.cfg) S.cfg = {...S.cfg, ...data.cfg};
+      if (Array.isArray(data.blocos)) S.blocos = data.blocos;
+      if (data.f) S.f = data.f;
+      await kset("S", S);
+      alert("Dados importados com sucesso!");
+      go("");
+    } catch (e) {
+      alert("Arquivo JSON inválido.");
+    }
+  };
+  inp.click();
+}
+
+function resetDefaultBlocks() {
+  if (!confirm("Restaurar a lista de blocos padrão (Bloco A até BEP Reservatório)? Os dados já preenchidos nos blocos serão mantidos.")) return;
+  S.blocos = DEFAULT_B.map(x => [...x]);
+  save();
+  render();
+}
+
+async function clearAllData() {
+  if (!confirm("ATENÇÃO: Isso apagará todas as medições e fotos salvas neste aparelho. Deseja continuar?")) return;
+  S.f = {};
+  const ks = await pkeys();
+  for (const k of ks) await pdel(k);
+  photoURLCache = {};
+  await kset("S", S);
+  go("");
+}
+
+/* ============================================================================
+   GERADOR DE LAUDO PDF (100% OFFLINE + FOTOS EMBUTIDAS + COMPARTILHAMENTO)
+   ============================================================================ */
+function pdfClean(str) {
+  return String(str ?? "")
+    .replace(/Ω/g, "Ohm")
+    .replace(/²/g, "2")
+    .replace(/[•·]/g, "-")
+    .replace(/[—–]/g, "-")
+    .replace(/✓/g, "OK")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "") // remove accents for standard Type1 Helvetica
+    .replace(/[^\x20-\x7E]/g, "")
+    .replace(/([()\\])/g, "\\$1");
+}
+
+function blobToUint8(blob) {
+  return new Promise(res => {
+    const fr = new FileReader();
+    fr.onload = () => res(new Uint8Array(fr.result));
+    fr.readAsArrayBuffer(blob);
+  });
+}
+
+function getImageDimensions(blob) {
+  return new Promise(res => {
+    const img = new Image();
+    img.onload = () => res({w: img.width, h: img.height});
+    img.onerror = () => res({w: 400, h: 300});
+    img.src = URL.createObjectURL(blob);
+  });
+}
+
+async function buildPDFFile() {
+  const st = $("#st");
+  st.textContent = "gerando PDF…";
+  const B = getB();
+  const c = S.cfg;
+
+  // PDF Builder state (A4: 595.28 x 841.89 pt)
+  const PW = 595.28, PH = 841.89, ML = 36, MR = 36, MT = 40, MB = 42;
+  const CW = PW - ML - MR;
+  const pages = [];
+  const images = []; // {name, bytes, w, h}
+  let curOps = [];
+  let y = PH - MT;
+
+  function newPage() {
+    if (curOps.length) pages.push(curOps.join("\n"));
+    curOps = [];
+    y = PH - MT;
+    // Header bar on every page
+    rectFill(ML, PH - 34, CW, 18, 0.12, 0.23, 0.37);
+    textAt("LAUDO TECNICO DE INSPECAO E MEDICAO DE SPDA - NBR 5419", ML + 6, PH - 28, 8.5, true, 1, 1, 1);
+    textAt(c.cliente || "SPDA Campo", PW - MR - 150, PH - 28, 8.5, false, 1, 1, 1);
+    y = PH - 52;
+  }
+
+  function ensureSpace(hNeeded) {
+    if (y - hNeeded < MB) newPage();
+  }
+
+  function rectFill(x, ry, w, h, r, g, b) {
+    curOps.push(`${r.toFixed(2)} ${g.toFixed(2)} ${b.toFixed(2)} rg ${x.toFixed(2)} ${ry.toFixed(2)} ${w.toFixed(2)} ${h.toFixed(2)} re f`);
+  }
+
+  function rectStroke(x, ry, w, h, r = 0.75, g = 0.78, b = 0.82) {
+    curOps.push(`0.6 w ${r.toFixed(2)} ${g.toFixed(2)} ${b.toFixed(2)} RG ${x.toFixed(2)} ${ry.toFixed(2)} ${w.toFixed(2)} ${h.toFixed(2)} re S`);
+  }
+
+  function textAt(str, x, ty, size = 9.5, bold = false, r = 0.1, g = 0.12, b = 0.15) {
+    const s = pdfClean(str);
+    curOps.push(`BT /${bold ? "F2" : "F1"} ${size} Tf ${r.toFixed(2)} ${g.toFixed(2)} ${b.toFixed(2)} rg ${x.toFixed(2)} ${ty.toFixed(2)} Td (${s}) Tj ET`);
+  }
+
+  function wrapLines(str, maxChars) {
+    const words = pdfClean(str).split(/\s+/);
+    const lines = [];
+    let cur = "";
+    for (const w of words) {
+      if ((cur + " " + w).trim().length > maxChars) {
+        if (cur) lines.push(cur);
+        cur = w;
+      } else {
+        cur = (cur + " " + w).trim();
+      }
+    }
+    if (cur) lines.push(cur);
+    return lines.length ? lines : [""];
+  }
+
+  newPage();
+
+  // Title & Metadata Box
+  rectFill(ML, y - 54, CW, 54, 0.95, 0.96, 0.98);
+  rectStroke(ML, y - 54, CW, 54);
+  textAt("CLIENTE / OBRA: " + (c.cliente || "Amigos do Bem"), ML + 8, y - 14, 11, true, 0.12, 0.23, 0.37);
+  textAt("Local: " + (c.local || "-") + "   |   Data: " + (c.data || new Date().toISOString().slice(0, 10)), ML + 8, y - 27, 9, false);
+  textAt("Equipe: " + (c.eq || "-") + "   |   Aparelho: " + (c.ap || "-"), ML + 8, y - 39, 9, false);
+  textAt(`Resp. Tecnico: ${c.resp || "-"} (${c.crea || "-"})   |   Limites: Cont. <= ${c.limC} Ohm / Terra <= ${c.limT} Ohm`, ML + 8, y - 50, 8.5, false, 0.3, 0.35, 0.4);
+  y -= 66;
+
+  // Summary Table
+  ensureSpace(40);
+  textAt("1. RESUMO GERAL DOS LOCAIS / BLOCOS INSPECIONADOS", ML, y, 10, true, 0.12, 0.23, 0.37);
+  y -= 6;
+  rectFill(ML, y - 15, CW, 15, 0.88, 0.91, 0.95);
+  textAt("Sigla", ML + 4, y - 11, 8.5, true);
+  textAt("Local / Bloco", ML + 42, y - 11, 8.5, true);
+  textAt("Dupla", ML + 210, y - 11, 8.5, true);
+  textAt("Horario", ML + 250, y - 11, 8.5, true);
+  textAt("Solo", ML + 325, y - 11, 8.5, true);
+  textAt("Medicoes", ML + 375, y - 11, 8.5, true);
+  textAt("Status / NCs", ML + 440, y - 11, 8.5, true);
+  y -= 15;
+
+  for (const b of B) {
+    ensureSpace(16);
+    const f = S.f[b[0]];
+    const fl = f ? f.rows.filter(r => r.cont || r.terra).length : 0;
+    const totR = f ? f.rows.length : (b[3]?.includes("only") ? 0 : 8);
+    const ncs = f ? f.ncs.length + f.rows.filter(r => judge(r).length || [r.barra, r.eld, r.cx].includes("NC")).length : 0;
+    rectStroke(ML, y - 14, CW, 14, 0.85, 0.87, 0.9);
+    textAt(b[0], ML + 4, y - 10, 8.5, true);
+    textAt((b[1] || "").slice(0, 32), ML + 42, y - 10, 8.5);
+    textAt(String(b[2]), ML + 218, y - 10, 8.5);
+    textAt(f && (f.hi || f.hf) ? `${f.hi || "--"} a ${f.hf || "--"}` : "-", ML + 250, y - 10, 8);
+    textAt(f?.solo || "-", ML + 325, y - 10, 8);
+    textAt(totR ? `${fl}/${totR}` : "BEP", ML + 382, y - 10, 8.5);
+    if (ncs > 0) textAt(`${ncs} NC(s)`, ML + 440, y - 10, 8.5, true, 0.82, 0.18, 0.18);
+    else if (fl > 0 || (f && (f.bepC || f.bepT))) textAt("CONFORME", ML + 440, y - 10, 8.5, true, 0.15, 0.52, 0.32);
+    else textAt("Pendente", ML + 440, y - 10, 8, false, 0.45, 0.48, 0.52);
+    y -= 14;
+  }
+
+  y -= 14;
+
+  // Detailed sections per block
+  for (const b of B) {
+    const f = S.f[b[0]];
+    if (!f) continue;
+    const hasAnyData = f.hi || f.hf || f.solo || f.obs || f.bepOk || f.bepC || f.bepT || f.dps ||
+      Object.keys(f.chk || {}).length || f.rows.some(r => r.barra || r.eld || r.cx || r.cont || r.terra || (r.ph && r.ph.length)) ||
+      f.ncs.length || (f.bepPh && f.bepPh.length);
+    if (!hasAnyData) continue;
+
+    ensureSpace(65);
+    rectFill(ML, y - 18, CW, 18, 0.12, 0.23, 0.37);
+    textAt(`BLOCO / LOCAL: ${b[1]} [${b[0]}]  -  Dupla ${b[2]}`, ML + 6, y - 13, 9.5, true, 1, 1, 1);
+    y -= 22;
+
+    textAt(`Inicio: ${f.hi || "-"}  |  Fim: ${f.hf || "-"}  |  Solo: ${f.solo || "-"}  |  DPS QDG: ${f.dps || "N/A"}`, ML + 2, y - 8, 8.5, false);
+    y -= 12;
+    if (f.obs) {
+      textAt(`Obs: ${f.obs.slice(0, 95)}`, ML + 2, y - 8, 8.5, false, 0.3, 0.3, 0.35);
+      y -= 12;
+    }
+
+    // Checklist summary
+    if (!b[3]?.includes("only")) {
+      ensureSpace(26);
+      const chkStr = CHK.map(([k, l]) => `${l.split(" ")[0]}: ${f.chk[k] || "-"}`).join("   |   ");
+      textAt("Checklist Visual: " + chkStr, ML + 2, y - 8, 8, false, 0.2, 0.25, 0.3);
+      y -= 13;
+    }
+
+    // BEP info
+    if (b[3]?.includes("bep") || b[3]?.includes("only")) {
+      ensureSpace(18);
+      textAt(`BEP Integro: ${f.bepOk || "-"}   |   Continuidade BEP->Malha: ${f.bepC || "-"} Ohm   |   Terra no BEP: ${f.bepT || "-"} Ohm`, ML + 2, y - 8, 8.5, true);
+      y -= 14;
+    }
+
+    // Rows table
+    if (f.rows && f.rows.length) {
+      ensureSpace(32);
+      rectFill(ML, y - 14, CW, 14, 0.9, 0.92, 0.95);
+      textAt("Ponto / Ref.", ML + 4, y - 10, 8, true);
+      textAt("Barra", ML + 115, y - 10, 8, true);
+      textAt("Eletrod.", ML + 165, y - 10, 8, true);
+      textAt("Caixa", ML + 220, y - 10, 8, true);
+      textAt("Cont.(Ohm)", ML + 270, y - 10, 8, true);
+      textAt("Terra(Ohm)", ML + 335, y - 10, 8, true);
+      textAt("Planta", ML + 400, y - 10, 8, true);
+      textAt("Avaliacao", ML + 445, y - 10, 8, true);
+      y -= 14;
+
+      for (const r of f.rows) {
+        ensureSpace(14);
+        const j = judge(r);
+        const isBad = j.length || [r.barra, r.eld, r.cx].includes("NC");
+        rectStroke(ML, y - 13, CW, 13, 0.88, 0.9, 0.92);
+        const label = r.loc ? `${r.p} (${r.loc.slice(0, 14)})` : r.p;
+        textAt(label, ML + 4, y - 9.5, 8, true);
+        textAt(r.barra || "-", ML + 118, y - 9.5, 8);
+        textAt(r.eld || "-", ML + 170, y - 9.5, 8);
+        textAt(r.cx || "-", ML + 224, y - 9.5, 8);
+        textAt(r.cont || "-", ML + 276, y - 9.5, 8);
+        textAt(r.terra || "-", ML + 342, y - 9.5, 8);
+        textAt(r.pl || "-", ML + 402, y - 9.5, 8);
+        if (isBad) {
+          textAt(j.length ? j.join(" ") : "NC Visual", ML + 445, y - 9.5, 7.5, true, 0.82, 0.18, 0.18);
+        } else if (r.cont || r.terra) {
+          textAt("OK", ML + 445, y - 9.5, 8, true, 0.15, 0.52, 0.32);
+        } else {
+          textAt("-", ML + 445, y - 9.5, 8);
+        }
+        y -= 13;
+      }
+      y -= 6;
+    }
+
+    // NCs
+    if (f.ncs && f.ncs.length) {
+      ensureSpace(24);
+      textAt("Nao Conformidades Registradas:", ML + 2, y - 9, 8.5, true, 0.8, 0.15, 0.15);
+      y -= 13;
+      for (let i = 0; i < f.ncs.length; i++) {
+        const n = f.ncs[i];
+        const desc = COD[n.cod] ? COD[n.cod][0] : "";
+        const line = `NC-${String(i + 1).padStart(2, "0")} [${n.ponto || "-"}] ${n.cod || ""} (${desc}) - Sev. ${n.sev || "-"}: ${n.det || ""}`;
+        const wrapped = wrapLines(line, 98);
+        for (const wl of wrapped) {
+          ensureSpace(12);
+          textAt(wl, ML + 8, y - 9, 8, false, 0.2, 0.1, 0.1);
+          y -= 11;
+        }
+      }
+      y -= 4;
+    }
+
+    // Collect photos for this block
+    const blockPhotos = [];
+    for (const k of (f.bepPh || [])) blockPhotos.push({k, cap: `${b[1]} - BEP`});
+    for (const r of (f.rows || [])) {
+      for (const k of (r.ph || [])) blockPhotos.push({k, cap: `${b[1]} - ${r.p}`});
+    }
+    for (let i = 0; i < (f.ncs || []).length; i++) {
+      for (const k of (f.ncs[i].ph || [])) blockPhotos.push({k, cap: `${b[1]} - NC-${i + 1} (${f.ncs[i].ponto || ""})`});
+    }
+
+    if (blockPhotos.length) {
+      ensureSpace(145);
+      textAt(`Relatorio Fotografico - ${b[1]} (${blockPhotos.length} foto(s)):`, ML + 2, y - 9, 8.5, true, 0.12, 0.23, 0.37);
+      y -= 14;
+      let col = 0;
+      const boxW = (CW - 16) / 3, boxH = 120;
+      for (const item of blockPhotos) {
+        const rec = await pget(item.k);
+        if (!rec || !rec.b) continue;
+        if (col === 0) ensureSpace(boxH + 18);
+        const bytes = await blobToUint8(rec.b);
+        const dims = await getImageDimensions(rec.b);
+        const imgId = "Im" + (images.length + 1);
+        images.push({id: imgId, bytes, w: dims.w, h: dims.h});
+
+        const bx = ML + col * (boxW + 8);
+        const by = y - boxH;
+        rectStroke(bx, by - 12, boxW, boxH + 12, 0.8, 0.82, 0.86);
+
+        // Fit image inside boxW-8 x boxH-8
+        const sc = Math.min((boxW - 8) / dims.w, (boxH - 8) / dims.h);
+        const dw = dims.w * sc, dh = dims.h * sc;
+        const ix = bx + (boxW - dw) / 2, iy = by + (boxH - dh) / 2;
+        curOps.push(`q ${dw.toFixed(2)} 0 0 ${dh.toFixed(2)} ${ix.toFixed(2)} ${iy.toFixed(2)} cm /${imgId} Do Q`);
+        textAt(item.cap.slice(0, 30), bx + 4, by - 9, 7.5, false, 0.2, 0.2, 0.25);
+
+        col++;
+        if (col === 3) {
+          col = 0;
+          y -= (boxH + 18);
+        }
+      }
+      if (col > 0) y -= (boxH + 18);
+    }
+
+    y -= 10;
+  }
+
+  if (curOps.length) pages.push(curOps.join("\n"));
+
+  // Assemble binary PDF 1.4
+  const chunks = [];
+  let offset = 0;
+  const offsets = [];
+  const enc = new TextEncoder();
+
+  function pushStr(s) {
+    const b = enc.encode(s);
+    chunks.push(b);
+    offset += b.length;
+  }
+  function pushBytes(b) {
+    chunks.push(b);
+    offset += b.length;
+  }
+  function startObj(id) {
+    offsets[id] = offset;
+    pushStr(`${id} 0 obj\n`);
+  }
+  function endObj() {
+    pushStr(`\nendobj\n`);
+  }
+
+  pushStr("%PDF-1.4\n%\xFF\xFF\xFF\xFF\n");
+
+  // Obj 1: Catalog, Obj 2: Pages, Obj 3: Font F1, Obj 4: Font F2
+  const firstImgObj = 5;
+  const firstPageObj = firstImgObj + images.length;
+  const pageKids = [];
+
+  startObj(1);
+  pushStr(`<< /Type /Catalog /Pages 2 0 R >>`);
+  endObj();
+
+  startObj(3);
+  pushStr(`<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>`);
+  endObj();
+
+  startObj(4);
+  pushStr(`<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>`);
+  endObj();
+
+  // Image XObjects
+  const xobjEntries = [];
+  for (let i = 0; i < images.length; i++) {
+    const oid = firstImgObj + i;
+    const im = images[i];
+    xobjEntries.push(`/${im.id} ${oid} 0 R`);
+    startObj(oid);
+    pushStr(`<< /Type /XObject /Subtype /Image /Width ${im.w} /Height ${im.h} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${im.bytes.length} >>\nstream\n`);
+    pushBytes(im.bytes);
+    pushStr(`\nendstream`);
+    endObj();
+  }
+
+  // Pages & Content streams
+  for (let i = 0; i < pages.length; i++) {
+    const pObj = firstPageObj + i * 2;
+    const cObj = pObj + 1;
+    pageKids.push(`${pObj} 0 R`);
+    const contentBytes = enc.encode(pages[i]);
+
+    startObj(pObj);
+    pushStr(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${PW.toFixed(2)} ${PH.toFixed(2)}] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> /XObject << ${xobjEntries.join(" ")} >> >> /Contents ${cObj} 0 R >>`);
+    endObj();
+
+    startObj(cObj);
+    pushStr(`<< /Length ${contentBytes.length} >>\nstream\n`);
+    pushBytes(contentBytes);
+    pushStr(`\nendstream`);
+    endObj();
+  }
+
+  // Write Obj 2 (Pages)
+  startObj(2);
+  pushStr(`<< /Type /Pages /Kids [ ${pageKids.join(" ")} ] /Count ${pages.length} >>`);
+  endObj();
+
+  const totalObjs = firstPageObj + pages.length * 2;
+  const xrefPos = offset;
+  pushStr(`xref\n0 ${totalObjs}\n0000000000 65535 f \n`);
+  for (let i = 1; i < totalObjs; i++) {
+    pushStr(String(offsets[i] || 0).padStart(10, "0") + " 00000 n \n");
+  }
+  pushStr(`trailer\n<< /Size ${totalObjs} /Root 1 0 R >>\nstartxref\n${xrefPos}\n%%EOF`);
+
+  st.textContent = "";
+  const pdfBlob = new Blob(chunks, {type: "application/pdf"});
+  const fname = `Laudo_SPDA_${(c.cliente || "Campo").replace(/[^a-zA-Z0-9_-]/g, "_")}_${(c.data || new Date().toISOString().slice(0, 10))}.pdf`;
+  return new File([pdfBlob], fname, {type: "application/pdf"});
+}
+
+async function downloadPDF() {
+  const file = await buildPDFFile();
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(file);
+  a.download = file.name;
+  a.click();
+}
+
+async function sharePDF() {
+  const file = await buildPDFFile();
+  if (navigator.canShare && navigator.canShare({files: [file]})) {
+    try {
+      await navigator.share({
+        files: [file],
+        title: "Laudo SPDA — " + (S.cfg.cliente || "Campo"),
+        text: "Segue em anexo o Laudo Técnico de Inspeção e Medição de SPDA (" + (S.cfg.cliente || "Campo") + ")."
+      });
+      return;
+    } catch (e) {
+      if (e.name === "AbortError") return;
+    }
+  }
+  // Fallback: download directly
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(file);
+  a.download = file.name;
+  a.click();
+  alert("O PDF foi baixado no seu aparelho! Agora você pode anexá-lo no WhatsApp ou Google Drive.");
+}
+
+async function printReport() {
+  const B = getB(), c = S.cfg;
+  let html = `
+    <div style="border-bottom:3px solid #1F3A5F;padding-bottom:8px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:flex-end">
+      <div>
+        <h2 style="margin:0;color:#1F3A5F">LAUDO TÉCNICO DE INSPEÇÃO DE SPDA (NBR 5419)</h2>
+        <div><b>Cliente / Obra:</b> ${esc(c.cliente || "Amigos do Bem")} ${c.local ? `— ${esc(c.local)}` : ""}</div>
+        <div><b>Equipe:</b> ${esc(c.eq || "-")} | <b>Aparelho:</b> ${esc(c.ap || "-")}</div>
+        <div><b>Resp. Técnico:</b> ${esc(c.resp || "-")} | <b>CREA/CFT:</b> ${esc(c.crea || "-")}</div>
+      </div>
+      <div style="text-align:right;font-size:11px">
+        <b>Data:</b> ${esc(c.data || new Date().toISOString().slice(0, 10))}<br>
+        <b>Limite Cont.:</b> ≤ ${c.limC} Ω<br>
+        <b>Limite Terra:</b> ≤ ${c.limT} Ω
+      </div>
+    </div>`;
+
+  for (const b of B) {
+    const f = S.f[b[0]];
+    if (!f) continue;
+    const hasAny = f.hi || f.hf || f.solo || f.bepOk || f.bepC || f.bepT || f.rows.some(r => r.cont || r.terra || r.barra) || f.ncs.length;
+    if (!hasAny) continue;
+
+    const photos = [];
+    for (const k of (f.bepPh || [])) photos.push({k, cap: "BEP"});
+    for (const r of (f.rows || [])) for (const k of (r.ph || [])) photos.push({k, cap: r.p});
+    for (let i = 0; i < (f.ncs || []).length; i++) for (const k of (f.ncs[i].ph || [])) photos.push({k, cap: `NC-${i + 1}`});
+
+    html += `
+      <div class="p-card">
+        <h3 style="margin:0 0 6px;color:#1F3A5F">${esc(b[1])} [${esc(b[0])}] — Dupla ${b[2]}</h3>
+        <div><b>Horário:</b> ${esc(f.hi || "-")} às ${esc(f.hf || "-")} | <b>Solo:</b> ${esc(f.solo || "-")} ${f.dps ? `| <b>DPS QDG:</b> ${esc(f.dps)}` : ""}</div>
+        ${f.bepOk || f.bepC || f.bepT ? `<div><b>BEP Íntegro:</b> ${esc(f.bepOk || "-")} | <b>Cont. BEP:</b> ${esc(f.bepC || "-")} Ω | <b>Terra BEP:</b> ${esc(f.bepT || "-")} Ω</div>` : ""}
+        ${f.rows.length ? `
+          <table class="p-tbl">
+            <thead><tr><th>Ponto</th><th>Barra</th><th>Eletroduto</th><th>Caixa</th><th>Cont. (Ω)</th><th>Terra (Ω)</th><th>Planta</th><th>Status</th></tr></thead>
+            <tbody>
+              ${f.rows.map(r => {
+                const j = judge(r);
+                const bad = j.length || [r.barra, r.eld, r.cx].includes("NC");
+                return `<tr>
+                  <td><b>${esc(r.p)}</b> ${r.loc ? `<small>(${esc(r.loc)})</small>` : ""}</td>
+                  <td>${esc(r.barra || "-")}</td>
+                  <td>${esc(r.eld || "-")}</td>
+                  <td>${esc(r.cx || "-")}</td>
+                  <td>${esc(r.cont || "-")}</td>
+                  <td>${esc(r.terra || "-")}</td>
+                  <td>${esc(r.pl || "-")}</td>
+                  <td style="color:${bad ? "#c00" : "#1a7f37"};font-weight:bold">${bad ? (j.join(", ") || "NC") : (r.cont || r.terra ? "OK" : "-")}</td>
+                </tr>`;
+              }).join("")}
+            </tbody>
+          </table>` : ""}
+        ${f.ncs.length ? `
+          <div style="margin-top:6px"><b>Não Conformidades:</b>
+            <ul style="margin:4px 0;padding-left:18px">
+              ${f.ncs.map((n, i) => `<li><b>NC-${i + 1} (${esc(n.ponto)}):</b> ${esc(n.cod)} ${COD[n.cod] ? esc(COD[n.cod][0]) : ""} [Sev. ${esc(n.sev)}] — ${esc(n.det)}</li>`).join("")}
+            </ul>
+          </div>` : ""}
+        ${photos.length ? `
+          <div class="p-grid-ph">
+            ${photos.map(p => `<div class="p-ph"><img data-ph="${esc(p.k)}"><div style="font-size:10px;margin-top:2px">${esc(b[1])} — ${esc(p.cap)}</div></div>`).join("")}
+          </div>` : ""}
+      </div>`;
+  }
+
+  $("#print-area").innerHTML = html;
+  await hydrateThumbs();
+  setTimeout(() => window.print(), 250);
+}
+
+(async () => {
+  db = await idb();
+  const saved = await kget("S");
+  if (saved) S = saved;
+  S.cfg = {
+    cliente: "Amigos do Bem",
+    local: "",
+    data: new Date().toISOString().slice(0, 10),
+    resp: "",
+    crea: "",
+    limC: 0.2,
+    limT: 10,
+    url: "",
+    tok: "",
+    eq: "",
+    ap: "",
+    ...S.cfg
+  };
+  getB();
+  if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  }
+  navigator.storage && navigator.storage.persist && navigator.storage.persist();
+  render();
+})();
+</script>
+</body>
+</html>
