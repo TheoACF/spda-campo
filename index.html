@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>SPDA Campo — Inspeção, Progresso e Laudo Word/PDF</title>
+<title>SPDA Campo — Caderneta, Progresso e Laudo PDF/IA/Word</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon.svg">
-<meta name="theme-color" content="#1c2421">
+<meta name="theme-color" content="#1F3A5F">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap">
@@ -15,7 +15,7 @@
 :root{
   --bg:#f5f6f4;--panel:#ffffff;--fg:#1c2421;--muted:#5f6b66;--line:#d6dbd8;
   --accent:#c98a00;--ok:#2f7d4f;--warn:#b5561c;--nc:#d13b3b;--info:#2b5f8a;--chip:#eef0ee;
-  --wa:#1fa855;--drv:#1a73e8;--word:#185abd;--pink:#d66094;
+  --navy:#1F3A5F;--wa:#1fa855;--drv:#1a73e8;--word:#185abd;--ai:#6d28d9;--pink:#d66094;
   --f-disp:"Barlow Condensed",Impact,system-ui,sans-serif;
   --f-body:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;
   --f-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;
@@ -33,18 +33,23 @@ body{
   padding-top:env(safe-area-inset-top,0px);padding-bottom:calc(env(safe-area-inset-bottom,0px) + 28px);
 }
 .wrap{
-  max-width:1080px;margin:0 auto;padding-block:14px 40px;
+  max-width:1080px;margin:0 auto;padding-block:12px 40px;
   padding-left:max(12px,env(safe-area-inset-left,0px));
   padding-right:max(12px,env(safe-area-inset-right,0px));
-  display:flex;flex-direction:column;gap:14px;
+  display:flex;flex-direction:column;gap:12px;
 }
 header.top-stamp{
   display:flex;flex-wrap:wrap;gap:10px 18px;align-items:flex-end;justify-content:space-between;
   border-bottom:3px solid var(--fg);padding-bottom:10px;
 }
-h1{font:700 1.95rem/1 var(--f-disp);letter-spacing:.02em;margin:0;text-transform:uppercase}
-.sub{color:var(--muted);font-size:.86rem;margin-top:4px}
-.meta{font:500 .76rem/1.45 var(--f-mono);color:var(--muted);text-align:right}
+h1{font:700 1.9rem/1 var(--f-disp);letter-spacing:.02em;margin:0;text-transform:uppercase}
+.sub{color:var(--muted);font-size:.85rem;margin-top:4px}
+.meta{font:500 .75rem/1.45 var(--f-mono);color:var(--muted);text-align:right}
+.save-badge{
+  display:inline-flex;align-items:center;gap:5px;padding:3px 8px;
+  background:rgba(47,125,79,.12);border:1px solid var(--ok);color:var(--ok);
+  font:600 .72rem var(--f-mono);margin-top:4px;
+}
 .prog{display:flex;flex-direction:column;gap:5px;background:var(--panel);border:1px solid var(--line);padding:10px 12px}
 .bar{height:10px;background:var(--chip);border:1px solid var(--line);overflow:hidden}
 .bar i{display:block;height:100%;background:var(--accent);width:0;transition:width .3s}
@@ -60,10 +65,10 @@ h1{font:700 1.95rem/1 var(--f-disp);letter-spacing:.02em;margin:0;text-transform
 .next .v{font-weight:600;margin-top:2px;font-size:.94rem}
 nav.tabs{display:flex;flex-wrap:wrap;gap:5px}
 nav.tabs button{
-  font:600 .83rem var(--f-body);background:var(--chip);color:var(--fg);
-  border:1px solid var(--line);padding:8px 11px;cursor:pointer;flex:1 1 auto;text-align:center;
+  font:600 .82rem var(--f-body);background:var(--chip);color:var(--fg);
+  border:1px solid var(--line);padding:8px 10px;cursor:pointer;flex:1 1 auto;text-align:center;
 }
-nav.tabs button[aria-selected="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+nav.tabs button[aria-selected="true"]{background:var(--navy);color:#fff;border-color:var(--navy)}
 section.box{background:var(--panel);border:1px solid var(--line)}
 section.box h2{
   font:700 1.15rem var(--f-disp);text-transform:uppercase;letter-spacing:.03em;
@@ -127,6 +132,8 @@ small{color:var(--muted);font-size:12px}
   border:1px solid var(--fg);background:var(--fg);color:var(--bg);margin:4px 0;cursor:pointer;
   display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;
 }
+.big.pdf{background:#b91c1c;border-color:#b91c1c;color:#fff}
+.big.ai{background:var(--ai);border-color:var(--ai);color:#fff}
 .big.word{background:var(--word);border-color:var(--word);color:#fff}
 .big.wa{background:var(--wa);border-color:var(--wa);color:#fff}
 .big.drv{background:var(--drv);border-color:var(--drv);color:#fff}
@@ -147,12 +154,12 @@ small{color:var(--muted);font-size:12px}
   display:flex;align-items:center;justify-content:center;padding:14px;
 }
 .modal{
-  background:var(--panel);color:var(--fg);max-width:520px;width:100%;
+  background:var(--panel);color:var(--fg);max-width:540px;width:100%;
   max-height:92vh;overflow-y:auto;padding:16px;border:2px solid var(--fg);
 }
 .inline-edit{
   border:1px dashed var(--line);padding:4px 8px;font:600 .9rem var(--f-mono);
-  width:auto;min-width:85px;max-width:170px;background:transparent;
+  width:auto;min-width:78px;max-width:160px;background:transparent;
 }
 .chk-pill{
   display:inline-flex;align-items:center;gap:3px;font:500 .72rem var(--f-mono);
@@ -160,7 +167,6 @@ small{color:var(--muted);font-size:12px}
 }
 .chk-pill.on{background:var(--ok);color:#fff;border-color:var(--ok)}
 .foot{font:.76rem var(--f-mono);color:var(--muted);display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center}
-/* Print / PDF A4 */
 #print-area{display:none}
 @media print{
   .wrap,.modal-bg{display:none!important}
@@ -182,6 +188,9 @@ small{color:var(--muted);font-size:12px}
 <div id="print-area"></div>
 
 <script>
+const LS_STATE_KEY = "spda_state_v1";
+const LS_SNAPS_KEY = "spda_snapshots_v1";
+
 const DRIVE_FOLDERS = {
   1: {
     label: "Equipe A (Dupla 1)",
@@ -197,88 +206,102 @@ const DRIVE_FOLDERS = {
   }
 };
 
+// [sigla, nome, dupla, flags, qtdDescidasPadrao]
 const DEFAULT_B = [
-  ["A","Bloco A",1,""],
-  ["B","Bloco B",1,""],
-  ["D","Bloco D",1,""],
-  ["E","Bloco E",2,""],
-  ["G","Bloco G",2,""],
-  ["H","Bloco H",2,""],
-  ["I","Bloco I",1,""],
-  ["J","Bloco J",1,""],
-  ["K","Bloco K",2,""],
-  ["L","Bloco L",2,""],
-  ["N","Bloco N (+BEP)",2,"bep"],
-  ["Q","Quadra Coberta (+BEP)",1,"bep"],
-  ["Bi","Biblioteca",2,""],
-  ["P","Portaria (+BEP Principal)",1,"bep dps"],
-  ["R","BEP Reservatório",1,"only"]
+  ["A","Bloco A",1,"",10],
+  ["B","Bloco B",1,"",10],
+  ["D","Bloco D",1,"",10],
+  ["E","Bloco E",2,"",10],
+  ["G","Bloco G",2,"",10],
+  ["H","Bloco H",2,"",10],
+  ["I","Bloco I",1,"",10],
+  ["J","Bloco J",1,"",10],
+  ["K","Bloco K",2,"",10],
+  ["L","Bloco L",2,"",10],
+  ["N","Bloco N (+ BEP)",2,"bep",10],
+  ["Q","Quadra Coberta (+ BEP)",1,"bep",12],
+  ["Bi","Biblioteca",2,"",10],
+  ["P","Portaria (+ BEP Principal)",1,"bep dps",8],
+  ["R","BEP Reservatório",1,"only",0]
 ];
 
 const COD = {
-  C1:["Continuidade alta ou aberta (acima de 0,2 Ω)","A","Refazer conexão elétrica ou substituir trecho/conector oxidado para restabelecer continuidade ≤ 0,2 Ω (NBR 5419-3)."],
-  C2:["Falta conector bimetálico na transição Cu/Al","B","Instalar conector bimetálico apropriado na transição cobre/alumínio para evitar par galvânico."],
-  C3:["Conector frouxo ou oxidado na descida/malha","B","Limpar oxidação, aplicar pasta antioxidante e reapertar conector mecânico/exotérmico."],
-  C4:["Caixa de inspeção sem tampa ou quebrada","B","Substituir/recompor caixa de inspeção de solo e tampa identificadora."],
-  C5:["Falta placa de advertência 'Risco de Choque'","C","Fixar placa de sinalização e advertência no pé da descida conforme NBR 5419-3."],
-  C6:["Falta eletroduto de proteção PVC 1\" no pé da descida","C","Instalar eletroduto de PVC rígido nos primeiros metros acima do nível do solo para proteção mecânica."],
-  C7:["Barra chata de alumínio amassada ou solta","B","Realinhar e refixar barra de descida com isoladores/abraçadeiras a cada 1,0 m."],
-  C8:["Cordoalha do subsistema de captação solta ou suporte quebrado","A","Substituir suporte guia/castanha danificado e retensionar cordoalha de cobre 50 mm²."],
-  C9:["Massa metálica na cobertura sem equipotencialização","B","Interligar estrutura/massa metálica ao subsistema de captação ou BEP mais próximo."],
-  C10:["Resistência de aterramento acima do limite (> 10 Ω) ou sem haste","A","Complementar malha de aterramento com novas hastes Copperweld interligadas e tratadas até atingir R ≤ 10 Ω."],
-  C11:["Outra não conformidade de campo","C","Executar adequação técnica conforme diretrizes da ABNT NBR 5419:2015."]
+  C1:["Continuidade alta (> limite) ou aberta","A","Refazer conexão elétrica ou substituir trecho/conector oxidado para restabelecer continuidade <= 0,20 Ohm (NBR 5419-3)."],
+  C2:["Falta conector bimetálico (alumínio direto no cobre)","B","Instalar conector bimetálico apropriado na transição cobre/alumínio para evitar par galvânico."],
+  C3:["Conector frouxo, oxidado ou sem parafuso inox","B","Limpar oxidação, aplicar pasta antioxidante e reapertar conector com parafuso inox."],
+  C4:["Caixa de inspeção sem tampa, quebrada ou soterrada","B","Substituir/recompor caixa de inspeção de solo e tampa identificadora."],
+  C5:["Falta placa de advertência 'Risco de Choque Elétrico'","C","Fixar placa de sinalização e advertência no pé da descida conforme NBR 5419-3."],
+  C6:["Falta eletroduto PVC 1\" de proteção mecânica na descida","C","Instalar eletroduto de PVC rígido 1\" nos primeiros metros acima do solo."],
+  C7:["Barra chata de Al amassada, solta ou buchas arrancadas","B","Realinhar e refixar barra chata de alumínio com isoladores/abraçadeiras a cada 1,0 m."],
+  C8:["Cordoalha Cu 50 mm² solta ou suporte quebrado no telhado","A","Substituir suporte guia/castanha danificado e retensionar cordoalha de cobre 50 mm²."],
+  C9:["Estrutura metálica / esquadria / telhado sem equipotencialização","B","Interligar estrutura/massa metálica ao subsistema de captação ou BEP mais próximo."],
+  C10:["Resistência de aterramento acima do limite ou sem haste","A","Complementar malha de aterramento com novas hastes interligadas e tratadas até atingir R <= limite."],
+  C11:["Outro (descrever no campo Detalhe)","C","Executar adequação técnica conforme diretrizes da ABNT NBR 5419:2015."]
 };
 
 const CHK = [
-  ["cap","Captação (cordoalha Cu 50 mm² e suportes) íntegra?"],
-  ["top","Conexão de topo Cu/Al firme, sem corrosão?"],
-  ["desc","Descidas retas e fixadas a cada 1 m?"],
-  ["prot","Eletroduto PVC e placa no pé da descida?"],
-  ["mass","Massas metálicas aterradas?"]
+  ["cap","1. Captação (telhado): cordoalha Cu 50 mm² e suportes íntegros?"],
+  ["top","2. Conexão de topo: Cu 50 mm² com barra de Al firme e sem corrosão?"],
+  ["desc","3. Descidas: barras chatas de Al retas e fixadas a cada 1 m?"],
+  ["prot","4a. Proteção mecânica: eletroduto PVC 1\" no pé da descida?"],
+  ["placa","4b. Sinalização: placa 'Risco de Choque' no pé da descida?"],
+  ["mass","5. Massas metálicas: esquadrias / estruturas aterradas?"]
 ];
 
 const LIB_CHK = [
   "Todos os blocos da Equipe A (Dupla 1) inspecionados e medidos",
   "Todos os blocos da Equipe B (Dupla 2) inspecionados e medidos",
-  "Continuidade elétrica das descidas conferida (critério ≤ 0,2 Ω — NBR 5419-3)",
-  "Resistência de aterramento medida nas caixas/BEP (critério ≤ 10 Ω)",
+  "Continuidade elétrica das descidas conferida (critério <= 0,20 Ohm — NBR 5419-3)",
+  "Resistência de aterramento medida nas caixas/BEP (<= 10 Ohm ideal / <= 20 Ohm solo seco)",
   "BEPs (Bloco N, Quadra, Portaria e Reservatório) verificados e fotografados",
-  "DPS do QDG da Portaria verificado",
-  "Todas as fotos em HD com carimbo (Local -- Ponto + Data/Hora) conferidas",
+  "DPS do QDG da Portaria verificado (indicador Verde/Vermelho)",
+  "Fotos de Fachada, Telhado, Descidas e BEP em HD com carimbo e hora registradas",
   "Pontos conformes (Rosa) e não conformes (Vermelho) pintados na planta A3",
-  "Não conformidades (NC) críticas classificadas com severidade A/B/C",
-  "Laudo Word (.docx) gerado e enviado para o Google Drive / WhatsApp"
+  "Controle de Reposição em Campo (placas e conectores) preenchido",
+  "PDF com fotos + Arquivo estruturado p/ IA (.MD) + Backup JSON gerados e enviados"
 ];
 
 let S = {
+  updatedAt: 0,
   cfg: {
     empresa: "TH ELÉTRICA — ENGENHARIA E LAUDOS TÉCNICOS",
-    cliente: "Amigos do Bem",
-    local: "Inajá - PE",
-    proposta: "NBR 5419:2015",
+    cliente: "Fazenda Amigos do Bem",
+    local: "Serra do Catimbau, Buíque/PE",
+    proposta: "Projeto Prioriza Cód. 260053 • ABNT NBR 5419:2015",
     data: new Date().toISOString().slice(0,10),
     equipeAtiva: 1,
     driveA: DRIVE_FOLDERS[1].url,
     driveB: DRIVE_FOLDERS[2].url,
     resFoto: 2560,
     carimboOn: 1,
-    soPreenchidos: 1, // no laudo detalhado mostra só os blocos inspecionados ou todos
+    soPreenchidos: 1,
     resp: "",
     crea: "",
     art: "",
     limC: 0.2,
     limT: 10,
+    limTSeco: 20,
     url: "",
     tok: "",
     eq: "",
-    ap: ""
+    ap: "",
+    apTerra: ""
+  },
+  reposicao: {
+    placasQtd: "",
+    placasLocais: "",
+    conectoresQtd: "",
+    conectoresLocais: "",
+    outros: "",
+    anotacoesLivres: ""
   },
   blocos: null,
   lib: {},
   f: {}
 };
 
-let db, view = "", activeTab = "blocos", searchQ = "", filterMode = "ALL", filterDupla = 0, photoURLCache = {};
+let db = null, view = "", activeTab = "blocos", searchQ = "", filterMode = "ALL", filterDupla = 0, photoURLCache = {};
+let lastSnapWrite = 0, lastSavedTimeStr = "";
 
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -301,31 +324,133 @@ function getB() {
 
 function idb() {
   return new Promise(r => {
-    const q = indexedDB.open("spda", 1);
-    q.onupgradeneeded = () => {
-      if (!q.result.objectStoreNames.contains("kv")) q.result.createObjectStore("kv");
-      if (!q.result.objectStoreNames.contains("ph")) q.result.createObjectStore("ph");
-    };
-    q.onsuccess = () => r(q.result);
+    try {
+      const q = indexedDB.open("spda", 1);
+      q.onupgradeneeded = () => {
+        if (!q.result.objectStoreNames.contains("kv")) q.result.createObjectStore("kv");
+        if (!q.result.objectStoreNames.contains("ph")) q.result.createObjectStore("ph");
+      };
+      q.onsuccess = () => r(q.result);
+      q.onerror = () => r(null);
+    } catch (e) {
+      r(null);
+    }
   });
 }
 
 const tx = (st, m, f) => new Promise(r => {
-  const t = db.transaction(st, m), o = f(t.objectStore(st));
-  t.oncomplete = () => r(o && o.result);
+  if (!db) return r(null);
+  try {
+    const t = db.transaction(st, m), o = f(t.objectStore(st));
+    t.oncomplete = () => r(o && o.result);
+    t.onerror = () => r(null);
+  } catch (e) {
+    r(null);
+  }
 });
 const kget = k => tx("kv", "readonly", s => s.get(k));
 const kset = (k, v) => tx("kv", "readwrite", s => s.put(v, k));
-const pall = () => tx("ph", "readonly", s => s.getAll());
-const pkeys = () => tx("ph", "readonly", s => s.getAllKeys());
+const pall = () => tx("ph", "readonly", s => s.getAll()).then(r => r || []);
+const pkeys = () => tx("ph", "readonly", s => s.getAllKeys()).then(r => r || []);
 const pset = (k, v) => tx("ph", "readwrite", s => s.put(v, k));
 const pget = k => tx("ph", "readonly", s => s.get(k));
 const pdel = k => tx("ph", "readwrite", s => s.delete(k));
 
-let tm;
+/* ============================================================================
+   SISTEMA BLINDADO CONTRA PERDA DE DADOS (DUPLA PERSISTÊNCIA SÍNCRONA + IDB)
+   ============================================================================ */
+function updateSaveIndicator() {
+  const el = $("#save-ind");
+  if (el && lastSavedTimeStr) {
+    el.textContent = `✓ Salvo ${lastSavedTimeStr}`;
+  }
+}
+
+function getSnapshots() {
+  try {
+    const raw = localStorage.getItem(LS_SNAPS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function saveNow(forceSnapshot = false) {
+  S.updatedAt = Date.now();
+  lastSavedTimeStr = new Date(S.updatedAt).toTimeString().slice(0, 8);
+  const serialized = JSON.stringify(S);
+
+  // 1. Gravação SÍNCRONA imediata em localStorage (zero risco se fechar a aba/app na hora)
+  try {
+    localStorage.setItem(LS_STATE_KEY, serialized);
+    if (forceSnapshot || (S.updatedAt - lastSnapWrite > 15000)) {
+      lastSnapWrite = S.updatedAt;
+      const snaps = getSnapshots();
+      snaps.unshift({ t: S.updatedAt, h: lastSavedTimeStr, data: serialized });
+      if (snaps.length > 5) snaps.length = 5;
+      localStorage.setItem(LS_SNAPS_KEY, JSON.stringify(snaps));
+    }
+  } catch (e) {
+    // Caso localStorage atinja limite, tenta salvar sem snapshots antigos
+    try {
+      localStorage.removeItem(LS_SNAPS_KEY);
+      localStorage.setItem(LS_STATE_KEY, serialized);
+    } catch (e2) {}
+  }
+
+  // 2. Gravação em IndexedDB (assíncrona imediata)
+  if (db) {
+    kset("S", JSON.parse(serialized));
+  }
+
+  updateSaveIndicator();
+}
+
+let idbTimer;
 function save() {
-  clearTimeout(tm);
-  tm = setTimeout(() => kset("S", S), 160);
+  clearTimeout(idbTimer);
+  saveNow(false);
+  idbTimer = setTimeout(() => saveNow(false), 120);
+}
+
+window.addEventListener("pagehide", () => saveNow(true));
+window.addEventListener("beforeunload", () => saveNow(true));
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden") saveNow(true);
+});
+
+function countFilledMetrics(st) {
+  if (!st || !st.f) return 0;
+  let n = 0;
+  for (const k of Object.keys(st.f)) {
+    const f = st.f[k];
+    if (!f) continue;
+    if (f.hi || f.hf || f.solo || f.bepC || f.bepT || f.obs) n++;
+    if (Array.isArray(f.rows)) {
+      for (const r of f.rows) {
+        if (r.cont !== "" || r.terra !== "" || r.barra || r.eld || r.cx) n += 2;
+      }
+    }
+    if (Array.isArray(f.ncs)) n += f.ncs.length * 2;
+  }
+  return n;
+}
+
+function loadBestState(lsRaw, idbState) {
+  let lsState = null;
+  try {
+    if (lsRaw) lsState = JSON.parse(lsRaw);
+  } catch (e) {}
+
+  if (!lsState && !idbState) return null;
+  if (lsState && !idbState) return lsState;
+  if (!lsState && idbState) return idbState;
+
+  const lsTime = Number(lsState.updatedAt || 0);
+  const idbTime = Number(idbState.updatedAt || 0);
+  if (lsTime !== idbTime) return lsTime > idbTime ? lsState : idbState;
+
+  return countFilledMetrics(lsState) >= countFilledMetrics(idbState) ? lsState : idbState;
 }
 
 const R = i => ({
@@ -336,41 +461,68 @@ const R = i => ({
   cx: "",
   cont: "",
   terra: "",
+  horaFoto: "",
+  fotoVisorOk: 0,
   ph: [],
   pl: "",
   obs: ""
 });
 
 function F(id) {
-  const b = getB().find(x => x[0] == id) || [id, id, 1, ""];
-  return S.f[id] ??= (() => {
-    const o = b[3] || "";
-    return {
-      id,
-      hi: "",
-      hf: "",
-      solo: "",
-      obs: "",
-      dupla: b[2],
-      chk: {},
-      bepOk: "",
-      bepC: "",
-      bepT: "",
-      bepPh: [],
-      dps: "",
-      rows: o.includes("only") ? [] : Array.from({length: 8}, (_, i) => R(i)),
-      ncs: [],
-      done: {vis: 0, med: 0, foto: 0, pl: 0}
-    };
-  })();
+  const b = getB().find(x => x[0] == id) || [id, id, 1, "", 10];
+  const o = b[3] || "";
+  const defCount = o.includes("only") ? 0 : (typeof b[4] === "number" ? b[4] : 10);
+  const f = S.f[id] ??= {
+    id,
+    data: "",
+    hi: "",
+    hf: "",
+    horaConc: "",
+    solo: "",
+    clima: "",
+    obs: "",
+    reparosCampo: "",
+    respBloco: "",
+    visto: "",
+    dupla: b[2],
+    chk: {},
+    fachadaPh: [],
+    fachadaHora: "",
+    telhadoPh: [],
+    telhadoHora: "",
+    bepOk: "",
+    bepAcess: "",
+    bepCorr: "",
+    bepResLig: "",
+    bepPlaca: "",
+    bepC: "",
+    bepT: "",
+    bepHora: "",
+    bepPh: [],
+    dps: "",
+    dpsCor: "",
+    rows: Array.from({length: defCount}, (_, i) => R(i)),
+    ncs: [],
+    done: {vis: 0, med: 0, foto: 0, pl: 0}
+  };
+  // Garante campos novos em registros migrados
+  f.chk ??= {};
+  f.fachadaPh ??= [];
+  f.telhadoPh ??= [];
+  f.bepPh ??= [];
+  f.ncs ??= [];
+  f.rows ??= [];
+  f.done ??= {vis: 0, med: 0, foto: 0, pl: 0};
+  f.rows.forEach(r => { r.ph ??= []; r.horaFoto ??= ""; });
+  return f;
 }
 
 const num = v => parseFloat(String(v ?? "").replace(",", "."));
 
 function judge(r) {
   const c = num(r.cont), t = num(r.terra), bad = [];
-  if (!isNaN(c) && c > S.cfg.limC) bad.push(`Cont. ${c} Ω > ${S.cfg.limC} Ω`);
-  if (!isNaN(t) && t > S.cfg.limT) bad.push(`Terra ${t} Ω > ${S.cfg.limT} Ω`);
+  if (!isNaN(c) && c > S.cfg.limC) bad.push(`Cont. ${c} Ohm > ${S.cfg.limC}`);
+  if (!isNaN(t) && t > S.cfg.limT) bad.push(`Terra ${t} Ohm > ${S.cfg.limT}`);
   return bad;
 }
 
@@ -390,16 +542,16 @@ function rowDiagnosis(r) {
   return {ok: true, measured: false, short: "NÃO MEDIDO", detail: "Sem leitura registrada"};
 }
 
-// Consolida NCs manuais + NCs automáticas detectadas nas linhas de medição
 function collectAllBlockNCs(b) {
   const f = F(b[0]);
   const list = [];
-  (f.ncs || []).forEach((n, idx) => {
+  (f.ncs || []).forEach(n => {
     const info = COD[n.cod] || ["Desvio técnico identificado em campo", n.sev || "B", "Realizar adequação conforme NBR 5419:2015."];
     list.push({
       code: `NC-${String(list.length + 1).padStart(2, "0")}`,
       ponto: n.ponto || "Geral",
       codRef: n.cod || "—",
+      horaFoto: n.horaFoto || "—",
       titulo: info[0],
       sev: n.sev || info[1] || "B",
       detalhe: n.det || info[2],
@@ -407,19 +559,18 @@ function collectAllBlockNCs(b) {
     });
   });
 
-  // Adiciona automaticamente desvios marcados nas descidas que ainda não estejam na lista manual
   (f.rows || []).forEach(r => {
     const c = num(r.cont), t = num(r.terra);
     const issues = [];
     let sev = "B";
     const recs = [];
     if (!isNaN(c) && c > S.cfg.limC) {
-      issues.push(`Continuidade medida = ${r.cont} Ω (limite ≤ ${S.cfg.limC} Ω)`);
+      issues.push(`Continuidade medida = ${r.cont} Ohm (limite <= ${S.cfg.limC} Ohm)`);
       sev = "A";
       recs.push(COD.C1[2]);
     }
     if (!isNaN(t) && t > S.cfg.limT) {
-      issues.push(`Resistência de terra = ${r.terra} Ω (limite ≤ ${S.cfg.limT} Ω)`);
+      issues.push(`Resistência de terra = ${r.terra} Ohm (limite <= ${S.cfg.limT} Ohm)`);
       sev = "A";
       recs.push(COD.C10[2]);
     }
@@ -441,6 +592,7 @@ function collectAllBlockNCs(b) {
         code: `NC-${String(list.length + 1).padStart(2, "0")}`,
         ponto: pontoName,
         codRef: !isNaN(c) && c > S.cfg.limC ? "C1/C10" : "Visual",
+        horaFoto: r.horaFoto || "—",
         titulo: issues.join("; "),
         sev,
         detalhe: recs.join(" "),
@@ -460,12 +612,14 @@ function blockStats(b) {
   const medR = f.rows.filter(r => r.cont !== "" || r.terra !== "" || r.barra || r.eld || r.cx).length;
   const ncsRows = f.rows.filter(r => judge(r).length || [r.barra, r.eld, r.cx].includes("NC")).length;
   const totNC = f.ncs.length + ncsRows;
-  const totPh = (f.bepPh || []).length + f.rows.reduce((a, r) => a + (r.ph || []).length, 0) + f.ncs.reduce((a, n) => a + (n.ph || []).length, 0);
+  const totPh = (f.fachadaPh || []).length + (f.telhadoPh || []).length + (f.bepPh || []).length +
+    f.rows.reduce((a, r) => a + (r.ph || []).length, 0) +
+    f.ncs.reduce((a, n) => a + (n.ph || []).length, 0);
   const chkCount = Object.values(f.chk || {}).filter(Boolean).length;
 
   const isCompleted = !!(f.done && f.done.vis && f.done.med && f.done.foto && f.done.pl) ||
-    (isOnly ? (f.bepOk && (f.bepC || f.bepT) && totPh > 0) : (totR > 0 && medR === totR && chkCount >= 3 && totPh > 0));
-  const isStarted = !!(medR > 0 || chkCount > 0 || totPh > 0 || f.bepOk || f.bepC || f.bepT || f.hi || f.done.vis || f.done.med);
+    (isOnly ? (f.bepOk && (f.bepC || f.bepT) && totPh > 0) : (totR > 0 && medR === totR && chkCount >= 4 && totPh > 0));
+  const isStarted = !!(medR > 0 || chkCount > 0 || totPh > 0 || f.bepOk || f.bepC || f.bepT || f.hi || f.done.vis || f.done.med || f.reparosCampo);
 
   let status = "PENDENTE";
   if (totNC > 0 && !f.done.pl) status = "NC";
@@ -483,24 +637,66 @@ function blockStats(b) {
 }
 
 function go(v, tab) {
+  saveNow(false);
   view = v;
   if (tab) activeTab = tab;
   render();
   scrollTo(0, 0);
 }
 
+// Atualização com re-render (usada para botões de seleção, nunca durante digitação em input)
 function set(id, path, v, rr) {
   let o = F(id), k = path.split(".");
   while (k.length > 1) o = o[k.shift()];
   o[k[0]] = v;
-  save();
+  saveNow(false);
   if (rr) render();
+}
+
+// Atualização silenciosa no oninput: salva imediatamente sem perder foco ou fechar teclado
+function setSilent(id, path, v) {
+  let o = F(id), k = path.split(".");
+  while (k.length > 1) o = o[k.shift()];
+  o[k[0]] = v;
+  saveNow(false);
+  if (path.startsWith("rows.")) {
+    const idx = parseInt(path.split(".")[1]);
+    if (!isNaN(idx)) refreshRowCardStatus(id, idx);
+  }
+}
+
+function refreshRowCardStatus(id, idx) {
+  const card = document.getElementById(`row-card-${idx}`);
+  if (!card) return;
+  const r = F(id).rows[idx];
+  if (!r) return;
+  const j = judge(r);
+  const hasNC = j.length || [r.barra, r.eld, r.cx].includes("NC");
+  const isOk = !hasNC && (r.cont !== "" || r.terra !== "");
+  card.classList.remove("ok", "nc");
+  if (hasNC) card.classList.add("nc");
+  else if (isOk) card.classList.add("ok");
+  const badges = card.querySelector(".row-badges");
+  if (badges) {
+    badges.innerHTML = j.map(x => `<span class="tag NC">${esc(x)}</span>`).join("");
+  }
+}
+
+function setCfgSilent(key, v) {
+  S.cfg[key] = v;
+  saveNow(false);
+}
+
+function setRepSilent(key, v) {
+  S.reposicao ??= {};
+  S.reposicao[key] = v;
+  saveNow(false);
 }
 
 function toggleDone(id, key) {
   const f = F(id);
   f.done[key] = f.done[key] ? 0 : 1;
-  save();
+  saveNow(true);
   render();
 }
 
@@ -508,14 +704,14 @@ function toggleBlockAllDone(id, checked) {
   const f = F(id);
   const v = checked ? 1 : 0;
   f.done = {vis: v, med: v, foto: v, pl: v};
-  save();
+  saveNow(true);
   render();
 }
 
 function toggleLib(idx, checked) {
   S.lib ??= {};
   S.lib["k" + idx] = checked ? 1 : 0;
-  save();
+  saveNow(false);
   render();
 }
 
@@ -580,6 +776,8 @@ async function delPhoto(id, kind, idx, pi, name) {
   if (!confirm("Excluir esta foto?")) return;
   const f = F(id);
   if (kind === "bep") (f.bepPh || []).splice(pi, 1);
+  else if (kind === "fachada") (f.fachadaPh || []).splice(pi, 1);
+  else if (kind === "telhado") (f.telhadoPh || []).splice(pi, 1);
   else if (kind === "row") f.rows[idx].ph.splice(pi, 1);
   else if (kind === "nc") (f.ncs[idx].ph || []).splice(pi, 1);
   await pdel(name);
@@ -587,7 +785,7 @@ async function delPhoto(id, kind, idx, pi, name) {
     URL.revokeObjectURL(photoURLCache[name]);
     delete photoURLCache[name];
   }
-  save();
+  saveNow(true);
   render();
 }
 
@@ -596,7 +794,7 @@ function closeModal() {
 }
 
 /* ============================================================================
-   CAPTURA DE FOTO EM HD + CARIMBO BEM VISÍVEL (ESTILO DA FOTO DE REFERÊNCIA)
+   CAPTURA DE FOTO EM HD + CARIMBO + REGISTRO AUTOMÁTICO DE HORA DA FOTO
    ============================================================================ */
 function formatStampDate(d) {
   const meses = ["jan.", "fev.", "mar.", "abr.", "mai.", "jun.", "jul.", "ago.", "set.", "out.", "nov.", "dez."];
@@ -642,7 +840,6 @@ function processPhotoHDWithStamp(file, stampLine1, stampLine2, stampLine3 = "") 
         const refSide = Math.min(W, H);
         const marginX = Math.round(refSide * 0.035);
         const marginY = Math.round(refSide * 0.035);
-        // Fonte maior para ficar 100% legível mesmo dentro do documento Word/PDF
         const fontTitle = Math.max(24, Math.round(refSide * 0.048));
         const fontSub = Math.max(20, Math.round(refSide * 0.038));
         const padX = Math.round(fontTitle * 0.72);
@@ -689,20 +886,71 @@ function processPhotoHDWithStamp(file, stampLine1, stampLine2, stampLine3 = "") 
   });
 }
 
-function photo(id, ponto, ri, ni, useCam = true) {
+async function attachPhotoBlob(id, ponto, ri, ni, blobOrFile, kindOverride = "", dateObj = null) {
   const b = getB().find(x => x[0] == id) || [id, id, 1, ""];
   const f = F(id);
   let subLabel = ponto;
   let extraMeasure = "";
+
   if (ri >= 0 && ri != null && f.rows[ri]) {
     const r = f.rows[ri];
     if (r.loc) subLabel = `${r.p} (${r.loc})`;
     const parts = [];
-    if (r.cont !== "") parts.push(`Cont: ${r.cont} Ω`);
-    if (r.terra !== "") parts.push(`Terra: ${r.terra} Ω`);
+    if (r.cont !== "") parts.push(`Cont: ${r.cont} Ohm`);
+    if (r.terra !== "") parts.push(`Terra: ${r.terra} Ohm`);
+    if (parts.length) extraMeasure = parts.join("  |  ");
+  } else if (kindOverride === "bep" || ponto === "BEP") {
+    const parts = [];
+    if (f.bepC !== "") parts.push(`Cont BEP: ${f.bepC} Ohm`);
+    if (f.bepT !== "") parts.push(`Terra BEP: ${f.bepT} Ohm`);
     if (parts.length) extraMeasure = parts.join("  |  ");
   }
 
+  const d = dateObj || new Date();
+  const stampLine1 = `${b[1]}--${subLabel}`;
+  const stampLine2 = formatStampDate(d);
+  const horaFotoStr = d.toTimeString().slice(0, 8);
+  const bl = await processPhotoHDWithStamp(blobOrFile, stampLine1, stampLine2, extraMeasure);
+
+  const hh = horaFotoStr.replace(/:/g, "");
+  const cleanPonto = String(ponto).replace(/[^a-zA-Z0-9_-]/g, "");
+  const name = `${id}_${cleanPonto}_${d.toISOString().slice(0, 10)}_${hh}_${Math.random().toString(36).slice(2, 5)}.jpg`;
+
+  await pset(name, {
+    b: bl,
+    id,
+    ponto,
+    kind: kindOverride || (ri >= 0 ? "row" : (ni >= 0 ? "nc" : "bep")),
+    stampTitle: stampLine1,
+    stampDate: stampLine2,
+    horaFoto: horaFotoStr,
+    extraMeasure,
+    t: d.toISOString(),
+    s: 0
+  });
+
+  if (kindOverride === "fachada") {
+    f.fachadaPh.push(name);
+    f.fachadaHora = horaFotoStr;
+  } else if (kindOverride === "telhado") {
+    f.telhadoPh.push(name);
+    f.telhadoHora = horaFotoStr;
+  } else if (ri >= 0 && ri != null && ri !== undefined) {
+    f.rows[ri].ph.push(name);
+    f.rows[ri].horaFoto = horaFotoStr;
+    f.rows[ri].fotoVisorOk = 1;
+  } else if (ni != null && ni >= 0) {
+    (f.ncs[ni].ph ??= []).push(name);
+    f.ncs[ni].horaFoto = horaFotoStr;
+  } else {
+    (f.bepPh ??= []).push(name);
+    f.bepHora = horaFotoStr;
+  }
+  saveNow(true);
+  return name;
+}
+
+function photo(id, ponto, ri, ni, useCam = true, kindOverride = "") {
   const i = document.createElement("input");
   i.type = "file";
   i.accept = "image/*";
@@ -715,40 +963,828 @@ function photo(id, ponto, ri, ni, useCam = true) {
     if (st) st.textContent = "Processando foto HD com carimbo…";
 
     for (const file of i.files) {
-      const d = new Date();
-      const stampLine1 = `${b[1]}--${subLabel}`;
-      const stampLine2 = formatStampDate(d);
-      const bl = await processPhotoHDWithStamp(file, stampLine1, stampLine2, extraMeasure);
-
-      const hh = d.toTimeString().slice(0, 8).replace(/:/g, "");
-      const cleanPonto = String(ponto).replace(/[^a-zA-Z0-9_-]/g, "");
-      const name = `${id}_${cleanPonto}_${d.toISOString().slice(0, 10)}_${hh}_${Math.random().toString(36).slice(2, 5)}.jpg`;
-
-      await pset(name, {
-        b: bl,
-        id,
-        ponto,
-        stampTitle: stampLine1,
-        stampDate: stampLine2,
-        t: d.toISOString(),
-        s: 0
-      });
-
-      if (ri >= 0 && ri != null && ri !== undefined) f.rows[ri].ph.push(name);
-      else if (ni != null && ni >= 0) (f.ncs[ni].ph ??= []).push(name);
-      else (f.bepPh ??= []).push(name);
+      await attachPhotoBlob(id, ponto, ri, ni, file, kindOverride);
     }
     if (st) st.textContent = "";
-    save();
     render();
   };
   i.click();
 }
 
 /* ============================================================================
+   GERADOR DE PDF NATIVO COM IMAGENS + WINANSI ACENTUADO + ANEXO P/ IA
+   ============================================================================ */
+function toWinAnsiLiteral(str) {
+  const cleaned = String(str ?? "")
+    .replace(/Ω/g, "Ohm")
+    .replace(/≤/g, "<=")
+    .replace(/≥/g, ">=")
+    .replace(/[•·]/g, "-")
+    .replace(/[—–]/g, "-")
+    .replace(/[“”]/g, '"')
+    .replace(/[‘’]/g, "'")
+    .replace(/✓/g, "OK")
+    .replace(/✕/g, "X")
+    .replace(/×/g, "x");
+
+  let out = "";
+  for (let i = 0; i < cleaned.length; i++) {
+    const code = cleaned.charCodeAt(i);
+    if (code === 40 || code === 41 || code === 92) { // ( ) \
+      out += "\\" + cleaned[i];
+    } else if (code >= 32 && code <= 126) {
+      out += cleaned[i];
+    } else if (code >= 160 && code <= 255) {
+      // Latin-1 / WinAnsi octal escape -> mantém 100% ASCII no stream e exibe á,é,í,ó,ú,ã,õ,ç,²,° perfeitamente!
+      out += "\\" + code.toString(8).padStart(3, "0");
+    } else {
+      out += " ";
+    }
+  }
+  return out;
+}
+
+function estimateWidth(str, size, bold = false) {
+  const s = String(str ?? "");
+  let w = 0;
+  for (let i = 0; i < s.length; i++) {
+    const ch = s[i];
+    if ("il.,;:|!I1[]()".includes(ch)) w += 0.28;
+    else if ("mwMW@#%&".includes(ch)) w += 0.80;
+    else if (ch >= "A" && ch <= "Z") w += 0.66;
+    else w += 0.52;
+  }
+  return w * size * (bold ? 1.05 : 1.0);
+}
+
+function wrapCellText(str, maxWidthPt, size, bold = false) {
+  const rawParagraphs = String(str ?? "").split(/\r?\n/);
+  const lines = [];
+  for (const para of rawParagraphs) {
+    const words = para.trim().split(/\s+/).filter(Boolean);
+    if (!words.length) {
+      lines.push("");
+      continue;
+    }
+    let cur = "";
+    for (const w of words) {
+      const cand = cur ? cur + " " + w : w;
+      if (estimateWidth(cand, size, bold) <= maxWidthPt) {
+        cur = cand;
+      } else {
+        if (cur) lines.push(cur);
+        // Caso uma única palavra seja maior que a coluna, quebra em pedaços
+        if (estimateWidth(w, size, bold) > maxWidthPt) {
+          let part = "";
+          for (const ch of w) {
+            if (estimateWidth(part + ch, size, bold) > maxWidthPt && part) {
+              lines.push(part);
+              part = ch;
+            } else {
+              part += ch;
+            }
+          }
+          cur = part;
+        } else {
+          cur = w;
+        }
+      }
+    }
+    if (cur) lines.push(cur);
+  }
+  return lines.length ? lines : [""];
+}
+
+function downscaleForPDF(blob) {
+  return new Promise(res => {
+    const img = new Image();
+    img.onload = () => {
+      const k = Math.min(1, 1000 / Math.max(img.width, img.height));
+      const w = Math.round(img.width * k), h = Math.round(img.height * k);
+      const c = document.createElement("canvas");
+      c.width = w;
+      c.height = h;
+      c.getContext("2d").drawImage(img, 0, 0, w, h);
+      c.toBlob(b => {
+        const fr = new FileReader();
+        fr.onload = () => res({bytes: new Uint8Array(fr.result), w, h});
+        fr.readAsArrayBuffer(b);
+      }, "image/jpeg", 0.82);
+    };
+    img.onerror = () => res(null);
+    img.src = URL.createObjectURL(blob);
+  });
+}
+
+async function buildPDFFile(teamFilter = 0) {
+  const st = $("#st-msg");
+  if (st) st.textContent = "Gerando PDF completo com imagens + anexo IA…";
+
+  const allB = getB();
+  const B = teamFilter ? allB.filter(b => b[2] == teamFilter) : allB;
+  const c = S.cfg;
+  const rep = S.reposicao || {};
+  const teamTag = teamFilter == 1 ? "Equipe A (Dupla 1)" : (teamFilter == 2 ? "Equipe B (Dupla 2)" : "Equipes A e B");
+
+  const PW = 595.28, PH = 841.89, ML = 32, MR = 32, MT = 42, MB = 38;
+  const CW = PW - ML - MR; // 531.28 pt exatos!
+  const pages = [];
+  const images = [];
+  let curOps = [];
+  let y = PH - MT;
+
+  function rectFill(x, ry, w, h, r, g, b) {
+    curOps.push(`${r.toFixed(2)} ${g.toFixed(2)} ${b.toFixed(2)} rg ${x.toFixed(2)} ${ry.toFixed(2)} ${w.toFixed(2)} ${h.toFixed(2)} re f`);
+  }
+
+  function rectStroke(x, ry, w, h, r = 0.72, g = 0.76, b = 0.80, lw = 0.6) {
+    curOps.push(`${lw} w ${r.toFixed(2)} ${g.toFixed(2)} ${b.toFixed(2)} RG ${x.toFixed(2)} ${ry.toFixed(2)} ${w.toFixed(2)} ${h.toFixed(2)} re S`);
+  }
+
+  function textAt(str, x, ty, size = 9, bold = false, r = 0.1, g = 0.12, b = 0.15) {
+    const s = toWinAnsiLiteral(str);
+    curOps.push(`BT /${bold ? "F2" : "F1"} ${size} Tf ${r.toFixed(2)} ${g.toFixed(2)} ${b.toFixed(2)} rg ${x.toFixed(2)} ${ty.toFixed(2)} Td (${s}) Tj ET`);
+  }
+
+  function newPage() {
+    if (curOps.length) pages.push(curOps.join("\n"));
+    curOps = [];
+    // Barra superior estilo Caderneta de Campo TH Elétrica
+    rectFill(ML, PH - 34, CW, 20, 0.12, 0.23, 0.37);
+    textAt(`TH ELÉTRICA • NBR 5419:2015  |  LAUDO E CADERNETA SPDA (${teamTag})`, ML + 6, PH - 27, 8.2, true, 1, 1, 1);
+    textAt(`${c.cliente || "Amigos do Bem"}`, PW - MR - estimateWidth(c.cliente || "Amigos do Bem", 8, false) - 6, PH - 27, 8, false, 0.9, 0.94, 1);
+    y = PH - 46;
+  }
+
+  function ensureSpace(hNeeded) {
+    if (y - hNeeded < MB) newPage();
+  }
+
+  function drawSectionTitle(title) {
+    ensureSpace(24);
+    textAt(title, ML, y - 10, 10, true, 0.12, 0.23, 0.37);
+    rectFill(ML, y - 13, CW, 1.2, 0.12, 0.23, 0.37);
+    y -= 19;
+  }
+
+  function drawTable(headers, colWidths, rowsData, fontSize = 7.8) {
+    const lineH = fontSize + 2.4;
+    const padX = 4;
+    const padY = 4;
+
+    function drawRow(cells, isHeader = false) {
+      const wrappedCols = cells.map((cell, ci) => {
+        const val = typeof cell === "object" && cell !== null ? cell.t : cell;
+        const bold = isHeader || (typeof cell === "object" && cell !== null && cell.b);
+        return wrapCellText(val, colWidths[ci] - padX * 2, fontSize, bold);
+      });
+      const maxLines = Math.max(1, ...wrappedCols.map(l => l.length));
+      const rowH = maxLines * lineH + padY * 2;
+      ensureSpace(rowH + 2);
+
+      let cx = ML;
+      for (let ci = 0; ci < colWidths.length; ci++) {
+        const w = colWidths[ci];
+        const cell = cells[ci];
+        const bg = isHeader ? [0.12, 0.23, 0.37] : (typeof cell === "object" && cell?.bg ? cell.bg : [1, 1, 1]);
+        const fg = isHeader ? [1, 1, 1] : (typeof cell === "object" && cell?.fg ? cell.fg : [0.11, 0.14, 0.13]);
+        const bold = isHeader || (typeof cell === "object" && cell?.b);
+
+        rectFill(cx, y - rowH, w, rowH, bg[0], bg[1], bg[2]);
+        rectStroke(cx, y - rowH, w, rowH, 0.78, 0.81, 0.85, 0.5);
+
+        const lines = wrappedCols[ci];
+        for (let li = 0; li < lines.length; li++) {
+          const tx = cx + padX;
+          const ty = y - padY - fontSize - li * lineH + 1.5;
+          textAt(lines[li], tx, ty, fontSize, bold, fg[0], fg[1], fg[2]);
+        }
+        cx += w;
+      }
+      y -= rowH;
+    }
+
+    if (headers && headers.length) {
+      drawRow(headers, true);
+    }
+    for (const r of rowsData) {
+      if (y - (lineH + padY * 2) < MB && headers && headers.length) {
+        newPage();
+        drawRow(headers, true);
+      }
+      drawRow(r, false);
+    }
+    y -= 8;
+  }
+
+  newPage();
+
+  // CAPA / CABEÇALHO DE DADOS DA OBRA
+  drawTable([], [265.64, 265.64], [
+    [
+      {t: `EMPRESA: ${c.empresa || "TH ELÉTRICA"}`, b: true, bg: [0.94, 0.96, 0.98]},
+      {t: `NORMA / REF.: ${c.proposta || "ABNT NBR 5419:2015"}`, b: true, bg: [0.94, 0.96, 0.98]}
+    ],
+    [
+      {t: `CLIENTE / OBRA: ${c.cliente || "Fazenda Amigos do Bem"}`, b: true},
+      {t: `LOCALIDADE: ${c.local || "Serra do Catimbau, Buíque/PE"}`}
+    ],
+    [
+      {t: `DATA DA INSPEÇÃO: ${c.data || "-"}   |   ESCOPO: ${teamTag}`},
+      {t: `EQUIPE / OPERADORES: ${c.eq || "-"}`}
+    ],
+    [
+      {t: `APARELHO (CONTINUIDADE / TERRA): ${c.ap || "-"} ${c.apTerra ? "/ " + c.apTerra : ""}`},
+      {t: `CRITÉRIOS: Continuidade <= ${c.limC} Ohm  |  Terra <= ${c.limT} Ohm (<= ${c.limTSeco || 20} Ohm solo seco)`}
+    ],
+    [
+      {t: `RESPONSÁVEL TÉCNICO: ${c.resp || "A preencher no carimbo da RT"}`, b: true},
+      {t: `REGISTRO (CREA / CFT / ART): ${[c.crea, c.art].filter(Boolean).join(" | ") || "A anexar"}`}
+    ]
+  ], 7.8);
+
+  // 1. PAINEL DE CONTROLE GERAL (CAPA DA CADERNETA)
+  drawSectionTitle("1. PAINEL DE CONTROLE GERAL — CHECKOUT DAS EDIFICAÇÕES");
+  const summaryRows = B.map(b => {
+    const bs = blockStats(b);
+    const f = bs.f;
+    let stObj = {t: "PENDENTE", b: true, fg: [0.4, 0.44, 0.48], bg: [0.97, 0.98, 0.98]};
+    if (bs.totNC > 0) stObj = {t: `COM NC (${bs.totNC})`, b: true, fg: [0.75, 0.12, 0.12], bg: [0.99, 0.91, 0.91]};
+    else if (bs.isCompleted || bs.medR > 0) stObj = {t: "CONFORME", b: true, fg: [0.1, 0.5, 0.25], bg: [0.89, 0.97, 0.91]};
+    return [
+      {t: b[0], b: true},
+      {t: b[1], b: true},
+      `Eq. ${b[2] == 2 ? "B (2)" : "A (1)"}`,
+      f.hi || f.hf ? `${f.hi || "--"}-${f.hf || "--"}` : "-",
+      [f.solo, f.clima].filter(Boolean).join("/") || "-",
+      bs.totR ? `${bs.medR}/${bs.totR}` : "BEP",
+      `${bs.totPh} foto(s)`,
+      stObj
+    ];
+  });
+  drawTable(
+    ["Cód", "Edificação / Bloco", "Dupla", "Horário", "Solo/Clima", "Medições", "Fotos", "Status"],
+    [32, 138, 46, 62, 62, 50, 52, 89.28],
+    summaryRows,
+    7.6
+  );
+
+  // CONTROLE DE REPOSIÇÃO EM CAMPO E ANOTAÇÕES LIVRES
+  if (rep.placasQtd || rep.placasLocais || rep.conectoresQtd || rep.conectoresLocais || rep.outros || rep.anotacoesLivres) {
+    drawSectionTitle("2. CONTROLE DE REPOSIÇÃO EM CAMPO E ANOTAÇÕES GERAIS");
+    drawTable(
+      ["Item de Reposição / Anotação", "Quantidade / Descrição e Locais"],
+      [190, 341.28],
+      [
+        ["Placas 'Risco de Choque' instaladas", `Qtd: ${rep.placasQtd || "0"} | Locais: ${rep.placasLocais || "-"}`],
+        ["Conectores Bimetálicos / Split-Bolt trocados", `Qtd: ${rep.conectoresQtd || "0"} | Locais: ${rep.conectoresLocais || "-"}`],
+        ["Outros materiais / observações gerais", rep.outros || "-"],
+        ["Anotações Livres (Edificação • Ponto • Hora)", rep.anotacoesLivres || "-"]
+      ],
+      7.8
+    );
+  }
+
+  // 3. FICHAS DETALHADAS E RELATÓRIO FOTOGRÁFICO
+  drawSectionTitle("3. FICHAS DE INSPEÇÃO, MEDIÇÕES ÔHMICAS E RELATÓRIO FOTOGRÁFICO");
+
+  const blocksToRender = B.filter(b => {
+    const bs = blockStats(b);
+    return c.soPreenchidos ? (bs.isStarted || bs.totNC > 0) : true;
+  });
+  const finalBlocks = blocksToRender.length ? blocksToRender : B;
+
+  for (let bi = 0; bi < finalBlocks.length; bi++) {
+    const b = finalBlocks[bi];
+    const bs = blockStats(b);
+    const f = bs.f;
+    const o = b[3] || "";
+
+    ensureSpace(58);
+    rectFill(ML, y - 20, CW, 20, 0.12, 0.23, 0.37);
+    textAt(`3.${bi + 1}  ${b[1].toUpperCase()} [${b[0]}] — ${teamLabel(b[2]).toUpperCase()}`, ML + 6, y - 13, 9.2, true, 1, 1, 1);
+    y -= 23;
+
+    const metaLine = `Data: ${f.data || c.data || "-"} | Início: ${f.hi || "-"} | Fim: ${f.hf || "-"} | Conclusão: ${f.horaConc || "-"} | Solo: ${f.solo || "-"} | Clima: ${f.clima || "-"} | Resp.: ${f.respBloco || "-"}`;
+    const metaWrapped = wrapCellText(metaLine, CW - 8, 8, false);
+    for (const ml of metaWrapped) {
+      ensureSpace(11);
+      textAt(ml, ML + 2, y - 8, 8, false, 0.2, 0.24, 0.28);
+      y -= 11;
+    }
+    if (f.obs || f.reparosCampo) {
+      const obsWrapped = wrapCellText(`Obs./Reparos: ${[f.obs, f.reparosCampo].filter(Boolean).join(" | ")}`, CW - 8, 8, false);
+      for (const ol of obsWrapped) {
+        ensureSpace(11);
+        textAt(ol, ML + 2, y - 8, 8, false, 0.25, 0.25, 0.3);
+        y -= 11;
+      }
+    }
+    y -= 4;
+
+    // Tabela A: Checklist Visual + BEP/DPS
+    const chkTableRows = [];
+    if (!o.includes("only")) {
+      for (const [k, label] of CHK) {
+        const v = f.chk[k] || "Não avaliado";
+        const isBad = v === "Não";
+        const isOk = v === "Sim";
+        chkTableRows.push([
+          label,
+          {
+            t: isOk ? "CONFORME (Sim)" : (isBad ? "NÃO CONFORME (Não)" : v),
+            b: true,
+            fg: isBad ? [0.75, 0.12, 0.12] : (isOk ? [0.1, 0.5, 0.25] : [0.4, 0.44, 0.48]),
+            bg: isBad ? [0.99, 0.91, 0.91] : (isOk ? [0.89, 0.97, 0.91] : [1, 1, 1])
+          }
+        ]);
+      }
+      if (f.fachadaHora || f.telhadoHora) {
+        chkTableRows.push([
+          "Horário das fotos de Fachada e Telhado / Captação",
+          `Fachada: ${f.fachadaHora || "-"}  |  Telhado: ${f.telhadoHora || "-"}`
+        ]);
+      }
+    }
+    if (o.includes("bep") || o.includes("only")) {
+      if (o.includes("only")) {
+        chkTableRows.push(["BEP localizado e acessível?", f.bepAcess || "-"]);
+        chkTableRows.push(["Corrosão / folga nas conexões do BEP?", f.bepCorr || "-"]);
+        chkTableRows.push(["Reservatório / estrutura metálica ligado ao BEP?", f.bepResLig || "-"]);
+        chkTableRows.push(["Placa 'Risco de Choque' no local do BEP?", f.bepPlaca || "-"]);
+      }
+      chkTableRows.push([
+        "BEP: Barra de cobre, isoladores e conexões íntegros + medições",
+        `Íntegro: ${f.bepOk || "-"} | Cont.: ${f.bepC || "-"} Ohm | Terra: ${f.bepT || "-"} Ohm | Foto: ${f.bepHora || "-"}`
+      ]);
+    }
+    if (o.includes("dps")) {
+      chkTableRows.push([
+        "DPS no Quadro Geral (QDG): instalado e ligado ao BEP/Terra?",
+        `Instalado: ${f.dps || "-"} | Indicador: ${f.dpsCor || "-"}`
+      ]);
+    }
+
+    if (chkTableRows.length) {
+      drawTable(["A. Item de Verificação Visual / BEP / DPS", "Avaliação"], [350, 181.28], chkTableRows, 7.6);
+    }
+
+    // Tabela B: Descidas e Caixas (todas as colunas perfeitamente dentro de 531.28 pt!)
+    if (f.rows && f.rows.length) {
+      const activeRows = c.soPreenchidos
+        ? f.rows.filter(r => r.cont !== "" || r.terra !== "" || r.barra || r.eld || r.cx || (r.ph && r.ph.length) || r.horaFoto)
+        : f.rows;
+      const rowsToPrint = activeRows.length ? activeRows : f.rows;
+
+      const descRows = rowsToPrint.map(r => {
+        const diag = rowDiagnosis(r);
+        const cBad = !isNaN(num(r.cont)) && num(r.cont) > c.limC;
+        const tBad = !isNaN(num(r.terra)) && num(r.terra) > c.limT;
+        return [
+          {t: r.loc ? `${r.p} (${r.loc})` : r.p, b: true},
+          {t: r.barra || "-", b: r.barra === "NC", fg: r.barra === "NC" ? [0.75, 0.12, 0.12] : [0.1, 0.12, 0.14]},
+          {t: r.eld || "-", b: r.eld === "NC", fg: r.eld === "NC" ? [0.75, 0.12, 0.12] : [0.1, 0.12, 0.14]},
+          {t: r.cx || "-", b: r.cx === "NC", fg: r.cx === "NC" ? [0.75, 0.12, 0.12] : [0.1, 0.12, 0.14]},
+          {t: r.cont !== "" ? `${r.cont}` : "-", b: cBad, fg: cBad ? [0.75, 0.12, 0.12] : [0.1, 0.12, 0.14]},
+          {t: r.terra !== "" ? `${r.terra}` : "-", b: tBad, fg: tBad ? [0.75, 0.12, 0.12] : [0.1, 0.12, 0.14]},
+          r.horaFoto || (r.ph?.length ? `${r.ph.length} foto` : "-"),
+          r.pl || "-",
+          {
+            t: diag.ok ? diag.short : `${diag.short}: ${diag.detail}`,
+            b: true,
+            fg: !diag.measured ? [0.4, 0.44, 0.48] : (diag.ok ? [0.1, 0.5, 0.25] : [0.75, 0.12, 0.12]),
+            bg: !diag.measured ? [1, 1, 1] : (diag.ok ? [0.89, 0.97, 0.91] : [0.99, 0.91, 0.91])
+          }
+        ];
+      });
+
+      drawTable(
+        ["Ponto / Ref.", "Barra", "Eletrod.", "Caixa", "Cont(Ohm)", "Terra(Ohm)", "Foto(Hora)", "Planta", "Diagnóstico"],
+        [72, 36, 44, 40, 50, 50, 55, 42, 142.28],
+        descRows,
+        7.3
+      );
+    }
+
+    // Tabela C: Não Conformidades
+    const blockNCs = collectAllBlockNCs(b);
+    if (blockNCs.length) {
+      const ncRows = blockNCs.map(n => [
+        {t: n.code, b: true},
+        {t: n.ponto, b: true},
+        {t: `${n.codRef}\nSev.${n.sev}`, b: true, fg: [0.75, 0.12, 0.12], bg: [0.99, 0.91, 0.91]},
+        n.horaFoto,
+        `${n.titulo}\nReparo: ${n.detalhe}`
+      ]);
+      drawTable(
+        ["NC", "Ponto", "Cód/Sev", "Hora Foto", "Descrição da Não Conformidade e Reparo Recomendado"],
+        [44, 72, 54, 52, 309.28],
+        ncRows,
+        7.5
+      );
+    }
+
+    // D. Relatório Fotográfico (2 fotos por linha, grandes e proporcionais, com carimbo visível)
+    const blockPhotos = [];
+    for (const k of (f.fachadaPh || [])) blockPhotos.push({k, cap: `${b[1]} -- Fachada`, info: `Hora: ${f.fachadaHora || "-"}`});
+    for (const k of (f.telhadoPh || [])) blockPhotos.push({k, cap: `${b[1]} -- Telhado / Captação`, info: `Hora: ${f.telhadoHora || "-"}`});
+    for (const k of (f.bepPh || [])) blockPhotos.push({k, cap: `${b[1]} -- BEP`, info: `Cont: ${f.bepC || "-"} Ohm | Terra: ${f.bepT || "-"} Ohm | Hora: ${f.bepHora || "-"}`});
+    for (const r of (f.rows || [])) {
+      const diag = rowDiagnosis(r);
+      for (const k of (r.ph || [])) {
+        blockPhotos.push({
+          k,
+          cap: `${b[1]} -- ${r.p}${r.loc ? ` (${r.loc})` : ""}`,
+          info: `Cont: ${r.cont || "-"} Ohm | Terra: ${r.terra || "-"} Ohm | ${diag.short} | Hora: ${r.horaFoto || "-"}`
+        });
+      }
+    }
+    for (let i = 0; i < (f.ncs || []).length; i++) {
+      const n = f.ncs[i];
+      for (const k of (n.ph || [])) {
+        blockPhotos.push({
+          k,
+          cap: `${b[1]} -- NC-${String(i + 1).padStart(2, "0")} (${n.ponto || "Geral"})`,
+          info: `${n.cod || ""} Sev.${n.sev || "-"} | Hora: ${n.horaFoto || "-"} | ${n.det || ""}`
+        });
+      }
+    }
+
+    if (blockPhotos.length) {
+      ensureSpace(225);
+      textAt(`Relatório Fotográfico — ${b[1]} (${blockPhotos.length} foto(s)):`, ML, y - 10, 8.8, true, 0.12, 0.23, 0.37);
+      y -= 15;
+      let col = 0;
+      const boxW = (CW - 12) / 2; // 259.64 pt
+      const imgAreaH = 175;
+      const capAreaH = 30;
+      const totalBoxH = imgAreaH + capAreaH;
+
+      for (const item of blockPhotos) {
+        const rec = await pget(item.k);
+        if (!rec || !rec.b) continue;
+        if (col === 0) ensureSpace(totalBoxH + 10);
+        const scaled = await downscaleForPDF(rec.b);
+        if (!scaled) continue;
+
+        const imgId = "Im" + (images.length + 1);
+        images.push({id: imgId, bytes: scaled.bytes, w: scaled.w, h: scaled.h});
+
+        const bx = ML + col * (boxW + 12);
+        const byTop = y;
+        const byBottom = y - totalBoxH;
+
+        rectFill(bx, byBottom, boxW, totalBoxH, 0.98, 0.98, 0.99);
+        rectStroke(bx, byBottom, boxW, totalBoxH, 0.72, 0.76, 0.80, 0.6);
+
+        const sc = Math.min((boxW - 10) / scaled.w, (imgAreaH - 8) / scaled.h);
+        const dw = scaled.w * sc, dh = scaled.h * sc;
+        const ix = bx + (boxW - dw) / 2;
+        const iy = byTop - imgAreaH + (imgAreaH - dh) / 2;
+        curOps.push(`q ${dw.toFixed(2)} 0 0 ${dh.toFixed(2)} ${ix.toFixed(2)} ${iy.toFixed(2)} cm /${imgId} Do Q`);
+
+        const capLines = wrapCellText(item.cap, boxW - 10, 7.8, true);
+        const infoLines = wrapCellText(item.info, boxW - 10, 7.0, false);
+        textAt(capLines[0] || "", bx + 5, byBottom + 18, 7.8, true, 0.12, 0.23, 0.37);
+        textAt(infoLines[0] || "", bx + 5, byBottom + 8, 7.0, false, 0.28, 0.32, 0.36);
+
+        col++;
+        if (col === 2) {
+          col = 0;
+          y -= (totalBoxH + 10);
+        }
+      }
+      if (col > 0) y -= (totalBoxH + 10);
+    }
+
+    y -= 6;
+  }
+
+  // 4. QUADRO DE CARIMBO DA RT / ASSINATURA
+  ensureSpace(125);
+  drawSectionTitle("4. RESPONSABILIDADE TÉCNICA E CARIMBO DA RT / ART");
+  ensureSpace(95);
+  rectFill(ML, y - 85, CW, 85, 0.96, 0.97, 0.99);
+  rectStroke(ML, y - 85, CW, 85, 0.6, 0.65, 0.72, 0.8);
+  textAt("ESPAÇO RESERVADO PARA CARIMBO DO RESPONSÁVEL TÉCNICO / SELO DA ART", ML + 95, y - 16, 8.2, true, 0.35, 0.4, 0.46);
+  textAt("______________________________________________________________________", ML + 72, y - 52, 8.5, true, 0.1, 0.12, 0.15);
+  const rtLine = `Responsável Técnico: ${c.resp || "____________________________"}   |   CREA/CFT: ${c.crea || "______________"}   |   ART: ${c.art || "______________"}`;
+  textAt(rtLine, ML + 22, y - 66, 8.0, true, 0.12, 0.23, 0.37);
+  textAt(`${c.local || "Serra do Catimbau, Buíque/PE"} — Data: ${c.data || "-"}`, ML + 145, y - 78, 7.8, false, 0.35, 0.4, 0.45);
+  y -= 95;
+
+  // 5. ANEXO ESTRUTURADO PARA LEITURA AUTOMÁTICA DE IA (TEXTO LIMPO E TABULAR)
+  newPage();
+  drawSectionTitle("5. ANEXO DE DADOS ESTRUTURADOS PARA LEITURA POR IA (FORMATAÇÃO AUTOMÁTICA)");
+  const aiTextLines = buildAIStructuredPlainText(teamFilter).split("\n");
+  for (const rawLine of aiTextLines) {
+    const wrapped = wrapCellText(rawLine, CW - 8, 7.6, false);
+    for (const wl of wrapped) {
+      ensureSpace(10);
+      textAt(wl, ML + 2, y - 8, 7.6, rawLine.startsWith("===") || rawLine.startsWith("##"), 0.15, 0.18, 0.22);
+      y -= 9.8;
+    }
+  }
+
+  if (curOps.length) pages.push(curOps.join("\n"));
+
+  // Montagem binária do PDF 1.4
+  const chunks = [];
+  let offset = 0;
+  const offsets = [];
+  const enc = new TextEncoder();
+
+  function pushStr(s) {
+    const b = enc.encode(s);
+    chunks.push(b);
+    offset += b.length;
+  }
+  function pushBytes(b) {
+    chunks.push(b);
+    offset += b.length;
+  }
+  function startObj(id) {
+    offsets[id] = offset;
+    pushStr(`${id} 0 obj\n`);
+  }
+  function endObj() {
+    pushStr(`\nendobj\n`);
+  }
+
+  pushStr("%PDF-1.4\n%\xFF\xFF\xFF\xFF\n");
+
+  const firstImgObj = 5;
+  const firstPageObj = firstImgObj + images.length;
+  const pageKids = [];
+
+  startObj(1); pushStr(`<< /Type /Catalog /Pages 2 0 R >>`); endObj();
+  startObj(3); pushStr(`<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>`); endObj();
+  startObj(4); pushStr(`<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>`); endObj();
+
+  const xobjEntries = [];
+  for (let i = 0; i < images.length; i++) {
+    const oid = firstImgObj + i;
+    const im = images[i];
+    xobjEntries.push(`/${im.id} ${oid} 0 R`);
+    startObj(oid);
+    pushStr(`<< /Type /XObject /Subtype /Image /Width ${im.w} /Height ${im.h} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${im.bytes.length} >>\nstream\n`);
+    pushBytes(im.bytes);
+    pushStr(`\nendstream`);
+    endObj();
+  }
+
+  for (let i = 0; i < pages.length; i++) {
+    const pObj = firstPageObj + i * 2;
+    const cObj = pObj + 1;
+    pageKids.push(`${pObj} 0 R`);
+    const contentBytes = enc.encode(pages[i]);
+
+    startObj(pObj);
+    pushStr(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${PW.toFixed(2)} ${PH.toFixed(2)}] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> /XObject << ${xobjEntries.join(" ")} >> >> /Contents ${cObj} 0 R >>`);
+    endObj();
+
+    startObj(cObj);
+    pushStr(`<< /Length ${contentBytes.length} >>\nstream\n`);
+    pushBytes(contentBytes);
+    pushStr(`\nendstream`);
+    endObj();
+  }
+
+  startObj(2);
+  pushStr(`<< /Type /Pages /Kids [ ${pageKids.join(" ")} ] /Count ${pages.length} >>`);
+  endObj();
+
+  const totalObjs = firstPageObj + pages.length * 2;
+  const xrefPos = offset;
+  pushStr(`xref\n0 ${totalObjs}\n0000000000 65535 f \n`);
+  for (let i = 1; i < totalObjs; i++) {
+    pushStr(String(offsets[i] || 0).padStart(10, "0") + " 00000 n \n");
+  }
+  pushStr(`trailer\n<< /Size ${totalObjs} /Root 1 0 R >>\nstartxref\n${xrefPos}\n%%EOF`);
+
+  if (st) st.textContent = "";
+  const pdfBlob = new Blob(chunks, {type: "application/pdf"});
+  const eqPrefix = teamFilter == 1 ? "EquipeA_" : (teamFilter == 2 ? "EquipeB_" : "");
+  const fname = `${eqPrefix}Laudo_SPDA_${(c.cliente || "Campo").replace(/[^a-zA-Z0-9_-]/g, "_")}_${(c.data || new Date().toISOString().slice(0, 10))}.pdf`;
+  return new File([pdfBlob], fname, {type: "application/pdf"});
+}
+
+/* ============================================================================
+   GERADOR DE ARQUIVO ESTRUTURADO PARA LEITURA DE IA (.MD)
+   ============================================================================ */
+function buildAIStructuredPlainText(teamFilter = 0) {
+  const allB = getB();
+  const B = teamFilter ? allB.filter(b => b[2] == teamFilter) : allB;
+  const c = S.cfg;
+  const rep = S.reposicao || {};
+  const lines = [];
+
+  lines.push("=== DADOS DA OBRA E CRITERIOS (SPDA - NBR 5419:2015) ===");
+  lines.push(`Empresa: ${c.empresa} | Cliente: ${c.cliente} | Local: ${c.local}`);
+  lines.push(`Ref.: ${c.proposta} | Data: ${c.data} | Operadores: ${c.eq || "-"}`);
+  lines.push(`Aparelhos: Cont=${c.ap || "-"} | Terra=${c.apTerra || "-"}`);
+  lines.push(`RT: ${c.resp || "A anexar"} | CREA/CFT: ${c.crea || "-"} | ART: ${c.art || "-"}`);
+  lines.push(`Limites: Continuidade <= ${c.limC} Ohm | Terra <= ${c.limT} Ohm (tolerancia solo seco <= ${c.limTSeco || 20} Ohm)`);
+  lines.push("");
+  lines.push("=== REPOSICAO DE CAMPO E ANOTACOES LIVRES ===");
+  lines.push(`Placas instaladas: ${rep.placasQtd || 0} (Locais: ${rep.placasLocais || "-"})`);
+  lines.push(`Conectores trocados: ${rep.conectoresQtd || 0} (Locais: ${rep.conectoresLocais || "-"})`);
+  lines.push(`Outros materiais: ${rep.outros || "-"}`);
+  lines.push(`Anotacoes livres: ${rep.anotacoesLivres || "-"}`);
+  lines.push("");
+
+  for (const b of B) {
+    const bs = blockStats(b);
+    const f = bs.f;
+    if (c.soPreenchidos && !bs.isStarted && !bs.totNC) continue;
+    lines.push(`=== BLOCO [${b[0]}] ${b[1]} (${teamLabel(b[2])}) | Status: ${bs.status} ===`);
+    lines.push(`Horario: ${f.hi || "-"} a ${f.hf || "-"} | Conclusao: ${f.horaConc || "-"} | Solo: ${f.solo || "-"} | Clima: ${f.clima || "-"} | Resp: ${f.respBloco || "-"}`);
+    if (f.obs) lines.push(`Obs: ${f.obs}`);
+    if (f.reparosCampo) lines.push(`Reparos em campo: ${f.reparosCampo}`);
+    lines.push(`Fotos gerais: Fachada=${f.fachadaHora || "-"} (${(f.fachadaPh || []).join(", ") || "sem foto"}) | Telhado=${f.telhadoHora || "-"} (${(f.telhadoPh || []).join(", ") || "sem foto"})`);
+
+    const chkTxt = CHK.map(([k, l]) => `${k}=${f.chk[k] || "-"}`).join(" | ");
+    lines.push(`Checklist: ${chkTxt}`);
+    if ((b[3] || "").includes("bep") || (b[3] || "").includes("only")) {
+      lines.push(`BEP: Integro=${f.bepOk || "-"} | Cont=${f.bepC || "-"} Ohm | Terra=${f.bepT || "-"} Ohm | HoraFoto=${f.bepHora || "-"} | Arquivos=${(f.bepPh || []).join(", ") || "-"}`);
+    }
+    if ((b[3] || "").includes("dps")) {
+      lines.push(`DPS QDG: Instalado=${f.dps || "-"} | Cor=${f.dpsCor || "-"}`);
+    }
+    for (const r of f.rows) {
+      if (c.soPreenchidos && r.cont === "" && r.terra === "" && !r.barra && !r.eld && !r.cx && !(r.ph && r.ph.length)) continue;
+      const diag = rowDiagnosis(r);
+      lines.push(`  - ${r.p}${r.loc ? " (" + r.loc + ")" : ""}: Barra=${r.barra || "-"}, Eletrod=${r.eld || "-"}, Caixa=${r.cx || "-"}, Cont=${r.cont || "-"} Ohm, Terra=${r.terra || "-"} Ohm, Planta=${r.pl || "-"}, HoraFoto=${r.horaFoto || "-"}, Fotos=[${(r.ph || []).join(", ")}], Diagnostico=${diag.short}`);
+    }
+    const ncs = collectAllBlockNCs(b);
+    for (const n of ncs) {
+      lines.push(`  * ${n.code} [${n.ponto}] Cod=${n.codRef} Sev=${n.sev} HoraFoto=${n.horaFoto}: ${n.titulo} -> Reparo: ${n.detalhe}`);
+    }
+    lines.push("");
+  }
+  return lines.join("\n");
+}
+
+function buildAIStructuredMarkdown(teamFilter = 0) {
+  const allB = getB();
+  const B = teamFilter ? allB.filter(b => b[2] == teamFilter) : allB;
+  const c = S.cfg;
+  const rep = S.reposicao || {};
+  const md = [];
+
+  md.push(`# DADOS ESTRUTURADOS PARA FORMATAÇÃO DE LAUDO TÉCNICO DE SPDA (ABNT NBR 5419:2015)`);
+  md.push("");
+  md.push(`> **Instruções para a IA:** Utilize os dados estruturados abaixo (coletados em campo pela **${c.empresa}**) para redigir/formatar o Laudo Técnico Final de SPDA em padrão profissional de engenharia, mantendo rigorosamente os valores medidos em Ohms, os horários exatos das fotos carimbadas, os códigos de não conformidade (` + "`C1..C11`" + `) e deixando o bloco de assinatura/carimbo da RT ao final.`);
+  md.push("");
+  md.push(`## 1. Metadados da Obra e Critérios`);
+  md.push(`- **Cliente / Obra:** ${c.cliente}`);
+  md.push(`- **Localidade:** ${c.local}`);
+  md.push(`- **Referência / Norma:** ${c.proposta}`);
+  md.push(`- **Data da Inspeção:** ${c.data}`);
+  md.push(`- **Operadores em Campo:** ${c.eq || "-"}`);
+  md.push(`- **Instrumentos:** Continuidade: \`${c.ap || "-"}\` | Aterramento: \`${c.apTerra || "-"}\``);
+  md.push(`- **Responsável Técnico:** ${c.resp || "A preencher"} | **CREA/CFT:** ${c.crea || "-"} | **ART:** ${c.art || "-"}`);
+  md.push(`- **Critério Continuidade:** ≤ ${c.limC} Ω`);
+  md.push(`- **Critério Aterramento:** ≤ ${c.limT} Ω ideal (≤ ${c.limTSeco || 20} Ω aceitável em solo seco)`);
+  md.push("");
+  md.push(`## 2. Controle de Reposição em Campo e Anotações Livres`);
+  md.push(`- **Placas "Risco de Choque" instaladas:** ${rep.placasQtd || 0} (Locais: ${rep.placasLocais || "-"})`);
+  md.push(`- **Conectores Bimetálicos / Split-Bolt trocados:** ${rep.conectoresQtd || 0} (Locais: ${rep.conectoresLocais || "-"})`);
+  md.push(`- **Outros materiais usados / observações:** ${rep.outros || "-"}`);
+  md.push(`- **Anotações Livres (Página 18):** ${rep.anotacoesLivres || "-"}`);
+  md.push("");
+  md.push(`## 3. Quadro Geral dos Blocos`);
+  md.push(`| Cód | Edificação | Dupla | Horário | Solo / Clima | Medições | Fotos | Status |`);
+  md.push(`|---|---|---|---|---|---|---|---|`);
+  for (const b of B) {
+    const bs = blockStats(b);
+    const f = bs.f;
+    md.push(`| ${b[0]} | ${b[1]} | ${b[2]} | ${f.hi || "-"} a ${f.hf || "-"} | ${f.solo || "-"} / ${f.clima || "-"} | ${bs.totR ? `${bs.medR}/${bs.totR}` : "BEP"} | ${bs.totPh} | ${bs.status} (${bs.totNC} NC) |`);
+  }
+  md.push("");
+
+  md.push(`## 4. Detalhamento Completo por Edificação`);
+  for (const b of B) {
+    const bs = blockStats(b);
+    const f = bs.f;
+    if (c.soPreenchidos && !bs.isStarted && !bs.totNC) continue;
+
+    md.push(`### [${b[0]}] ${b[1]} — ${teamLabel(b[2])}`);
+    md.push(`- **Data:** ${f.data || c.data} | **Início:** ${f.hi || "-"} | **Fim:** ${f.hf || "-"} | **Conclusão:** ${f.horaConc || "-"}`);
+    md.push(`- **Solo:** ${f.solo || "-"} | **Clima:** ${f.clima || "-"} | **Responsável:** ${f.respBloco || "-"} | **Visto:** ${f.visto || "-"}`);
+    if (f.obs) md.push(`- **Observações:** ${f.obs}`);
+    if (f.reparosCampo) md.push(`- **Reparos feitos em campo:** ${f.reparosCampo}`);
+    md.push(`- **Foto Fachada:** Hora \`${f.fachadaHora || "-"}\` | Arquivos: \`${(f.fachadaPh || []).join(", ") || "nenhum"}\``);
+    md.push(`- **Foto Telhado/Captação:** Hora \`${f.telhadoHora || "-"}\` | Arquivos: \`${(f.telhadoPh || []).join(", ") || "nenhum"}\``);
+    md.push("");
+    md.push(`**Checklist Visual:**`);
+    for (const [k, label] of CHK) {
+      md.push(`- ${label}: **${f.chk[k] || "Não avaliado"}**`);
+    }
+    if ((b[3] || "").includes("bep") || (b[3] || "").includes("only")) {
+      md.push(`- **BEP:** Íntegro=${f.bepOk || "-"} | Continuidade=${f.bepC || "-"} Ω | Terra=${f.bepT || "-"} Ω | Hora Foto=\`${f.bepHora || "-"}\` | Arquivos=\`${(f.bepPh || []).join(", ") || "-"}\``);
+      if ((b[3] || "").includes("only")) {
+        md.push(`- **BEP Reservatório Extra:** Acessível=${f.bepAcess || "-"} | Corrosão/folga=${f.bepCorr || "-"} | Reservatório ligado=${f.bepResLig || "-"} | Placa=${f.bepPlaca || "-"}`);
+      }
+    }
+    if ((b[3] || "").includes("dps")) {
+      md.push(`- **DPS no QDG:** Instalado=${f.dps || "-"} | Indicador=${f.dpsCor || "-"}`);
+    }
+    md.push("");
+
+    if (f.rows.length) {
+      md.push(`| Ponto | Referência | Barra | Eletroduto | Caixa | Cont. (Ω) | Terra (Ω) | Hora Foto | Planta A3 | Diagnóstico | Arquivo(s) Foto |`);
+      md.push(`|---|---|---|---|---|---|---|---|---|---|---|`);
+      for (const r of f.rows) {
+        if (c.soPreenchidos && r.cont === "" && r.terra === "" && !r.barra && !r.eld && !r.cx && !(r.ph && r.ph.length)) continue;
+        const diag = rowDiagnosis(r);
+        const diagTxt = (diag.ok ? diag.short : diag.detail).replace(/\|/g, ";");
+        md.push(`| ${r.p} | ${(r.loc || "-").replace(/\|/g, "/")} | ${r.barra || "-"} | ${r.eld || "-"} | ${r.cx || "-"} | ${r.cont || "-"} | ${r.terra || "-"} | ${r.horaFoto || "-"} | ${r.pl || "-"} | ${diagTxt} | ${(r.ph || []).join(", ") || "-"} |`);
+      }
+      md.push("");
+    }
+
+    const ncs = collectAllBlockNCs(b);
+    if (ncs.length) {
+      md.push(`**Não Conformidades (${b[1]}):**`);
+      md.push(`| NC | Ponto | Cód. | Severidade | Hora Foto | Descrição | Reparo Recomendado |`);
+      md.push(`|---|---|---|---|---|---|---|`);
+      for (const n of ncs) {
+        md.push(`| ${n.code} | ${n.ponto} | ${n.codRef} | ${n.sev} | ${n.horaFoto} | ${n.titulo} | ${n.detalhe} |`);
+      }
+      md.push("");
+    }
+  }
+
+  return md.join("\n");
+}
+
+function buildAIStructuredFile(teamFilter = 0) {
+  const txt = buildAIStructuredMarkdown(teamFilter);
+  const eqPrefix = teamFilter == 1 ? "EquipeA_" : (teamFilter == 2 ? "EquipeB_" : "");
+  const fname = `${eqPrefix}Dados_SPDA_Para_IA_${(S.cfg.cliente || "Campo").replace(/[^a-zA-Z0-9_-]/g, "_")}_${(S.cfg.data || new Date().toISOString().slice(0, 10))}.md`;
+  return new File([txt], fname, {type: "text/markdown;charset=utf-8"});
+}
+
+async function downloadPDF(teamFilter = 0) {
+  const file = await buildPDFFile(teamFilter);
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(file);
+  a.download = file.name;
+  a.click();
+}
+
+async function sharePDF(teamFilter = 0) {
+  const file = await buildPDFFile(teamFilter);
+  if (navigator.canShare && navigator.canShare({files: [file]})) {
+    try {
+      await navigator.share({
+        files: [file],
+        title: "Laudo SPDA (PDF c/ Fotos) — " + (S.cfg.cliente || "Campo"),
+        text: "Segue o Laudo Técnico de Inspeção e Medição de SPDA em PDF com fotos e anexo para IA."
+      });
+      return;
+    } catch (e) {
+      if (e.name === "AbortError") return;
+    }
+  }
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(file);
+  a.download = file.name;
+  a.click();
+}
+
+function downloadAIFile(teamFilter = 0) {
+  const file = buildAIStructuredFile(teamFilter);
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(file);
+  a.download = file.name;
+  a.click();
+}
+
+async function sharePDFAndAI(teamFilter = 0) {
+  const pdfFile = await buildPDFFile(teamFilter);
+  const aiFile = buildAIStructuredFile(teamFilter);
+  const jsonFile = new File([snap()], "spda_backup_completo.json", {type: "application/json"});
+  const files = [pdfFile, aiFile, jsonFile];
+  if (navigator.canShare && navigator.canShare({files})) {
+    try {
+      await navigator.share({
+        files,
+        title: "Pacote SPDA (PDF + IA + JSON) — " + (S.cfg.cliente || "Campo"),
+        text: "PDF com fotos + Arquivo estruturado (.md) para IA + Backup JSON."
+      });
+      return;
+    } catch (e) {
+      if (e.name === "AbortError") return;
+    }
+  }
+  downloadPDF(teamFilter);
+  setTimeout(() => downloadAIFile(teamFilter), 350);
+}
+
+/* ============================================================================
    GERADOR NATIVO DE DOCUMENTO MICROSOFT WORD (.DOCX - OPENXML ZIP)
-   Gera um arquivo .docx real com tabelas formatadas, fotos em alta nitidez,
-   parecer técnico e quadro de Carimbo da RT / Assinatura pronto para o Word!
    ============================================================================ */
 const CRC_TABLE = (() => {
   const t = new Uint32Array(256);
@@ -784,8 +1820,8 @@ function buildZipBlob(files) {
     const lv = new DataView(lhdr.buffer);
     lv.setUint32(0, 0x04034b50, true);
     lv.setUint16(4, 20, true);
-    lv.setUint16(6, 0x0800, true); // UTF-8 filename flag
-    lv.setUint16(8, 0, true);      // STORE (no compression)
+    lv.setUint16(6, 0x0800, true);
+    lv.setUint16(8, 0, true);
     lv.setUint16(10, 0, true);
     lv.setUint16(12, 0x4A21, true);
     lv.setUint32(14, crc, true);
@@ -851,7 +1887,6 @@ function prepareImageForWord(blob) {
   return new Promise(res => {
     const img = new Image();
     img.onload = () => {
-      // Mantém excelente nitidez (até 1400px) para ler perfeitamente o carimbo no Word
       const k = Math.min(1, 1400 / Math.max(img.width, img.height));
       const w = Math.round(img.width * k), h = Math.round(img.height * k);
       const c = document.createElement("canvas");
@@ -877,7 +1912,7 @@ function wPara(text, opts = {}) {
   const bold = opts.bold ? "<w:b/>" : "";
   const italic = opts.italic ? "<w:i/>" : "";
   const color = opts.color ? `<w:color w:val="${opts.color}"/>` : "";
-  const sz = opts.size || 20; // 20 half-points = 10pt
+  const sz = opts.size || 20;
   return `<w:p>
     <w:pPr><w:spacing w:before="${spaceBefore}" w:after="${spaceAfter}"/>${align}${shading}</w:pPr>
     <w:r><w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/>${bold}${italic}${color}<w:sz w:val="${sz}"/><w:szCs w:val="${sz}"/></w:rPr><w:t xml:space="preserve">${xmlEsc(text)}</w:t></w:r>
@@ -971,27 +2006,26 @@ async function buildWordDocxFile(teamFilter = 0) {
   const c = S.cfg;
   const teamTag = teamFilter == 1 ? "Equipe A (Dupla 1)" : (teamFilter == 2 ? "Equipe B (Dupla 2)" : "Equipes A e B (Geral)");
 
-  const mediaFiles = []; // {fileName, bytes, rId}
+  const mediaFiles = [];
   let imgCounter = 0;
   const bodyParts = [];
 
-  // 1. CABEÇALHO INSTITUCIONAL DO LAUDO
   bodyParts.push(wTable([
     `<w:tr>${wCell(
-      wPara(c.empresa || "TH ELÉTRICA — ENGENHARIA ELÉTRICA E LAUDOS TÉCNICOS", {bold: true, size: 22, color: "FFFFFF", align: "center", before: 60, after: 20}) +
+      wPara(c.empresa || "TH ELÉTRICA — ENGENHARIA E LAUDOS TÉCNICOS", {bold: true, size: 22, color: "FFFFFF", align: "center", before: 60, after: 20}) +
       wPara("LAUDO TÉCNICO DE INSPEÇÃO E MEDIÇÃO DE SPDA — ABNT NBR 5419:2015", {bold: true, size: 26, color: "FFFFFF", align: "center", before: 20, after: 40}) +
       wPara(`SUBSISTEMAS DE CAPTAÇÃO, DESCIDAS, EQUIPOTENCIALIZAÇÃO (BEP) E ATERRAMENTO — ${teamTag.toUpperCase()}`, {bold: false, size: 18, color: "DCE6F2", align: "center", before: 0, after: 60}),
       {w: 10200, span: 4, bg: "1F3A5F"}
     )}</w:tr>`,
     `<w:tr>
       ${wCellText("CLIENTE / EMPREENDIMENTO:", {w: 2300, bold: true, bg: "F0F4F8", size: 18})}
-      ${wCellText(c.cliente || "Amigos do Bem", {w: 3200, bold: true, size: 19})}
+      ${wCellText(c.cliente || "Fazenda Amigos do Bem", {w: 3200, bold: true, size: 19})}
       ${wCellText("DATA DA INSPEÇÃO:", {w: 2100, bold: true, bg: "F0F4F8", size: 18})}
       ${wCellText(c.data || new Date().toISOString().slice(0, 10), {w: 2600, bold: true, size: 19})}
     </w:tr>`,
     `<w:tr>
       ${wCellText("LOCALIDADE / UNIDADE:", {w: 2300, bold: true, bg: "F0F4F8", size: 18})}
-      ${wCellText(c.local || "Inajá - PE", {w: 3200, size: 18})}
+      ${wCellText(c.local || "Serra do Catimbau, Buíque/PE", {w: 3200, size: 18})}
       ${wCellText("EQUIPE / OPERADORES:", {w: 2100, bold: true, bg: "F0F4F8", size: 18})}
       ${wCellText(c.eq || teamTag, {w: 2600, size: 18})}
     </w:tr>`,
@@ -1003,28 +2037,20 @@ async function buildWordDocxFile(teamFilter = 0) {
     </w:tr>`,
     `<w:tr>
       ${wCellText("INSTRUMENTO UTILIZADO:", {w: 2300, bold: true, bg: "F0F4F8", size: 18})}
-      ${wCellText(c.ap || "Terrômetro / Microhmímetro Digital Calibrado", {w: 3200, size: 18})}
+      ${wCellText([c.ap, c.apTerra].filter(Boolean).join(" / ") || "Terrômetro Digital Calibrado", {w: 3200, size: 18})}
       ${wCellText("LIMITES NORMATIVOS:", {w: 2100, bold: true, bg: "F0F4F8", size: 18})}
-      ${wCellText(`Continuidade ≤ ${c.limC} Ω  |  Terra ≤ ${c.limT} Ω`, {w: 2600, bold: true, color: "1F3A5F", size: 18})}
+      ${wCellText(`Continuidade <= ${c.limC} Ohm  |  Terra <= ${c.limT} Ohm`, {w: 2600, bold: true, color: "1F3A5F", size: 18})}
     </w:tr>`
   ], [2300, 3200, 2100, 2600]));
 
   bodyParts.push(wPara("", {before: 40, after: 40}));
-
-  // 2. OBJETIVO E METODOLOGIA NORMATIVA
   bodyParts.push(wPara("1. OBJETIVO, NORMAS DE REFERÊNCIA E METODOLOGIA", {bold: true, size: 22, color: "1F3A5F", before: 120, after: 60}));
   bodyParts.push(wPara(
-    `O presente Laudo Técnico tem como objetivo apresentar os resultados da inspeção visual em campo e dos ensaios de medição ôhmica de continuidade elétrica das descidas/armaduras e de resistência de aterramento do Sistema de Proteção contra Descargas Atmosféricas (SPDA) instalado nas edificações do empreendimento ${c.cliente || "Amigos do Bem"} (${c.local || "Inajá - PE"}), em estrita conformidade com a norma ABNT NBR 5419:2015 (Partes 1 a 4) e a NR-10 (Segurança em Instalações e Serviços em Eletricidade).`,
-    {size: 19, before: 20, after: 60}
-  ));
-  bodyParts.push(wPara(
-    `Critérios Normativos Adotados: (a) Continuidade elétrica dos condutores de descida e conexões ao barramento/malha: valor máximo admissível de ${c.limC} Ω (NBR 5419-3); (b) Resistência de aterramento nos pontos de medição/BEP: valor de referência de projeto ≤ ${c.limT} Ω; (c) Classificação de Não Conformidades: Severidade A (Crítica — descontinuidade elétrica ou risco imediato), Severidade B (Média — oxidação, falta de conector bimetálico ou caixa danificada) e Severidade C (Leve — sinalização/proteção mecânica).`,
-    {size: 18, before: 20, after: 100}
+    `O presente Laudo Técnico apresenta os resultados da inspeção visual em campo e dos ensaios de medição ôhmica de continuidade elétrica das descidas e de resistência de aterramento do SPDA instalado nas edificações de ${c.cliente} (${c.local}), em conformidade com a ABNT NBR 5419:2015 e NR-10.`,
+    {size: 19, before: 20, after: 80}
   ));
 
-  // 3. QUADRO RESUMO GERAL DOS BLOCOS
   bodyParts.push(wPara("2. QUADRO RESUMO GERAL DAS EDIFICAÇÕES INSPECIONADAS", {bold: true, size: 22, color: "1F3A5F", before: 100, after: 60}));
-
   const summaryRows = [
     `<w:tr>
       ${wCellText("SIGLA", {w: 800, bold: true, color: "FFFFFF", bg: "1F3A5F", align: "center"})}
@@ -1038,7 +2064,6 @@ async function buildWordDocxFile(teamFilter = 0) {
   ];
 
   let totalMeasuredPoints = 0, totalFailedPoints = 0, totalInspectedBlocks = 0;
-
   for (const b of B) {
     const bs = blockStats(b);
     const f = bs.f;
@@ -1046,18 +2071,9 @@ async function buildWordDocxFile(teamFilter = 0) {
     totalMeasuredPoints += bs.medR;
     totalFailedPoints += bs.totNC;
 
-    let sitText = "PENDENTE";
-    let sitColor = "666666";
-    let sitBg = "F8F9FA";
-    if (bs.totNC > 0) {
-      sitText = `COM RESTRIÇÃO (${bs.totNC} NC)`;
-      sitColor = "B91C1C";
-      sitBg = "FEE2E2";
-    } else if (bs.isCompleted || bs.medR > 0) {
-      sitText = "APROVADO / CONFORME";
-      sitColor = "15803D";
-      sitBg = "DCFCE7";
-    }
+    let sitText = "PENDENTE", sitColor = "666666", sitBg = "F8F9FA";
+    if (bs.totNC > 0) { sitText = `COM RESTRIÇÃO (${bs.totNC} NC)`; sitColor = "B91C1C"; sitBg = "FEE2E2"; }
+    else if (bs.isCompleted || bs.medR > 0) { sitText = "APROVADO / CONFORME"; sitColor = "15803D"; sitBg = "DCFCE7"; }
 
     summaryRows.push(`<w:tr>
       ${wCellText(b[0], {w: 800, bold: true, align: "center"})}
@@ -1069,12 +2085,7 @@ async function buildWordDocxFile(teamFilter = 0) {
       ${wCellText(sitText, {w: 1600, bold: true, color: sitColor, bg: sitBg, align: "center", size: 17})}
     </w:tr>`);
   }
-
   bodyParts.push(wTable(summaryRows, [800, 3100, 1200, 1400, 1000, 1100, 1600]));
-  bodyParts.push(wPara("", {before: 60, after: 60}));
-
-  // 4. RELATÓRIO DETALHADO POR BLOCO
-  bodyParts.push(wPara("3. RESULTADOS DETALHADOS DE INSPEÇÃO, MEDIÇÕES E FOTOS POR EDIFICAÇÃO", {bold: true, size: 22, color: "1F3A5F", before: 100, after: 60}));
 
   const blocksToDetail = B.filter(b => {
     const bs = blockStats(b);
@@ -1082,326 +2093,155 @@ async function buildWordDocxFile(teamFilter = 0) {
   });
   const finalBlocksList = blocksToDetail.length ? blocksToDetail : B;
 
+  bodyParts.push(wPara("3. RESULTADOS DETALHADOS DE INSPEÇÃO, MEDIÇÕES E FOTOS", {bold: true, size: 22, color: "1F3A5F", before: 120, after: 60}));
+
   for (let bi = 0; bi < finalBlocksList.length; bi++) {
     const b = finalBlocksList[bi];
     const bs = blockStats(b);
     const f = bs.f;
     const o = b[3] || "";
 
-    // Banner do Bloco
     bodyParts.push(wTable([
       `<w:tr>${wCell(
         wPara(`3.${bi + 1} EDIFICAÇÃO / LOCAL: ${b[1].toUpperCase()} [CÓD: ${b[0]}] — ${teamLabel(b[2]).toUpperCase()}`, {bold: true, size: 21, color: "FFFFFF", before: 40, after: 20}) +
-        wPara(`Horário de Execução: ${f.hi || "--:--"} às ${f.hf || "--:--"}   |   Condição do Solo: ${f.solo || "Não informado"}   |   Observações: ${f.obs || "Sem observações adicionais"}`, {size: 17, color: "E2E8F0", before: 0, after: 40}),
+        wPara(`Horário: ${f.hi || "--:--"} às ${f.hf || "--:--"} | Solo: ${f.solo || "-"} | Clima: ${f.clima || "-"} | Obs: ${f.obs || "-"}`, {size: 17, color: "E2E8F0", before: 0, after: 40}),
         {w: 10200, bg: "1F3A5F"}
       )}</w:tr>`
     ], [10200]));
 
-    // A) Checklist Visual e BEP/DPS
-    const chkRows = [
-      `<w:tr>
-        ${wCellText("ITEM DE VERIFICAÇÃO VISUAL (ABNT NBR 5419-3)", {w: 7400, bold: true, bg: "E2E8F0", color: "1F3A5F"})}
-        ${wCellText("AVALIAÇÃO DE CAMPO", {w: 2800, bold: true, bg: "E2E8F0", color: "1F3A5F", align: "center"})}
-      </w:tr>`
-    ];
-
-    if (!o.includes("only")) {
-      for (const [k, label] of CHK) {
-        const val = f.chk[k] || "Não avaliado";
-        const isBad = val === "Não";
-        const isGood = val === "Sim";
-        chkRows.push(`<w:tr>
-          ${wCellText(label, {w: 7400})}
-          ${wCellText(isGood ? "CONFORME (Sim)" : (isBad ? "NÃO CONFORME (Não)" : val), {
-            w: 2800,
-            bold: true,
-            align: "center",
-            color: isBad ? "B91C1C" : (isGood ? "15803D" : "475569"),
-            bg: isBad ? "FEE2E2" : (isGood ? "DCFCE7" : "FFFFFF")
-          })}
-        </w:tr>`);
-      }
-    }
-
-    if (o.includes("bep") || o.includes("only")) {
-      chkRows.push(`<w:tr>
-        ${wCellText("BEP (Barramento de Equipotencialização): Integridade mecânica, isoladores e conexões", {w: 7400, bold: true})}
-        ${wCellText(`Íntegro: ${f.bepOk || "—"} | Cont.: ${f.bepC || "—"} Ω | Terra: ${f.bepT || "—"} Ω`, {w: 2800, bold: true, align: "center", bg: "F8FAFC"})}
-      </w:tr>`);
-    }
-
-    if (o.includes("dps")) {
-      chkRows.push(`<w:tr>
-        ${wCellText("Dispositivo de Proteção contra Surtos (DPS) no QDG Principal", {w: 7400, bold: true})}
-        ${wCellText(f.dps === "Sim" ? "INSTALADO (OK)" : (f.dps === "Não" ? "AUSENTE (NC)" : "Não informado"), {
-          w: 2800,
-          bold: true,
-          align: "center",
-          color: f.dps === "Não" ? "B91C1C" : "15803D"
-        })}
-      </w:tr>`);
-    }
-
-    bodyParts.push(wTable(chkRows, [7400, 2800]));
-    bodyParts.push(wPara("", {before: 30, after: 30}));
-
-    // B) Tabela de Descidas e Medições Ôhmicas (Filtra linhas vazias ou mostra todas as preenchidas)
     if (f.rows && f.rows.length) {
       const activeRows = S.cfg.soPreenchidos
         ? f.rows.filter(r => r.cont !== "" || r.terra !== "" || r.barra || r.eld || r.cx || (r.ph && r.ph.length))
         : f.rows;
       const rowsToRender = activeRows.length ? activeRows : f.rows;
-
       const descTable = [
         `<w:tr>
-          ${wCellText("PONTO / REF.", {w: 1550, bold: true, color: "FFFFFF", bg: "2B5082", align: "center", size: 16})}
-          ${wCellText("BARRA + FIX.", {w: 1050, bold: true, color: "FFFFFF", bg: "2B5082", align: "center", size: 16})}
-          ${wCellText("ELETROD. + PLACA", {w: 1150, bold: true, color: "FFFFFF", bg: "2B5082", align: "center", size: 16})}
-          ${wCellText("CAIXA + BIMET.", {w: 1150, bold: true, color: "FFFFFF", bg: "2B5082", align: "center", size: 16})}
-          ${wCellText(`CONT. (≤${c.limC}Ω)`, {w: 1150, bold: true, color: "FFFFFF", bg: "2B5082", align: "center", size: 16})}
-          ${wCellText(`TERRA (≤${c.limT}Ω)`, {w: 1150, bold: true, color: "FFFFFF", bg: "2B5082", align: "center", size: 16})}
-          ${wCellText("PLANTA A3", {w: 900, bold: true, color: "FFFFFF", bg: "2B5082", align: "center", size: 16})}
-          ${wCellText("DIAGNÓSTICO TÉCNICO", {w: 2100, bold: true, color: "FFFFFF", bg: "2B5082", align: "center", size: 16})}
+          ${wCellText("PONTO / REF.", {w: 1450, bold: true, color: "FFFFFF", bg: "2B5082", align: "center", size: 16})}
+          ${wCellText("BARRA", {w: 900, bold: true, color: "FFFFFF", bg: "2B5082", align: "center", size: 16})}
+          ${wCellText("ELETROD.", {w: 950, bold: true, color: "FFFFFF", bg: "2B5082", align: "center", size: 16})}
+          ${wCellText("CAIXA", {w: 950, bold: true, color: "FFFFFF", bg: "2B5082", align: "center", size: 16})}
+          ${wCellText(`CONT. (Ω)`, {w: 1100, bold: true, color: "FFFFFF", bg: "2B5082", align: "center", size: 16})}
+          ${wCellText(`TERRA (Ω)`, {w: 1100, bold: true, color: "FFFFFF", bg: "2B5082", align: "center", size: 16})}
+          ${wCellText("HORA FOTO", {w: 1050, bold: true, color: "FFFFFF", bg: "2B5082", align: "center", size: 16})}
+          ${wCellText("PLANTA", {w: 800, bold: true, color: "FFFFFF", bg: "2B5082", align: "center", size: 16})}
+          ${wCellText("DIAGNÓSTICO", {w: 1900, bold: true, color: "FFFFFF", bg: "2B5082", align: "center", size: 16})}
         </w:tr>`
       ];
 
       for (const r of rowsToRender) {
         const diag = rowDiagnosis(r);
         const pLabel = r.loc ? `${r.p} (${r.loc})` : r.p;
-        const cBad = !isNaN(num(r.cont)) && num(r.cont) > c.limC;
-        const tBad = !isNaN(num(r.terra)) && num(r.terra) > c.limT;
-
         descTable.push(`<w:tr>
-          ${wCellText(pLabel, {w: 1550, bold: true, align: "center", size: 17})}
-          ${wCellText(r.barra || "—", {w: 1050, bold: r.barra === "NC", color: r.barra === "NC" ? "B91C1C" : "1C2421", align: "center", size: 17})}
-          ${wCellText(r.eld || "—", {w: 1150, bold: r.eld === "NC", color: r.eld === "NC" ? "B91C1C" : "1C2421", align: "center", size: 17})}
-          ${wCellText(r.cx || "—", {w: 1150, bold: r.cx === "NC", color: r.cx === "NC" ? "B91C1C" : "1C2421", align: "center", size: 17})}
-          ${wCellText(r.cont !== "" ? `${r.cont} Ω` : "—", {w: 1150, bold: cBad, color: cBad ? "B91C1C" : "1C2421", align: "center", size: 17})}
-          ${wCellText(r.terra !== "" ? `${r.terra} Ω` : "—", {w: 1150, bold: tBad, color: tBad ? "B91C1C" : "1C2421", align: "center", size: 17})}
-          ${wCellText(r.pl || "—", {w: 900, align: "center", size: 17})}
+          ${wCellText(pLabel, {w: 1450, bold: true, align: "center", size: 16})}
+          ${wCellText(r.barra || "—", {w: 900, align: "center", size: 16})}
+          ${wCellText(r.eld || "—", {w: 950, align: "center", size: 16})}
+          ${wCellText(r.cx || "—", {w: 950, align: "center", size: 16})}
+          ${wCellText(r.cont !== "" ? `${r.cont} Ω` : "—", {w: 1100, align: "center", size: 16})}
+          ${wCellText(r.terra !== "" ? `${r.terra} Ω` : "—", {w: 1100, align: "center", size: 16})}
+          ${wCellText(r.horaFoto || "—", {w: 1050, align: "center", size: 16})}
+          ${wCellText(r.pl || "—", {w: 800, align: "center", size: 16})}
           ${wCellText(diag.ok ? diag.short : `${diag.short}: ${diag.detail}`, {
-            w: 2100,
-            bold: true,
+            w: 1900, bold: true,
             color: !diag.measured ? "64748B" : (diag.ok ? "15803D" : "B91C1C"),
             bg: !diag.measured ? "FFFFFF" : (diag.ok ? "DCFCE7" : "FEE2E2"),
-            align: "center",
-            size: 16
+            align: "center", size: 15
           })}
         </w:tr>`);
       }
-
-      bodyParts.push(wTable(descTable, [1550, 1050, 1150, 1150, 1150, 1150, 900, 2100]));
-      bodyParts.push(wPara("", {before: 30, after: 30}));
+      bodyParts.push(wTable(descTable, [1450, 900, 950, 950, 1100, 1100, 1050, 800, 1900]));
     }
 
-    // C) Quadro de Não Conformidades e Recomendações Técnicas do Bloco
-    const blockNCs = collectAllBlockNCs(b);
-    if (blockNCs.length) {
-      bodyParts.push(wPara(`Não Conformidades Constatadas e Plano de Ação Corretiva — ${b[1]}:`, {bold: true, size: 19, color: "B91C1C", before: 60, after: 40}));
-      const ncTbl = [
-        `<w:tr>
-          ${wCellText("ITEM", {w: 900, bold: true, color: "FFFFFF", bg: "991B1B", align: "center", size: 16})}
-          ${wCellText("PONTO", {w: 1500, bold: true, color: "FFFFFF", bg: "991B1B", align: "center", size: 16})}
-          ${wCellText("SEV.", {w: 900, bold: true, color: "FFFFFF", bg: "991B1B", align: "center", size: 16})}
-          ${wCellText("DESCRIÇÃO DA NÃO CONFORMIDADE", {w: 3300, bold: true, color: "FFFFFF", bg: "991B1B", size: 16})}
-          ${wCellText("RECOMENDAÇÃO TÉCNICA DE REPARO (NBR 5419)", {w: 3600, bold: true, color: "FFFFFF", bg: "991B1B", size: 16})}
-        </w:tr>`
-      ];
-      for (const n of blockNCs) {
-        ncTbl.push(`<w:tr>
-          ${wCellText(n.code, {w: 900, bold: true, align: "center", size: 17})}
-          ${wCellText(n.ponto, {w: 1500, bold: true, align: "center", size: 17})}
-          ${wCellText(`Grau ${n.sev}`, {w: 900, bold: true, color: "B91C1C", bg: "FEE2E2", align: "center", size: 17})}
-          ${wCellText(n.titulo, {w: 3300, size: 17})}
-          ${wCellText(n.detalhe, {w: 3600, size: 17})}
-        </w:tr>`);
-      }
-      bodyParts.push(wTable(ncTbl, [900, 1500, 900, 3300, 3600]));
-      bodyParts.push(wPara("", {before: 30, after: 30}));
-    }
-
-    // D) Relatório Fotográfico Grande e Legível (2 colunas por linha)
     const blockPhotos = [];
-    for (const k of (f.bepPh || [])) {
-      blockPhotos.push({
-        k,
-        title: `${b[1]} — BEP (Barramento de Equipotencialização)`,
-        sub: `Íntegro: ${f.bepOk || "-"} | Cont.: ${f.bepC || "-"} Ω | Terra: ${f.bepT || "-"} Ω`
-      });
-    }
+    for (const k of (f.fachadaPh || [])) blockPhotos.push({k, title: `${b[1]} — Fachada`, sub: `Hora: ${f.fachadaHora || "-"}`});
+    for (const k of (f.telhadoPh || [])) blockPhotos.push({k, title: `${b[1]} — Telhado/Captação`, sub: `Hora: ${f.telhadoHora || "-"}`});
+    for (const k of (f.bepPh || [])) blockPhotos.push({k, title: `${b[1]} — BEP`, sub: `Cont: ${f.bepC || "-"} Ω | Terra: ${f.bepT || "-"} Ω | Hora: ${f.bepHora || "-"}`});
     for (const r of (f.rows || [])) {
       const diag = rowDiagnosis(r);
-      for (const k of (r.ph || [])) {
-        blockPhotos.push({
-          k,
-          title: `${b[1]} — Ponto ${r.p}${r.loc ? ` (${r.loc})` : ""}`,
-          sub: `Cont.: ${r.cont || "-"} Ω | Terra: ${r.terra || "-"} Ω | Barra: ${r.barra || "-"} | Eletrod.: ${r.eld || "-"} | Caixa: ${r.cx || "-"} (${diag.short})`
-        });
-      }
+      for (const k of (r.ph || [])) blockPhotos.push({k, title: `${b[1]} — ${r.p}`, sub: `Cont: ${r.cont || "-"} Ω | Terra: ${r.terra || "-"} Ω (${diag.short})`});
     }
     for (let i = 0; i < (f.ncs || []).length; i++) {
       const n = f.ncs[i];
-      for (const k of (n.ph || [])) {
-        blockPhotos.push({
-          k,
-          title: `${b[1]} — Não Conformidade NC-${String(i + 1).padStart(2, "0")} (${n.ponto || "Geral"})`,
-          sub: `${n.cod || ""} ${COD[n.cod] ? COD[n.cod][0] : ""} | Sev. ${n.sev || "-"} | ${n.det || ""}`
-        });
-      }
+      for (const k of (n.ph || [])) blockPhotos.push({k, title: `${b[1]} — NC-${String(i + 1).padStart(2, "0")}`, sub: `${n.cod || ""} | ${n.det || ""}`});
     }
 
     if (blockPhotos.length) {
-      bodyParts.push(wPara(`Relatório Fotográfico de Inspeção — ${b[1]} (${blockPhotos.length} registro(s)):`, {bold: true, size: 19, color: "1F3A5F", before: 60, after: 40}));
       const photoRowsXml = [];
-
       for (let pi = 0; pi < blockPhotos.length; pi += 2) {
         const pair = [blockPhotos[pi], blockPhotos[pi + 1] || null];
         const cellsXml = [];
-
         for (const item of pair) {
-          if (!item) {
-            cellsXml.push(wCell(wPara(""), {w: 5100}));
-            continue;
-          }
+          if (!item) { cellsXml.push(wCell(wPara(""), {w: 5100})); continue; }
           const rec = await pget(item.k);
-          if (!rec || !rec.b) {
-            cellsXml.push(wCell(wPara(item.title), {w: 5100}));
-            continue;
-          }
-          const prep = await prepareImageForWord(rec.b);
-          if (!prep) {
-            cellsXml.push(wCell(wPara(item.title), {w: 5100}));
-            continue;
-          }
-
+          const prep = rec && rec.b ? await prepareImageForWord(rec.b) : null;
+          if (!prep) { cellsXml.push(wCell(wPara(item.title), {w: 5100})); continue; }
           imgCounter++;
-          const rId = `rIdImg${imgCounter}`;
-          const fileName = `image${imgCounter}.jpg`;
+          const rId = `rIdImg${imgCounter}`, fileName = `image${imgCounter}.jpg`;
           mediaFiles.push({fileName, bytes: prep.bytes, rId});
-
-          // Dimensiona a imagem com largura de até 7.8 cm (2808000 EMU) ou altura máx de 9.8 cm (3528000 EMU)
-          // Assim tanto fotos verticais 9:16 quanto horizontais 4:3 ficam grandes e com carimbo nítido!
-          const maxW_EMU = 2808000;
-          const maxH_EMU = 3528000;
-          const ratio = prep.w / prep.h;
-          let cx = maxW_EMU;
-          let cy = Math.round(cx / ratio);
-          if (cy > maxH_EMU) {
-            cy = maxH_EMU;
-            cx = Math.round(cy * ratio);
-          }
-
-          const cellContent =
+          const maxW_EMU = 2808000, maxH_EMU = 3528000, ratio = prep.w / prep.h;
+          let cx = maxW_EMU, cy = Math.round(cx / ratio);
+          if (cy > maxH_EMU) { cy = maxH_EMU; cx = Math.round(cy * ratio); }
+          cellsXml.push(wCell(
             wImageRun(rId, imgCounter, cx, cy, item.title) +
             wPara(item.title, {bold: true, size: 17, align: "center", color: "1F3A5F", before: 30, after: 10}) +
-            wPara(item.sub, {size: 15, align: "center", color: "334155", before: 0, after: 10}) +
-            (rec.stampDate ? wPara(`Data/Hora do Registro: ${rec.stampDate}`, {italic: true, size: 14, align: "center", color: "64748B", before: 0, after: 30}) : "");
-
-          cellsXml.push(wCell(cellContent, {w: 5100, bg: "FAFAFA"}));
+            wPara(item.sub, {size: 15, align: "center", color: "334155", before: 0, after: 10}),
+            {w: 5100, bg: "FAFAFA"}
+          ));
         }
-
         photoRowsXml.push(`<w:tr>${cellsXml.join("")}</w:tr>`);
       }
-
       bodyParts.push(wTable(photoRowsXml, [5100, 5100]));
     }
-
-    bodyParts.push(wPara("", {before: 80, after: 80}));
+    bodyParts.push(wPara("", {before: 60, after: 60}));
   }
 
-  // 5. CONCLUSÃO E PARECER TÉCNICO
-  bodyParts.push(wPara("4. PARECER TÉCNICO CONCLUSIVO", {bold: true, size: 22, color: "1F3A5F", before: 120, after: 60}));
-  const parecerTexto = totalFailedPoints > 0
-    ? `Com base nas inspeções visuais e nos ensaios de continuidade elétrica e resistência de aterramento realizados em ${totalInspectedBlocks} edificação(ões) (${totalMeasuredPoints} pontos ensaiados), conclui-se que o Sistema de Proteção contra Descargas Atmosféricas (SPDA) apresenta ${totalFailedPoints} ponto(s)/item(ns) com Não Conformidade técnica perante os limites estabelecidos pela ABNT NBR 5419:2015 (Continuidade ≤ ${c.limC} Ω e Resistência de Aterramento ≤ ${c.limT} Ω). Recomenda-se a execução das ações corretivas listadas nos quadros de Não Conformidades deste Laudo e nova medição nos pontos corrigidos para emissão do atestado definitivo de conformidade.`
-    : `Com base nas inspeções visuais e nos ensaios de continuidade elétrica e resistência de aterramento realizados em ${totalInspectedBlocks} edificação(ões) (${totalMeasuredPoints} pontos ensaiados), atesta-se que os pontos inspecionados e medidos encontram-se CONFORMES e dentro dos parâmetros normativos de continuidade (≤ ${c.limC} Ω) e resistência de aterramento (≤ ${c.limT} Ω) preconizados pela ABNT NBR 5419:2015.`;
-  bodyParts.push(wPara(parecerTexto, {size: 19, before: 20, after: 100}));
-
-  // 6. TERMO DE ENCERRAMENTO E QUADRO PARA ANEXAR O CARIMBO DA RT / ASSINATURA
-  bodyParts.push(wPara("5. RESPONSABILIDADE TÉCNICA, ASSINATURA E CARIMBO DA RT / ART", {bold: true, size: 22, color: "1F3A5F", before: 120, after: 60}));
-
+  bodyParts.push(wPara("4. RESPONSABILIDADE TÉCNICA E CARIMBO DA RT / ART", {bold: true, size: 22, color: "1F3A5F", before: 120, after: 60}));
   bodyParts.push(wTable([
-    `<w:tr>
-      ${wCell(
-        wPara("ESPAÇO RESERVADO PARA CARIMBO DO RESPONSÁVEL TÉCNICO / SELO DA ART", {bold: true, size: 17, color: "64748B", align: "center", before: 80, after: 40}) +
-        wPara("(Insira ou carimbe aqui a sua RT / Assinatura Digital)", {italic: true, size: 16, color: "94A3B8", align: "center", before: 20, after: 400}) +
-        wPara("________________________________________________________", {bold: true, size: 18, align: "center", before: 120, after: 20}) +
-        wPara(`Responsável Técnico: ${c.resp || "________________________________________"}`, {bold: true, size: 19, align: "center", before: 10, after: 10}) +
-        wPara(`CREA / CFT: ${c.crea || "________________________"}   |   Nº da ART/TRT: ${c.art || "________________________"}`, {size: 18, align: "center", before: 10, after: 10}) +
-        wPara(`${c.local || "Local"}, ${c.data || new Date().toISOString().slice(0, 10)}`, {size: 17, color: "475569", align: "center", before: 20, after: 80}),
-        {w: 10200, bg: "F8FAFC"}
-      )}
-    </w:tr>`
+    `<w:tr>${wCell(
+      wPara("ESPAÇO RESERVADO PARA CARIMBO DO RESPONSÁVEL TÉCNICO / SELO DA ART", {bold: true, size: 17, color: "64748B", align: "center", before: 80, after: 360}) +
+      wPara("________________________________________________________", {bold: true, size: 18, align: "center", before: 80, after: 20}) +
+      wPara(`Responsável Técnico: ${c.resp || "____________________________________"}`, {bold: true, size: 19, align: "center"}) +
+      wPara(`CREA / CFT: ${c.crea || "____________________"}   |   ART: ${c.art || "____________________"}`, {size: 18, align: "center"}),
+      {w: 10200, bg: "F8FAFC"}
+    )}</w:tr>`
   ], [10200]));
 
-  // Monta os XMLs do pacote OpenXML (.docx)
   const contentTypesXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
-  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+  <Default Extension="rels" ContentType="application/vnd.openxmlformats-officedocument.relationships+xml"/>
   <Default Extension="xml" ContentType="application/xml"/>
   <Default Extension="jpg" ContentType="image/jpeg"/>
   <Default Extension="jpeg" ContentType="image/jpeg"/>
   <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
-  <Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>
 </Types>`;
-
   const rootRelsXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
   <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>
 </Relationships>`;
-
-  const docRelsItems = [
-    `<Relationship Id="rIdStyles" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>`,
-    ...mediaFiles.map(m => `<Relationship Id="${m.rId}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/${m.fileName}"/>`)
-  ].join("\n  ");
-
   const docRelsXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
-  ${docRelsItems}
+  ${mediaFiles.map(m => `<Relationship Id="${m.rId}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/${m.fileName}"/>`).join("\n  ")}
 </Relationships>`;
-
-  const stylesXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
-  <w:docDefaults>
-    <w:rPrDefault>
-      <w:rPr>
-        <w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/>
-        <w:sz w:val="20"/>
-        <w:szCs w:val="20"/>
-        <w:lang w:val="pt-BR"/>
-      </w:rPr>
-    </w:rPrDefault>
-  </w:docDefaults>
-</w:styles>`;
-
   const documentXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"
             xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"
             xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing">
   <w:body>
     ${bodyParts.join("\n")}
-    <w:sectPr>
-      <w:pgSz w:w="11906" w:h="16838"/>
-      <w:pgMar w:top="850" w:right="850" w:bottom="850" w:left="850" w:header="450" w:footer="450" w:gutter="0"/>
-    </w:sectPr>
+    <w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="850" w:right="850" w:bottom="850" w:left="850"/></w:sectPr>
   </w:body>
 </w:document>`;
 
-  const zipEntries = [
+  const docxBlob = buildZipBlob([
     {name: "[Content_Types].xml", data: contentTypesXml},
     {name: "_rels/.rels", data: rootRelsXml},
     {name: "word/_rels/document.xml.rels", data: docRelsXml},
-    {name: "word/styles.xml", data: stylesXml},
     {name: "word/document.xml", data: documentXml},
     ...mediaFiles.map(m => ({name: `word/media/${m.fileName}`, data: m.bytes}))
-  ];
-
-  const docxBlob = buildZipBlob(zipEntries);
+  ]);
   if (st) st.textContent = "";
   const eqPrefix = teamFilter == 1 ? "EquipeA_" : (teamFilter == 2 ? "EquipeB_" : "");
   const fname = `${eqPrefix}Laudo_SPDA_${(c.cliente || "Campo").replace(/[^a-zA-Z0-9_-]/g, "_")}_${(c.data || new Date().toISOString().slice(0, 10))}.docx`;
-  return new File([docxBlob], fname, {
-    type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-  });
+  return new File([docxBlob], fname, {type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document"});
 }
 
 async function downloadWord(teamFilter = 0) {
@@ -1416,15 +2256,9 @@ async function shareWord(teamFilter = 0) {
   const file = await buildWordDocxFile(teamFilter);
   if (navigator.canShare && navigator.canShare({files: [file]})) {
     try {
-      await navigator.share({
-        files: [file],
-        title: "Laudo SPDA (Word) — " + (S.cfg.cliente || "Campo"),
-        text: "Segue o Laudo Técnico de Inspeção de SPDA em Word (.docx) pronto para anexar o carimbo da RT."
-      });
+      await navigator.share({files: [file], title: "Laudo SPDA (Word) — " + S.cfg.cliente});
       return;
-    } catch (e) {
-      if (e.name === "AbortError") return;
-    }
+    } catch (e) { if (e.name === "AbortError") return; }
   }
   const a = document.createElement("a");
   a.href = URL.createObjectURL(file);
@@ -1439,14 +2273,17 @@ async function render() {
   const wrap = $("#app-wrap");
   const B = getB();
   const c = S.cfg;
+  const rep = S.reposicao || {};
 
   if (view === "cfg") {
     wrap.innerHTML = renderConfigView();
+    updateSaveIndicator();
     return;
   }
   if (view && view !== "") {
     wrap.innerHTML = renderBlockDetailView(view);
     hydrateThumbs();
+    updateSaveIndicator();
     return;
   }
 
@@ -1496,7 +2333,7 @@ async function render() {
           <td><span class="tag ${st.status}">${st.status === "NC" ? `${st.totNC} NC` : st.status}</span></td>
           <td class="no-strike" style="text-align:right;white-space:nowrap" onclick="event.stopPropagation()">
             <button class="b" style="padding:5px 8px;font-size:12px" title="Editar nome do lugar" onclick="openBlockModal('${esc(b[0])}')">✎</button>
-            <button class="b" style="padding:5px 10px;font-size:12px;background:var(--fg);color:var(--bg)" onclick="go('${esc(b[0])}')">Abrir ›</button>
+            <button class="b" style="padding:5px 10px;font-size:12px;background:var(--navy);color:#fff;border-color:var(--navy)" onclick="go('${esc(b[0])}')">Abrir ›</button>
           </td>
         </tr>`;
     }).join("");
@@ -1506,7 +2343,7 @@ async function render() {
         <h2>
           <span>Locais de Inspeção (${filteredByTeam.length})</span>
           <div class="row">
-            <button class="b" style="font-size:12px;padding:5px 10px;background:var(--word);color:#fff;border-color:var(--word)" onclick="downloadWord(${filterDupla})">📝 Baixar Word (.DOCX)</button>
+            <button class="b" style="font-size:12px;padding:5px 10px;background:#b91c1c;color:#fff;border-color:#b91c1c" onclick="downloadPDF(${filterDupla})">📄 Baixar PDF c/ Fotos</button>
             <button class="b" style="font-size:12px;padding:5px 10px" onclick="openBlockModal()">+ Novo Local</button>
           </div>
         </h2>
@@ -1527,9 +2364,38 @@ async function render() {
             <tbody>${rowsHtml || `<tr><td colspan="4" style="text-align:center;padding:18px;color:var(--muted)">Nenhum local para este filtro.</td></tr>`}</tbody>
           </table>
         </div>
-        <div style="padding:10px 12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:8px;border-top:1px solid var(--line)">
-          <button class="big word" style="margin:0" onclick="shareWord(${filterDupla})">📝 Enviar Laudo Word (.DOCX) — WhatsApp / Drive</button>
-          <button class="big" style="margin:0" onclick="downloadWord(${filterDupla})">📥 Baixar Laudo Word (.DOCX) no Celular</button>
+        <div style="padding:10px 12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px;border-top:1px solid var(--line)">
+          <button class="big pdf" style="margin:0" onclick="sharePDF(${filterDupla})">📄 Enviar PDF c/ Fotos (WhatsApp / Drive)</button>
+          <button class="big ai" style="margin:0" onclick="downloadAIFile(${filterDupla})">🤖 Baixar Arquivo p/ IA (.MD)</button>
+          <button class="big word" style="margin:0" onclick="downloadWord(${filterDupla})">📝 Baixar Word (.DOCX)</button>
+        </div>
+      </section>
+
+      <section class="box">
+        <h2>Controle de Reposição em Campo (Capa da Caderneta)</h2>
+        <div style="padding:12px">
+          <div class="g2">
+            <div>
+              <label>Placas "Risco de Choque" instaladas (Qtd)</label>
+              <input inputmode="numeric" placeholder="Ex.: 5" value="${esc(rep.placasQtd || "")}" oninput="setRepSilent('placasQtd',this.value)">
+            </div>
+            <div>
+              <label>Locais das Placas Instaladas</label>
+              <input placeholder="Ex.: Bloco A D02, Portaria..." value="${esc(rep.placasLocais || "")}" oninput="setRepSilent('placasLocais',this.value)">
+            </div>
+          </div>
+          <div class="g2">
+            <div>
+              <label>Conectores Bimetálicos / Split-Bolt trocados (Qtd)</label>
+              <input inputmode="numeric" placeholder="Ex.: 4" value="${esc(rep.conectoresQtd || "")}" oninput="setRepSilent('conectoresQtd',this.value)">
+            </div>
+            <div>
+              <label>Locais dos Conectores Trocados</label>
+              <input placeholder="Ex.: Bloco D, Quadra..." value="${esc(rep.conectoresLocais || "")}" oninput="setRepSilent('conectoresLocais',this.value)">
+            </div>
+          </div>
+          <label>Outros materiais usados / observações gerais</label>
+          <input placeholder="Ex.: Cabo Cu, parafusos inox, observações..." value="${esc(rep.outros || "")}" oninput="setRepSilent('outros',this.value)">
         </div>
       </section>`;
   }
@@ -1558,7 +2424,7 @@ async function render() {
 
     tabContent = `
       <section class="box">
-        <h2>Matriz de Progresso de Campo (Estilo Prancha)</h2>
+        <h2>Painel de Controle Geral — Checkout da Caderneta</h2>
         <div class="filt">
           <button aria-pressed="${filterMode === 'ALL'}" onclick="filterMode='ALL';render()">Todos</button>
           <button aria-pressed="${filterMode === 'OPEN'}" onclick="filterMode='OPEN';render()">Só Abertos</button>
@@ -1569,10 +2435,13 @@ async function render() {
         <div class="scroll">
           <table class="tbl">
             <thead>
-              <tr><th></th><th>Cód</th><th>Bloco / Local</th><th>Equipe</th><th>Status</th><th>Etapas (Toque p/ marcar)</th><th>O que falta</th></tr>
+              <tr><th></th><th>Cód</th><th>Edificação / Bloco</th><th>Dupla</th><th>Status</th><th>Etapas (Toque p/ marcar)</th><th>O que falta</th></tr>
             </thead>
             <tbody>${progRows || `<tr><td colspan="7" style="text-align:center;padding:16px">Nenhum item neste filtro.</td></tr>`}</tbody>
           </table>
+        </div>
+        <div class="note">
+          <b>Critérios da Caderneta:</b> Continuidade <= ${c.limC} Ω | Terra <= ${c.limT} Ω ideal (<= ${c.limTSeco || 20} Ω solo seco). Pintar <b>ROSA</b> = Aprovado | Circular <b>VERMELHO</b> = Reprovado (NC).
         </div>
       </section>`;
   }
@@ -1589,7 +2458,7 @@ async function render() {
             <td class="mono">Íntegro: ${esc(f.bepOk || "—")}</td>
             <td class="mono"><b>${esc(f.bepC || "—")}</b> Ω</td>
             <td class="mono"><b>${esc(f.bepT || "—")}</b> Ω</td>
-            <td class="mono">${(f.bepPh || []).length} foto(s)</td>
+            <td class="mono">${esc(f.bepHora || "—")} (${(f.bepPh || []).length}📷)</td>
             <td><span class="tag ${f.bepOk === "Não" ? "NC" : (f.bepC || f.bepT ? "CONCLUIDO" : "PENDENTE")}">${f.bepOk === "Não" ? "NC" : (f.bepC || f.bepT ? "MEDIDO" : "PENDENTE")}</span></td>
           </tr>`;
       }
@@ -1604,7 +2473,7 @@ async function render() {
             <td class="mono">B:${r.barra || "-"} E:${r.eld || "-"} C:${r.cx || "-"}</td>
             <td class="mono" style="color:${num(r.cont) > c.limC ? "var(--nc);font-weight:700" : "inherit"}">${esc(r.cont || "—")} Ω</td>
             <td class="mono" style="color:${num(r.terra) > c.limT ? "var(--nc);font-weight:700" : "inherit"}">${esc(r.terra || "—")} Ω</td>
-            <td class="mono">${esc(r.pl || "—")} · ${(r.ph || []).length}📷</td>
+            <td class="mono">${esc(r.horaFoto || "—")} · ${esc(r.pl || "—")} · ${(r.ph || []).length}📷</td>
             <td><span class="tag ${!diag.ok ? "NC" : (diag.measured ? "CONCLUIDO" : "PENDENTE")}">${!diag.ok ? diag.detail : (diag.measured ? "APROVADO" : "ABERTO")}</span></td>
           </tr>`;
       }
@@ -1612,7 +2481,7 @@ async function render() {
 
     tabContent = `
       <section class="box">
-        <h2>Tabela Geral de Descidas e Medições (Continuidade ≤ ${c.limC} Ω | Terra ≤ ${c.limT} Ω)</h2>
+        <h2>Tabela Geral de Descidas e Medições (Cont. ≤ ${c.limC} Ω | Terra ≤ ${c.limT} Ω)</h2>
         <div class="filt">
           <button aria-pressed="${filterMode === 'ALL'}" onclick="filterMode='ALL';render()">Todas</button>
           <button aria-pressed="${filterMode === 'OPEN'}" onclick="filterMode='OPEN';render()">Sem Medição</button>
@@ -1621,7 +2490,7 @@ async function render() {
         <div class="scroll">
           <table class="tbl">
             <thead>
-              <tr><th>Ponto</th><th>Bloco / Referência</th><th>Inspeção (B/E/C)</th><th>Cont. (Ω)</th><th>Terra (Ω)</th><th>Planta / Foto</th><th>Diagnóstico</th></tr>
+              <tr><th>Ponto</th><th>Bloco / Referência</th><th>Inspeção (B/E/C)</th><th>Cont. (Ω)</th><th>Terra (Ω)</th><th>Foto(Hora)/Planta</th><th>Diagnóstico</th></tr>
             </thead>
             <tbody>${medRows || `<tr><td colspan="7" style="text-align:center;padding:16px">Nenhum ponto para exibir.</td></tr>`}</tbody>
           </table>
@@ -1641,6 +2510,7 @@ async function render() {
             <td><b>${esc(b[1])}</b> · <span class="mono">${esc(n.ponto)}</span></td>
             <td>${esc(n.titulo)}</td>
             <td><span class="tag NC">Grau ${esc(n.sev)}</span></td>
+            <td class="mono">${esc(n.horaFoto)}</td>
             <td style="font-size:12px">${esc(n.detalhe)}</td>
             <td class="mono">${(n.ph || []).length} 📷</td>
           </tr>`;
@@ -1653,10 +2523,17 @@ async function render() {
         <div class="scroll">
           <table class="tbl">
             <thead>
-              <tr><th>#</th><th>Bloco / Ponto</th><th>Desvio Constatado</th><th>Severidade</th><th>Recomendação de Reparo (Vai no Word)</th><th>Fotos</th></tr>
+              <tr><th>#</th><th>Bloco / Ponto</th><th>Desvio Constatado</th><th>Sev.</th><th>Hora Foto</th><th>Recomendação de Reparo</th><th>Fotos</th></tr>
             </thead>
-            <tbody>${ncRows || `<tr><td colspan="6" style="text-align:center;padding:18px;color:var(--ok)">✓ Nenhuma não conformidade registrada até o momento.</td></tr>`}</tbody>
+            <tbody>${ncRows || `<tr><td colspan="7" style="text-align:center;padding:18px;color:var(--ok)">✓ Nenhuma não conformidade registrada até o momento.</td></tr>`}</tbody>
           </table>
+        </div>
+      </section>
+
+      <section class="box">
+        <h2>Anotações Livres — Página 18 da Caderneta (Edificação • Ponto • Hora da Foto)</h2>
+        <div style="padding:12px">
+          <textarea rows="5" placeholder="Use para observações extras ou não conformidades fora das fichas. Sempre informar: Edificação • Ponto • Hora da foto." oninput="setRepSilent('anotacoesLivres',this.value)">${esc(rep.anotacoesLivres || "")}</textarea>
         </div>
       </section>`;
   }
@@ -1672,66 +2549,92 @@ async function render() {
         </tr>`;
     }).join("");
 
+    const snaps = getSnapshots();
+
     tabContent = `
       <section class="box">
-        <h2>1. Laudo Técnico em Word (.DOCX) — Pronto para Anexar Carimbo da RT</h2>
+        <h2>1. Exportar PDF com Imagens + Arquivo Estruturado para IA</h2>
         <div style="padding:12px">
           <p style="margin:0 0 10px;font-size:13.5px;color:var(--muted)">
-            Gera o documento <b>Microsoft Word (.docx)</b> completo, com capa/cabeçalho técnico, metodologia NBR 5419, tabelas sem cortes, recomendações automáticas de reparo, <b>relatório fotográfico grande e nítido</b> e o <b>Quadro de Assinatura e Carimbo da RT / ART</b> no final.
+            Gera o <b>PDF completo com todas as fotos carimbadas</b> (no padrão da Caderneta de Campo TH Elétrica + Quadro de Carimbo da RT + Anexo de dados limpos para IA) e também o arquivo <b>.MD estruturado</b> para qualquer IA ler e formatar o relatório definitivo com 100% de precisão.
           </p>
           <div class="row" style="margin-bottom:10px">
-            <span class="mono" style="font-size:12px">Incluir no Laudo:</span>
+            <span class="mono" style="font-size:12px">Escopo:</span>
             <span class="seg">
               <button class="${filterDupla === 0 ? "on" : ""}" onclick="filterDupla=0;render()">Completo (Equipes A + B)</button>
               <button class="${filterDupla === 1 ? "on" : ""}" onclick="filterDupla=1;render()">Só Equipe A</button>
               <button class="${filterDupla === 2 ? "on" : ""}" onclick="filterDupla=2;render()">Só Equipe B</button>
             </span>
             <label style="display:inline-flex;align-items:center;gap:6px;margin-left:auto;text-transform:none;font-size:13px;color:var(--fg)">
-              <input type="checkbox" ${c.soPreenchidos ? "checked" : ""} onchange="S.cfg.soPreenchidos=this.checked?1:0;save();render()">
-              Ocultar blocos e descidas em branco no relatório detalhado
+              <input type="checkbox" ${c.soPreenchidos ? "checked" : ""} onchange="S.cfg.soPreenchidos=this.checked?1:0;saveNow(true);render()">
+              Ocultar blocos/linhas em branco
             </label>
           </div>
           <div class="g2">
-            <button class="big word" onclick="shareWord(${filterDupla})">📝 Enviar Laudo Word (.DOCX) — WhatsApp / Drive</button>
-            <button class="big word" style="background:#0f3f8a" onclick="downloadWord(${filterDupla})">📥 Baixar Laudo Word (.DOCX) no Celular</button>
+            <button class="big pdf" onclick="sharePDF(${filterDupla})">📤 Enviar PDF c/ Fotos (WhatsApp / Drive)</button>
+            <button class="big pdf" style="background:#991b1b" onclick="downloadPDF(${filterDupla})">📥 Baixar PDF c/ Fotos no Celular</button>
+          </div>
+          <div class="g2" style="margin-top:6px">
+            <button class="big ai" onclick="downloadAIFile(${filterDupla})">🤖 Baixar Arquivo p/ IA (.MD)</button>
+            <button class="big wa" onclick="sharePDFAndAI(${filterDupla})">📦 Enviar Pacote Completo (PDF + .MD + JSON)</button>
           </div>
         </div>
       </section>
 
       <section class="box">
-        <h2>2. Pastas do Google Drive por Equipe (Word + Fotos HD + JSON)</h2>
+        <h2>2. Laudo Editável em Word (.DOCX) — Pronto para Carimbo da RT</h2>
+        <div style="padding:12px">
+          <div class="g2">
+            <button class="big word" onclick="shareWord(${filterDupla})">📝 Enviar Word (.DOCX) — WhatsApp / Drive</button>
+            <button class="big word" style="background:#0f3f8a" onclick="downloadWord(${filterDupla})">📥 Baixar Word (.DOCX) no Celular</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="box">
+        <h2>3. Pastas do Google Drive por Equipe (PDF + IA + Word + Fotos HD)</h2>
         <div style="padding:12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px">
           <div class="card" style="margin:0">
             <h3>🅰 Equipe A (Dupla 1)</h3>
             <small>Blocos A, B, D, I, J, Quadra, Portaria, Reservatório</small>
-            <button class="big drv" style="margin-top:8px" onclick="sendToTeamDrive(1)">☁ Enviar Word + Fotos HD p/ Drive Equipe A</button>
+            <button class="big drv" style="margin-top:8px" onclick="sendToTeamDrive(1)">☁ Enviar Pacote p/ Drive Equipe A</button>
             <a class="big out" href="${esc(getDriveUrl(1))}" target="_blank" rel="noopener">📁 Abrir Pasta Drive — Equipe A</a>
           </div>
           <div class="card" style="margin:0">
             <h3>🅱 Equipe B (Dupla 2)</h3>
             <small>Blocos E, G, H, K, L, N, Biblioteca</small>
-            <button class="big drv" style="margin-top:8px" onclick="sendToTeamDrive(2)">☁ Enviar Word + Fotos HD p/ Drive Equipe B</button>
+            <button class="big drv" style="margin-top:8px" onclick="sendToTeamDrive(2)">☁ Enviar Pacote p/ Drive Equipe B</button>
             <a class="big out" href="${esc(getDriveUrl(2))}" target="_blank" rel="noopener">📁 Abrir Pasta Drive — Equipe B</a>
           </div>
         </div>
       </section>
 
       <section class="box">
-        <h2>3. Outros Formatos (Impressão A4 / PDF / Backup JSON)</h2>
+        <h2>4. Segurança Anti-Perda de Dados & Backups (${phAll.length} fotos HD salvas)</h2>
         <div style="padding:12px">
+          <p style="margin:0 0 8px;font-size:13px;color:var(--muted)">
+            Seus dados são gravados <b>a cada tecla digitada</b> em dois bancos simultâneos (<code>localStorage</code> + <code>IndexedDB</code>), além de 5 snapshots automáticos de segurança.
+          </p>
           <div class="g2">
-            <button class="big out" onclick="printReport(${filterDupla})">🖨 Visualizar / Imprimir Laudo A4 (PDF)</button>
             <button class="big out" onclick="downloadAllPhotosHD()">🖼 Baixar Todas as Fotos HD (${phAll.length})</button>
+            <button class="big out" onclick="printReport(${filterDupla})">🖨 Imprimir Visualização A4</button>
           </div>
           <div class="g2" style="margin-top:6px">
-            <button class="b" onclick="downloadJSONOnly()">📥 Baixar Backup JSON</button>
-            <button class="b" onclick="importJSONPrompt()">📂 Importar Backup JSON</button>
+            <button class="b" onclick="downloadJSONOnly()">💾 Baixar Backup JSON Agora</button>
+            <button class="b" onclick="importJSONPrompt()">📂 Restaurar de Arquivo JSON</button>
           </div>
+          ${snaps.length ? `
+            <div style="margin-top:10px;border-top:1px solid var(--line);padding-top:8px">
+              <small><b>Snapshots Automáticos no Aparelho:</b></small>
+              <div class="row" style="margin-top:6px">
+                ${snaps.map((sn, si) => `<button class="b" style="font-size:11px;padding:4px 8px" onclick="restoreSnapshot(${si})">↺ ${esc(sn.h)}</button>`).join("")}
+              </div>
+            </div>` : ""}
         </div>
       </section>
 
       <section class="box">
-        <h2>4. Checklist de Liberação de Campo (${libDone} / ${LIB_CHK.length})</h2>
+        <h2>5. Checklist de Liberação de Campo (${libDone} / ${LIB_CHK.length})</h2>
         <div class="scroll">
           <table class="tbl"><tbody>${chkRows}</tbody></table>
         </div>
@@ -1742,11 +2645,12 @@ async function render() {
     <header class="top-stamp">
       <div>
         <h1>SPDA CAMPO · ${esc(c.cliente || "AMIGOS DO BEM")}</h1>
-        <div class="sub">${esc(c.proposta || "NBR 5419:2015")} · ${esc(c.local || "Inspeção Técnica")} · Cont. ≤ ${c.limC} Ω · Terra ≤ ${c.limT} Ω · Laudo Word (.DOCX)</div>
+        <div class="sub">${esc(c.proposta || "NBR 5419:2015")} · ${esc(c.local || "Buíque/PE")} · Cont. ≤ ${c.limC} Ω · Terra ≤ ${c.limT} Ω</div>
       </div>
       <div class="meta">
-        DATA: ${esc(c.data)} · ${filterDupla ? teamLabel(filterDupla) : "EQUIPES A + B"}<br>
-        FOTOS HD: ${phAll.length} · <a href="javascript:void(0)" onclick="go('cfg')" style="color:var(--fg);font-weight:700">⚙ DADOS DA RT / AJUSTES</a>
+        DATA: ${esc(c.data)} · ${filterDupla ? teamLabel(filterDupla) : "EQUIPES A + B"} · FOTOS HD: ${phAll.length}<br>
+        <span id="save-ind" class="save-badge">✓ Salvo ${lastSavedTimeStr || "agora"}</span>
+        <a href="javascript:void(0)" onclick="go('cfg')" style="color:var(--fg);font-weight:700;margin-left:8px">⚙ DADOS RT / OBRA</a>
       </div>
     </header>
 
@@ -1760,7 +2664,7 @@ async function render() {
     <div class="next" onclick="${nextBlock ? `go('${esc(nextBlock[0])}')` : `go('','lib')`}">
       <div>
         <div class="k">Próximo Bloco Pendente (${filterDupla ? teamLabel(filterDupla) : "Ordem de Campo"})</div>
-        <div class="v">${nextBlock ? `${esc(nextBlock[0])} · ${esc(nextBlock[1])} (${teamLabel(nextBlock[2])}) — Falta: ${esc(nextSt.missing.join(", ") || "Conferir finalização")}` : "✓ Todos os blocos concluídos! Toque aqui para gerar o Laudo Word (.docx)."}</div>
+        <div class="v">${nextBlock ? `${esc(nextBlock[0])} · ${esc(nextBlock[1])} (${teamLabel(nextBlock[2])}) — Falta: ${esc(nextSt.missing.join(", ") || "Conferir finalização")}` : "✓ Todos os blocos concluídos! Toque aqui para exportar o PDF e o arquivo da IA."}</div>
       </div>
       <span class="mono" style="font-weight:700;font-size:14px">ABRIR ›</span>
     </div>
@@ -1770,7 +2674,7 @@ async function render() {
       <button role="tab" aria-selected="${activeTab === 'prog'}" onclick="activeTab='prog';render()">2. Progresso</button>
       <button role="tab" aria-selected="${activeTab === 'med'}" onclick="activeTab='med';render()">3. Medições (${measuredDescidas})</button>
       <button role="tab" aria-selected="${activeTab === 'ncs'}" onclick="activeTab='ncs';render()">4. NCs (${totalAlertas})</button>
-      <button role="tab" aria-selected="${activeTab === 'lib'}" onclick="activeTab='lib';render()">5. Laudo Word & Drive</button>
+      <button role="tab" aria-selected="${activeTab === 'lib'}" onclick="activeTab='lib';render()">5. Exportar (PDF / IA / Word)</button>
     </nav>
 
     <span id="st-msg" class="mono" style="color:var(--accent);font-weight:600"></span>
@@ -1778,10 +2682,11 @@ async function render() {
     ${tabContent}
 
     <div class="foot">
-      <span>Gera documento Microsoft Word (.docx) pronto para anexar o carimbo da RT.</span>
+      <span>Dupla gravação ativa (localStorage + IndexedDB) • Zero perda de medições.</span>
       <div class="row">
         <button class="b" style="padding:4px 8px;font-size:11px" onclick="go('cfg')">⚙ Dados RT / Obra</button>
-        <button class="b" style="padding:4px 8px;font-size:11px;background:var(--word);color:#fff" onclick="downloadWord(${filterDupla})">📝 Baixar Word (.DOCX)</button>
+        <button class="b" style="padding:4px 8px;font-size:11px;background:#b91c1c;color:#fff;border-color:#b91c1c" onclick="downloadPDF(${filterDupla})">📄 PDF c/ Fotos</button>
+        <button class="b" style="padding:4px 8px;font-size:11px;background:var(--ai);color:#fff;border-color:var(--ai)" onclick="downloadAIFile(${filterDupla})">🤖 Arquivo IA (.MD)</button>
       </div>
     </div>`;
 }
@@ -1797,10 +2702,11 @@ function renderBlockDetailView(blockId) {
     <header class="top-stamp">
       <div class="row" style="width:100%;justify-content:space-between">
         <button class="b" onclick="go('')" style="font-weight:700">← Voltar ao Painel</button>
+        <span id="save-ind" class="save-badge">✓ Salvo ${lastSavedTimeStr || "agora"}</span>
         <span id="st-msg" class="mono" style="color:var(--accent)"></span>
         <div class="row">
           <button class="b" onclick="openBlockModal('${esc(blockId)}')">✎ Editar Local</button>
-          <button class="b" style="background:var(--word);color:#fff" onclick="downloadWord(${filterDupla})">📝 Gerar Word</button>
+          <button class="b" style="background:#b91c1c;color:#fff;border-color:#b91c1c" onclick="downloadPDF(${filterDupla})">📄 Gerar PDF</button>
         </div>
       </div>
       <div style="width:100%;margin-top:4px">
@@ -1810,27 +2716,67 @@ function renderBlockDetailView(blockId) {
     </header>
 
     <div class="card">
-      <h3>Dados de Execução do Bloco</h3>
-      <div class="g3">
+      <h3>Dados de Execução da Ficha</h3>
+      <div class="g2">
+        <div>
+          <label>Data deste Bloco</label>
+          <input type="date" value="${esc(f.data || S.cfg.data)}" oninput="setSilent('${esc(blockId)}','data',this.value)">
+        </div>
+        <div>
+          <label>Responsável pelo Levantamento</label>
+          <input placeholder="Nome do operador" value="${esc(f.respBloco || "")}" oninput="setSilent('${esc(blockId)}','respBloco',this.value)">
+        </div>
+      </div>
+      <div class="g2">
         <div>
           <label>Início <a href="javascript:void(0)" onclick="setNow('${esc(blockId)}','hi')" style="float:right;color:var(--fg)">[Agora]</a></label>
-          <input type="time" value="${esc(f.hi)}" onchange="set('${esc(blockId)}','hi',this.value)">
+          <input type="time" value="${esc(f.hi)}" oninput="setSilent('${esc(blockId)}','hi',this.value)">
         </div>
         <div>
           <label>Fim <a href="javascript:void(0)" onclick="setNow('${esc(blockId)}','hf')" style="float:right;color:var(--fg)">[Agora]</a></label>
-          <input type="time" value="${esc(f.hf)}" onchange="set('${esc(blockId)}','hf',this.value)">
+          <input type="time" value="${esc(f.hf)}" oninput="setSilent('${esc(blockId)}','hf',this.value)">
         </div>
       </div>
-      <label>Condição do Solo</label>
-      ${seg(blockId, "solo", f.solo, [["Seco", "Seco"], ["Úmido", "Úmido"]])}
+      <div class="g2" style="margin-top:4px">
+        <div>
+          <label>Condição do Solo</label>
+          ${seg(blockId, "solo", f.solo, [["Seco", "Seco"], ["Úmido", "Úmido"]])}
+        </div>
+        <div>
+          <label>Clima</label>
+          ${seg(blockId, "clima", f.clima || "", [["Sol", "Sol"], ["Nublado", "Nublado"]])}
+        </div>
+      </div>
       <label>Observações do Local / Bloco</label>
-      <input placeholder="Observação geral deste local..." value="${esc(f.obs || "")}" onchange="set('${esc(blockId)}','obs',this.value)">
+      <input placeholder="Observação geral deste local..." value="${esc(f.obs || "")}" oninput="setSilent('${esc(blockId)}','obs',this.value)">
     </div>`;
 
   if (!o.includes("only")) {
     h += `
       <div class="card">
-        <h3>A. Checklist Visual (Vai na Tabela A do Word)</h3>
+        <h3>Fotos Obrigatórias da Rotina (Fachada e Telhado)</h3>
+        <div class="g2">
+          <div>
+            <label>1. Foto da Fachada (Hora: ${esc(f.fachadaHora || "—")})</label>
+            <div class="row">
+              <button class="b" onclick="photo('${esc(blockId)}','Fachada',-1,-1,true,'fachada')">📷 Câmera (${(f.fachadaPh || []).length})</button>
+              <button class="b" onclick="photo('${esc(blockId)}','Fachada',-1,-1,false,'fachada')">🖼 Galeria</button>
+            </div>
+            ${renderThumbs(blockId, f.fachadaPh || [], "fachada", 0)}
+          </div>
+          <div>
+            <label>2. Foto do Telhado/Captação (Hora: ${esc(f.telhadoHora || "—")})</label>
+            <div class="row">
+              <button class="b" onclick="photo('${esc(blockId)}','Telhado',-1,-1,true,'telhado')">📷 Câmera (${(f.telhadoPh || []).length})</button>
+              <button class="b" onclick="photo('${esc(blockId)}','Telhado',-1,-1,false,'telhado')">🖼 Galeria</button>
+            </div>
+            ${renderThumbs(blockId, f.telhadoPh || [], "telhado", 0)}
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>A. Checklist Visual (Caderneta de Campo)</h3>
         ${CHK.map(([k, l]) => `
           <div style="margin:8px 0;padding-bottom:8px;border-bottom:1px solid var(--line)">
             <div style="margin-bottom:4px;font-weight:500">${l}</div>
@@ -1843,21 +2789,45 @@ function renderBlockDetailView(blockId) {
     h += `
       <div class="card">
         <h3>BEP (Barramento de Equipotencialização)</h3>
-        <div style="margin-bottom:4px">Barra, isoladores e conexões íntegros?</div>
+        ${o.includes("only") ? `
+          <div style="margin-bottom:8px">
+            <div>BEP localizado e acessível?</div>
+            ${seg(blockId, "bepAcess", f.bepAcess || "", [["Sim", "Sim", "good"], ["Não", "Não", "bad"]])}
+          </div>
+          <div style="margin-bottom:8px">
+            <div>Corrosão / folga nas conexões?</div>
+            ${seg(blockId, "bepCorr", f.bepCorr || "", [["Não", "Não", "good"], ["Sim", "Sim", "bad"]])}
+          </div>
+          <div style="margin-bottom:8px">
+            <div>Reservatório / estrutura metálica ligado ao BEP?</div>
+            ${seg(blockId, "bepResLig", f.bepResLig || "", [["Sim", "Sim", "good"], ["Não", "Não", "bad"], ["NA", "N/A"]])}
+          </div>
+          <div style="margin-bottom:8px">
+            <div>Placa "Risco de Choque" no local?</div>
+            ${seg(blockId, "bepPlaca", f.bepPlaca || "", [["Sim", "Sim", "good"], ["Não", "Não", "bad"]])}
+          </div>
+        ` : ""}
+        <div style="margin-bottom:4px">Barra de Cu, isoladores e conexões íntegros?</div>
         ${seg(blockId, "bepOk", f.bepOk, [["Sim", "Sim", "good"], ["Não", "Não", "bad"]])}
         <div class="g2">
           <div>
             <label>Continuidade BEP → malha (Ω)</label>
-            <input inputmode="decimal" placeholder="0,00" value="${esc(f.bepC)}" onchange="set('${esc(blockId)}','bepC',this.value)">
+            <input inputmode="decimal" placeholder="0,00" value="${esc(f.bepC)}" oninput="setSilent('${esc(blockId)}','bepC',this.value)">
           </div>
           <div>
             <label>Terra no BEP (Ω)</label>
-            <input inputmode="decimal" placeholder="0,00" value="${esc(f.bepT || "")}" onchange="set('${esc(blockId)}','bepT',this.value)">
+            <input inputmode="decimal" placeholder="0,00" value="${esc(f.bepT || "")}" oninput="setSilent('${esc(blockId)}','bepT',this.value)">
           </div>
         </div>
-        <div class="row" style="margin-top:8px">
-          <button class="b" onclick="photo('${esc(blockId)}','BEP',null,null,true)">📷 Câmera HD c/ Carimbo (${(f.bepPh || []).length})</button>
-          <button class="b" onclick="photo('${esc(blockId)}','BEP',null,null,false)">🖼 Galeria</button>
+        <div class="g2" style="margin-top:6px">
+          <div>
+            <label>Hora da Foto do BEP</label>
+            <input placeholder="HH:MM:SS" value="${esc(f.bepHora || "")}" oninput="setSilent('${esc(blockId)}','bepHora',this.value)">
+          </div>
+          <div style="display:flex;align-items:flex-end;gap:6px">
+            <button class="b" onclick="photo('${esc(blockId)}','BEP',-1,-1,true,'bep')">📷 Câmera HD (${(f.bepPh || []).length})</button>
+            <button class="b" onclick="photo('${esc(blockId)}','BEP',-1,-1,false,'bep')">🖼</button>
+          </div>
         </div>
         ${renderThumbs(blockId, f.bepPh || [], "bep", 0)}
       </div>`;
@@ -1866,8 +2836,17 @@ function renderBlockDetailView(blockId) {
   if (o.includes("dps")) {
     h += `
       <div class="card">
-        <h3>DPS no QDG</h3>
-        ${seg(blockId, "dps", f.dps, [["Sim", "Instalado", "good"], ["Não", "Ausente", "bad"]])}
+        <h3>DPS no Quadro Geral (QDG)</h3>
+        <div class="g2">
+          <div>
+            <label>Instalado e ligado ao BEP/Terra?</label>
+            ${seg(blockId, "dps", f.dps, [["Sim", "Sim", "good"], ["Não", "Não", "bad"]])}
+          </div>
+          <div>
+            <label>Indicador Visual</label>
+            ${seg(blockId, "dpsCor", f.dpsCor || "", [["Verde", "Verde", "good"], ["Vermelho", "Vermelho", "bad"]])}
+          </div>
+        </div>
       </div>`;
   }
 
@@ -1879,53 +2858,66 @@ function renderBlockDetailView(blockId) {
       const isOk = !hasNC && (r.cont !== "" || r.terra !== "");
       const cl = hasNC ? "nc" : (isOk ? "ok" : "");
       h += `
-        <div class="card d ${cl}">
+        <div id="row-card-${i}" class="card d ${cl}">
           <div class="row">
-            <input class="inline-edit" value="${esc(r.p)}" title="Código da descida (vai no carimbo da foto)" onchange="set('${esc(blockId)}','rows.${i}.p',this.value)">
-            <input class="grow" style="padding:5px 8px;font-size:13px" placeholder="Referência / Nome (ex.: Fachada N)" value="${esc(r.loc || "")}" onchange="set('${esc(blockId)}','rows.${i}.loc',this.value)">
-            ${j.map(x => `<span class="tag NC">${esc(x)}</span>`).join("")}
+            <input class="inline-edit" value="${esc(r.p)}" title="Código da descida" oninput="setSilent('${esc(blockId)}','rows.${i}.p',this.value)">
+            <input class="grow" style="padding:5px 8px;font-size:13px" placeholder="Referência / Nome (ex.: Fachada N)" value="${esc(r.loc || "")}" oninput="setSilent('${esc(blockId)}','rows.${i}.loc',this.value)">
+            <span class="row-badges">${j.map(x => `<span class="tag NC">${esc(x)}</span>`).join("")}</span>
           </div>
           ${[["barra", "Barra + fixação"], ["eld", "Eletroduto + placa"], ["cx", "Caixa + bimetálico"]].map(([k, l]) => `
             <div class="row" style="margin-top:6px">
               <small class="grow" style="font-size:13px">${l}</small>
               ${seg(blockId, `rows.${i}.${k}`, r[k], [["OK", "OK", "good"], ["NC", "NC", "bad"]])}
             </div>`).join("")}
-          <div class="g3" style="margin-top:6px">
+          <div class="g2" style="margin-top:6px">
             <div>
               <label>Continuidade (Ω) ≤ ${S.cfg.limC}</label>
-              <input inputmode="decimal" placeholder="Ex: 0.12" value="${esc(r.cont)}" onchange="set('${esc(blockId)}','rows.${i}.cont',this.value,1)">
+              <input inputmode="decimal" placeholder="Ex: 0.12" value="${esc(r.cont)}" oninput="setSilent('${esc(blockId)}','rows.${i}.cont',this.value)">
             </div>
             <div>
               <label>Terra (Ω) ≤ ${S.cfg.limT}</label>
-              <input inputmode="decimal" placeholder="Ex: 4.5" value="${esc(r.terra)}" onchange="set('${esc(blockId)}','rows.${i}.terra',this.value,1)">
+              <input inputmode="decimal" placeholder="Ex: 4.5" value="${esc(r.terra)}" oninput="setSilent('${esc(blockId)}','rows.${i}.terra',this.value)">
+            </div>
+          </div>
+          <div class="g2" style="margin-top:6px">
+            <div>
+              <label>Hora da Foto (automática ao fotografar)</label>
+              <input placeholder="HH:MM:SS" value="${esc(r.horaFoto || "")}" oninput="setSilent('${esc(blockId)}','rows.${i}.horaFoto',this.value)">
+            </div>
+            <div style="display:flex;align-items:flex-end;gap:6px">
+              <label style="display:inline-flex;align-items:center;gap:6px;margin:0;padding:8px 0;text-transform:none;font-size:13px;color:var(--fg)">
+                <input type="checkbox" ${r.fotoVisorOk ? "checked" : ""} onchange="set('${esc(blockId)}','rows.${i}.fotoVisorOk',this.checked?1:0,0)"> Foto Visor OK
+              </label>
             </div>
           </div>
           <div class="row" style="margin-top:8px">
-            <button class="b" onclick="photo('${esc(blockId)}','${esc(r.p)}',${i},null,true)">📷 Foto HD (${(r.ph || []).length})</button>
-            <button class="b" onclick="photo('${esc(blockId)}','${esc(r.p)}',${i},null,false)">🖼</button>
+            <button class="b" onclick="photo('${esc(blockId)}','${esc(r.p)}',${i},-1,true)">📷 Foto HD (${(r.ph || []).length})</button>
+            <button class="b" onclick="photo('${esc(blockId)}','${esc(r.p)}',${i},-1,false)">🖼</button>
             ${seg(blockId, `rows.${i}.pl`, r.pl, [["Rosa", "Rosa", "pink"], ["Verm", "Verm", "bad"]])}
             <span class="grow"></span>
-            <button class="b" style="color:var(--nc)" onclick="if(confirm('Remover ${esc(r.p)}?')){F('${esc(blockId)}').rows.splice(${i},1);save();render()}">✕</button>
+            <button class="b" style="color:var(--nc)" onclick="if(confirm('Remover ${esc(r.p)}?')){F('${esc(blockId)}').rows.splice(${i},1);saveNow(true);render()}">✕</button>
           </div>
           ${renderThumbs(blockId, r.ph || [], "row", i)}
         </div>`;
     });
-    h += `<button class="b" style="width:100%;margin-bottom:10px" onclick="F('${esc(blockId)}').rows.push(R(F('${esc(blockId)}').rows.length));save();render()">+ Adicionar Descida</button>`;
+    h += `<button class="b" style="width:100%;margin-bottom:10px" onclick="F('${esc(blockId)}').rows.push(R(F('${esc(blockId)}').rows.length));saveNow(true);render()">+ Adicionar Descida</button>`;
   }
 
   h += `
     <div class="card">
-      <h3>C. Não Conformidades Adicionais (NC)</h3>
+      <h3>C. Não Conformidades e Reparos Feitos em Campo</h3>
+      <label>Reparos feitos em campo (material / local)</label>
+      <input placeholder="Ex.: Instalada 1 placa Risco de Choque e trocado 1 conector em D02" value="${esc(f.reparosCampo || "")}" oninput="setSilent('${esc(blockId)}','reparosCampo',this.value)" style="margin-bottom:10px">
       ${f.ncs.map((n, i) => `
         <div class="card d nc">
           <div class="row">
             <b class="grow mono">NC-${String(i + 1).padStart(2, "0")}</b>
-            <button class="b" style="color:var(--nc);padding:4px 8px;font-size:12px" onclick="F('${esc(blockId)}').ncs.splice(${i},1);save();render()">Excluir</button>
+            <button class="b" style="color:var(--nc);padding:4px 8px;font-size:12px" onclick="F('${esc(blockId)}').ncs.splice(${i},1);saveNow(true);render()">Excluir</button>
           </div>
-          <div class="g3">
+          <div class="g2">
             <div>
               <label>Ponto / Descida</label>
-              <input placeholder="Ex.: D03, Topo..." value="${esc(n.ponto)}" onchange="set('${esc(blockId)}','ncs.${i}.ponto',this.value)">
+              <input placeholder="Ex.: D03, Topo..." value="${esc(n.ponto)}" oninput="setSilent('${esc(blockId)}','ncs.${i}.ponto',this.value)">
             </div>
             <div>
               <label>Código da NC</label>
@@ -1935,24 +2927,42 @@ function renderBlockDetailView(blockId) {
               </select>
             </div>
           </div>
-          <label>Severidade</label>
-          ${seg(blockId, `ncs.${i}.sev`, n.sev, [["A", "A (Crítica)", "bad"], ["B", "B (Média)"], ["C", "C (Leve)"]])}
-          <label>Detalhe / Reparo Recomendado</label>
-          <textarea rows="2" placeholder="Descreva o problema e reparo..." onchange="set('${esc(blockId)}','ncs.${i}.det',this.value)">${esc(n.det)}</textarea>
+          <div class="g2">
+            <div>
+              <label>Severidade</label>
+              ${seg(blockId, `ncs.${i}.sev`, n.sev, [["A", "A (Crítica)", "bad"], ["B", "B (Média)"], ["C", "C (Leve)"]])}
+            </div>
+            <div>
+              <label>Hora da Foto</label>
+              <input placeholder="HH:MM:SS" value="${esc(n.horaFoto || "")}" oninput="setSilent('${esc(blockId)}','ncs.${i}.horaFoto',this.value)">
+            </div>
+          </div>
+          <label>Detalhe / Reparo Feito</label>
+          <textarea rows="2" placeholder="Descreva o problema e o reparo..." oninput="setSilent('${esc(blockId)}','ncs.${i}.det',this.value)">${esc(n.det)}</textarea>
           <div class="row" style="margin-top:6px">
             <button class="b" onclick="photo('${esc(blockId)}','NC-${i + 1}',-1,${i},true)">📷 Câmera HD (${(n.ph || []).length})</button>
             <button class="b" onclick="photo('${esc(blockId)}','NC-${i + 1}',-1,${i},false)">🖼 Galeria</button>
           </div>
           ${renderThumbs(blockId, n.ph || [], "nc", i)}
         </div>`).join("")}
-      <button class="b" style="width:100%" onclick="F('${esc(blockId)}').ncs.push({ponto:'',cod:'',sev:'',det:'',ph:[]});save();render()">+ Adicionar Não Conformidade</button>
+      <button class="b" style="width:100%" onclick="F('${esc(blockId)}').ncs.push({ponto:'',cod:'',sev:'',horaFoto:'',det:'',ph:[]});saveNow(true);render()">+ Adicionar Não Conformidade</button>
     </div>
 
     <div class="card">
       <h3>D. Fechamento do Bloco</h3>
+      <div class="g2" style="margin-bottom:8px">
+        <div>
+          <label>Hora de Conclusão <a href="javascript:void(0)" onclick="setNow('${esc(blockId)}','horaConc')" style="float:right;color:var(--fg)">[Agora]</a></label>
+          <input type="time" value="${esc(f.horaConc || "")}" oninput="setSilent('${esc(blockId)}','horaConc',this.value)">
+        </div>
+        <div>
+          <label>Visto / Conferente</label>
+          <input placeholder="Iniciais / Visto" value="${esc(f.visto || "")}" oninput="setSilent('${esc(blockId)}','visto',this.value)">
+        </div>
+      </div>
       ${[["vis", "Inspeção visual concluída"], ["med", "Medições concluídas"], ["foto", "Fotos em HD c/ carimbo registradas"], ["pl", "Pintado na planta A3 (Rosa = OK / Vermelho = NC)"]].map(([k, l]) => `
         <label style="display:flex;gap:10px;align-items:center;font-size:14px;color:var(--fg);padding:5px 0;text-transform:none">
-          <input type="checkbox" ${f.done[k] ? "checked" : ""} onchange="F('${esc(blockId)}').done.${k}=this.checked?1:0;save();render()">
+          <input type="checkbox" ${f.done[k] ? "checked" : ""} onchange="F('${esc(blockId)}').done.${k}=this.checked?1:0;saveNow(true);render()">
           ${l}
         </label>`).join("")}
       <button class="big" style="margin-top:10px" onclick="go('')">✓ Salvar e Voltar ao Painel</button>
@@ -1967,60 +2977,65 @@ function renderConfigView() {
     <header class="top-stamp">
       <div class="row" style="width:100%;justify-content:space-between">
         <button class="b" onclick="go('')">← Voltar ao Painel</button>
-        <b>DADOS DA RT, OBRA E CONFIGURAÇÕES DO WORD</b>
+        <span id="save-ind" class="save-badge">✓ Salvo ${lastSavedTimeStr || "agora"}</span>
+        <b>DADOS DA RT, OBRA E CONFIGURAÇÕES</b>
       </div>
     </header>
 
     <div class="card">
-      <h3>Dados do Responsável Técnico (Já saem no Quadro de Carimbo da RT no Word)</h3>
-      <label>Nome da Empresa / Cabeçalho do Laudo</label>
-      <input value="${esc(c.empresa || "TH ELÉTRICA — ENGENHARIA E LAUDOS TÉCNICOS")}" onchange="S.cfg.empresa=this.value;save()">
+      <h3>Dados do Responsável Técnico (Quadro de Carimbo da RT)</h3>
+      <label>Nome da Empresa / Cabeçalho</label>
+      <input value="${esc(c.empresa)}" oninput="setCfgSilent('empresa',this.value)">
       <div class="g2">
         <div>
           <label>Nome do Responsável Técnico</label>
-          <input value="${esc(c.resp || "")}" placeholder="Ex.: Eng. Theo ..." onchange="S.cfg.resp=this.value;save()">
+          <input value="${esc(c.resp || "")}" placeholder="Ex.: Eng. ..." oninput="setCfgSilent('resp',this.value)">
         </div>
         <div>
           <label>Registro Profissional (CREA / CFT)</label>
-          <input value="${esc(c.crea || "")}" placeholder="Ex.: CREA-PE ..." onchange="S.cfg.crea=this.value;save()">
+          <input value="${esc(c.crea || "")}" placeholder="Ex.: CREA-PE ..." oninput="setCfgSilent('crea',this.value)">
         </div>
       </div>
       <div class="g2">
         <div>
-          <label>Número da ART / TRT (Opcional)</label>
-          <input value="${esc(c.art || "")}" placeholder="Nº da ART" onchange="S.cfg.art=this.value;save()">
+          <label>Número da ART / TRT</label>
+          <input value="${esc(c.art || "")}" placeholder="Nº da ART" oninput="setCfgSilent('art',this.value)">
         </div>
         <div>
-          <label>Aparelho Medidor / Série / Calibração</label>
-          <input value="${esc(c.ap)}" placeholder="Ex.: Terrômetro Digital..." onchange="S.cfg.ap=this.value;save()">
+          <label>Aparelho Continuidade (Modelo/Série)</label>
+          <input value="${esc(c.ap)}" placeholder="Ex.: Terrômetro / Microhmímetro" oninput="setCfgSilent('ap',this.value)">
         </div>
       </div>
+      <label>Aparelho Aterramento (Modelo/Série)</label>
+      <input value="${esc(c.apTerra || "")}" placeholder="Ex.: Hikari HTR-770 / Minipa MTR-1522" oninput="setCfgSilent('apTerra',this.value)">
     </div>
 
     <div class="card">
-      <h3>Dados do Cliente / Obra</h3>
+      <h3>Dados do Cliente / Obra e Limites</h3>
       <label>Cliente / Obra</label>
-      <input value="${esc(c.cliente)}" onchange="S.cfg.cliente=this.value;save()">
+      <input value="${esc(c.cliente)}" oninput="setCfgSilent('cliente',this.value)">
       <div class="g2">
         <div>
           <label>Cidade / Unidade</label>
-          <input value="${esc(c.local || "")}" onchange="S.cfg.local=this.value;save()">
+          <input value="${esc(c.local || "")}" oninput="setCfgSilent('local',this.value)">
         </div>
         <div>
           <label>Data da Inspeção</label>
-          <input type="date" value="${esc(c.data || "")}" onchange="S.cfg.data=this.value;save()">
+          <input type="date" value="${esc(c.data || "")}" oninput="setCfgSilent('data',this.value)">
         </div>
       </div>
+      <label>Referência / Norma</label>
+      <input value="${esc(c.proposta || "")}" oninput="setCfgSilent('proposta',this.value)">
       <label>Operadores / Equipe de Campo</label>
-      <input value="${esc(c.eq)}" placeholder="Nomes dos profissionais em campo" onchange="S.cfg.eq=this.value;save()">
+      <input value="${esc(c.eq)}" placeholder="Nomes dos profissionais em campo" oninput="setCfgSilent('eq',this.value)">
       <div class="g2">
         <div>
           <label>Limite Continuidade (Ω)</label>
-          <input inputmode="decimal" value="${c.limC}" onchange="S.cfg.limC=num(this.value)||0.2;save()">
+          <input inputmode="decimal" value="${c.limC}" oninput="setCfgSilent('limC',num(this.value)||0.2)">
         </div>
         <div>
-          <label>Limite Terra (Ω)</label>
-          <input inputmode="decimal" value="${c.limT}" onchange="S.cfg.limT=num(this.value)||10;save()">
+          <label>Limite Terra Ideal / Solo Seco (Ω)</label>
+          <input inputmode="decimal" value="${c.limT}" oninput="setCfgSilent('limT',num(this.value)||10)">
         </div>
       </div>
     </div>
@@ -2028,13 +3043,13 @@ function renderConfigView() {
     <div class="card">
       <h3>Qualidade da Foto e Carimbo Automático</h3>
       <label>Resolução das Fotos Capturadas</label>
-      <select onchange="S.cfg.resFoto=parseInt(this.value);save()">
+      <select onchange="setCfgSilent('resFoto',parseInt(this.value))">
         <option value="0" ${c.resFoto == 0 ? "selected" : ""}>Resolução Original Máxima da Câmera (12MP / 48MP)</option>
         <option value="2560" ${(c.resFoto == 2560 || !c.resFoto) ? "selected" : ""}>Quad HD / 4K (2560 px — Recomendado)</option>
         <option value="1920" ${c.resFoto == 1920 ? "selected" : ""}>Full HD (1920 px)</option>
       </select>
       <label style="display:flex;gap:10px;align-items:center;font-size:14px;color:var(--fg);margin-top:10px;text-transform:none">
-        <input type="checkbox" ${c.carimboOn !== 0 ? "checked" : ""} onchange="S.cfg.carimboOn=this.checked?1:0;save()">
+        <input type="checkbox" ${c.carimboOn !== 0 ? "checked" : ""} onchange="setCfgSilent('carimboOn',this.checked?1:0)">
         Gravar carimbo escuro na foto (<b>Bloco--Ponto</b> + <b>Data/Hora</b> + <b>Leitura Ω</b>)
       </label>
     </div>
@@ -2042,9 +3057,9 @@ function renderConfigView() {
     <div class="card">
       <h3>Pastas do Google Drive por Equipe</h3>
       <label>Link da Pasta Drive — Equipe A</label>
-      <input value="${esc(c.driveA || DRIVE_FOLDERS[1].url)}" onchange="S.cfg.driveA=this.value;save()">
+      <input value="${esc(c.driveA || DRIVE_FOLDERS[1].url)}" oninput="setCfgSilent('driveA',this.value)">
       <label>Link da Pasta Drive — Equipe B</label>
-      <input value="${esc(c.driveB || DRIVE_FOLDERS[2].url)}" onchange="S.cfg.driveB=this.value;save()">
+      <input value="${esc(c.driveB || DRIVE_FOLDERS[2].url)}" oninput="setCfgSilent('driveB',this.value)">
     </div>
 
     <div class="card">
@@ -2067,7 +3082,7 @@ function openBlockModal(editId) {
   const hasBep = opts.includes("bep");
   const hasDps = opts.includes("dps");
   const isOnly = opts.includes("only");
-  const qtdDesc = editId && S.f[editId] ? S.f[editId].rows.length : 8;
+  const qtdDesc = editId && S.f[editId] ? S.f[editId].rows.length : 10;
 
   $("#modal-root").innerHTML = `
     <div class="modal-bg" onclick="closeModal()">
@@ -2086,7 +3101,7 @@ function openBlockModal(editId) {
             </select>
           </div>
         </div>
-        <label>Nome do Lugar / Edifício (aparece no Laudo e no carimbo da foto)</label>
+        <label>Nome do Lugar / Edifício (vai no Laudo e no carimbo da foto)</label>
         <input id="mb-nome" value="${esc(nome)}" placeholder="Ex.: Bloco A, Subestação...">
         ${!ex ? `
           <label>Quantidade inicial de descidas</label>
@@ -2131,20 +3146,17 @@ function saveBlockModal(editId) {
   if (editId) {
     const idx = B.findIndex(x => x[0] === editId);
     if (idx >= 0) {
-      B[idx] = [editId, nome, dupla, optStr];
+      B[idx] = [editId, nome, dupla, optStr, B[idx][4] ?? 10];
       if (S.f[editId]) S.f[editId].dupla = dupla;
     }
   } else {
-    if (B.some(x => x[0] === id)) {
-      alert("Já existe um local com a sigla " + id + ".");
-      return;
-    }
-    const qtd = Math.max(0, Math.min(60, parseInt($("#mb-qtd")?.value ?? 8)));
-    B.push([id, nome, dupla, optStr]);
+    if (B.some(x => x[0] === id)) { alert("Já existe um local com a sigla " + id + "."); return; }
+    const qtd = Math.max(0, Math.min(60, parseInt($("#mb-qtd")?.value ?? 10)));
+    B.push([id, nome, dupla, optStr, qtd]);
     const f = F(id);
     f.rows = optStr.includes("only") ? [] : Array.from({length: qtd}, (_, i) => R(i));
   }
-  save();
+  saveNow(true);
   closeModal();
   render();
 }
@@ -2153,7 +3165,7 @@ function deleteBlock(id) {
   if (!confirm("Remover este local da lista?")) return;
   S.blocos = getB().filter(x => x[0] !== id);
   delete S.f[id];
-  save();
+  saveNow(true);
   closeModal();
   if (view === id) view = "";
   render();
@@ -2168,6 +3180,7 @@ function snap() {
   return JSON.stringify({
     gerado: new Date().toISOString(),
     cfg: {...S.cfg, tok: undefined},
+    reposicao: S.reposicao,
     blocos: getB(),
     lib: S.lib,
     f: S.f
@@ -2191,9 +3204,11 @@ async function downloadAllPhotosHD() {
 async function sendToTeamDrive(teamNum = 1) {
   const teamKey = teamNum == 2 ? "EquipeB" : "EquipeA";
   const folderUrl = getDriveUrl(teamNum);
+  const pdfFile = await buildPDFFile(teamNum);
+  const aiFile = buildAIStructuredFile(teamNum);
   const wordFile = await buildWordDocxFile(teamNum);
   const jsonFile = new File([snap()], `${teamKey}_spda_dados.json`, {type: "application/json"});
-  const files = [wordFile, jsonFile];
+  const files = [pdfFile, aiFile, wordFile, jsonFile];
   const ks = await pkeys();
   const B = getB();
   for (const k of ks) {
@@ -2208,7 +3223,7 @@ async function sendToTeamDrive(teamNum = 1) {
     try {
       await navigator.share({
         files,
-        title: `Laudo Word SPDA ${teamLabel(teamNum)} — ${S.cfg.cliente || "Campo"}`,
+        title: `SPDA ${teamLabel(teamNum)} — ${S.cfg.cliente}`,
         text: `Pasta Drive ${teamLabel(teamNum)}: ${folderUrl}`
       });
       for (const k of ks) {
@@ -2220,14 +3235,12 @@ async function sendToTeamDrive(teamNum = 1) {
       }
       render();
       return;
-    } catch (e) {
-      if (e.name === "AbortError") return;
-    }
+    } catch (e) { if (e.name === "AbortError") return; }
   }
 
   const a = document.createElement("a");
-  a.href = URL.createObjectURL(wordFile);
-  a.download = wordFile.name;
+  a.href = URL.createObjectURL(pdfFile);
+  a.download = pdfFile.name;
   a.click();
   setTimeout(() => window.open(folderUrl, "_blank"), 400);
 }
@@ -2250,10 +3263,11 @@ function importJSONPrompt() {
       const txt = await inp.files[0].text();
       const data = JSON.parse(txt);
       if (data.cfg) S.cfg = {...S.cfg, ...data.cfg};
+      if (data.reposicao) S.reposicao = {...S.reposicao, ...data.reposicao};
       if (Array.isArray(data.blocos)) S.blocos = data.blocos;
       if (data.lib) S.lib = data.lib;
       if (data.f) S.f = data.f;
-      await kset("S", S);
+      saveNow(true);
       alert("Dados importados com sucesso!");
       go("");
     } catch (e) {
@@ -2263,10 +3277,25 @@ function importJSONPrompt() {
   inp.click();
 }
 
+function restoreSnapshot(idx) {
+  const snaps = getSnapshots();
+  if (!snaps[idx]) return;
+  if (!confirm(`Restaurar os dados do snapshot automático salvo às ${snaps[idx].h}?`)) return;
+  try {
+    const parsed = JSON.parse(snaps[idx].data);
+    S = parsed;
+    saveNow(false);
+    alert("Snapshot restaurado!");
+    go("");
+  } catch (e) {
+    alert("Erro ao restaurar snapshot.");
+  }
+}
+
 function resetDefaultBlocks() {
   if (!confirm("Restaurar a lista de blocos padrão (Bloco A até BEP Reservatório)?")) return;
   S.blocos = DEFAULT_B.map(x => [...x]);
-  save();
+  saveNow(true);
   render();
 }
 
@@ -2274,10 +3303,13 @@ async function clearAllData() {
   if (!confirm("ATENÇÃO: Isso apagará todas as medições e fotos salvas neste aparelho. Confirmar?")) return;
   S.f = {};
   S.lib = {};
+  S.reposicao = { placasQtd: "", placasLocais: "", conectoresQtd: "", conectoresLocais: "", outros: "", anotacoesLivres: "" };
   const ks = await pkeys();
   for (const k of ks) await pdel(k);
   photoURLCache = {};
-  await kset("S", S);
+  localStorage.removeItem(LS_STATE_KEY);
+  localStorage.removeItem(LS_SNAPS_KEY);
+  saveNow(false);
   go("");
 }
 
@@ -2286,12 +3318,12 @@ async function printReport(teamFilter = 0) {
   const B = teamFilter ? allB.filter(b => b[2] == teamFilter) : allB;
   let html = `
     <div style="background:#1F3A5F;color:#fff;padding:12px 16px;margin-bottom:14px">
-      <div style="font-size:12px;opacity:.9">${esc(c.empresa || "TH ELÉTRICA — ENGENHARIA E LAUDOS TÉCNICOS")}</div>
+      <div style="font-size:12px;opacity:.9">${esc(c.empresa)}</div>
       <h2 style="margin:4px 0">LAUDO TÉCNICO DE INSPEÇÃO E MEDIÇÃO DE SPDA — ABNT NBR 5419:2015</h2>
       <div style="font-size:12px">
-        <b>Cliente:</b> ${esc(c.cliente || "Amigos do Bem")} (${esc(c.local || "")}) |
+        <b>Cliente:</b> ${esc(c.cliente)} (${esc(c.local)}) |
         <b>Data:</b> ${esc(c.data)} |
-        <b>Limites:</b> Cont. ≤ ${c.limC} Ω / Terra ≤ ${c.limT} Ω
+        <b>Limites:</b> Cont. <= ${c.limC} Ω / Terra <= ${c.limT} Ω
       </div>
     </div>`;
 
@@ -2299,11 +3331,12 @@ async function printReport(teamFilter = 0) {
     const bs = blockStats(b);
     const f = bs.f;
     if (c.soPreenchidos && !bs.isStarted && !bs.totNC) continue;
-
     const blockNCs = collectAllBlockNCs(b);
     const photos = [];
-    for (const k of (f.bepPh || [])) photos.push({k, cap: `${b[1]} — BEP`});
-    for (const r of (f.rows || [])) for (const k of (r.ph || [])) photos.push({k, cap: `${b[1]} — ${r.p}${r.loc ? ` (${r.loc})` : ""}`});
+    for (const k of (f.fachadaPh || [])) photos.push({k, cap: `${b[1]} — Fachada (${f.fachadaHora || "-"})`});
+    for (const k of (f.telhadoPh || [])) photos.push({k, cap: `${b[1]} — Telhado (${f.telhadoHora || "-"})`});
+    for (const k of (f.bepPh || [])) photos.push({k, cap: `${b[1]} — BEP (${f.bepHora || "-"})`});
+    for (const r of (f.rows || [])) for (const k of (r.ph || [])) photos.push({k, cap: `${b[1]} — ${r.p} (${r.horaFoto || "-"})`});
     for (let i = 0; i < (f.ncs || []).length; i++) for (const k of (f.ncs[i].ph || [])) photos.push({k, cap: `${b[1]} — NC-${i + 1}`});
 
     const rowsToRender = c.soPreenchidos
@@ -2313,10 +3346,10 @@ async function printReport(teamFilter = 0) {
     html += `
       <div class="p-card">
         <h3 style="margin:0 0 6px;color:#1F3A5F">${esc(b[1])} [${esc(b[0])}] — ${teamLabel(b[2])}</h3>
-        <div><b>Horário:</b> ${esc(f.hi || "-")} às ${esc(f.hf || "-")} | <b>Solo:</b> ${esc(f.solo || "-")}</div>
+        <div><b>Horário:</b> ${esc(f.hi || "-")} às ${esc(f.hf || "-")} | <b>Solo:</b> ${esc(f.solo || "-")} | <b>Clima:</b> ${esc(f.clima || "-")}</div>
         ${rowsToRender.length ? `
           <table class="p-tbl">
-            <thead><tr><th>Ponto / Ref.</th><th>Barra</th><th>Eletrod.</th><th>Caixa</th><th>Cont. (Ω)</th><th>Terra (Ω)</th><th>Planta</th><th>Diagnóstico</th></tr></thead>
+            <thead><tr><th>Ponto / Ref.</th><th>Barra</th><th>Eletrod.</th><th>Caixa</th><th>Cont. (Ω)</th><th>Terra (Ω)</th><th>Foto(Hora)</th><th>Planta</th><th>Diagnóstico</th></tr></thead>
             <tbody>
               ${rowsToRender.map(r => {
                 const diag = rowDiagnosis(r);
@@ -2327,6 +3360,7 @@ async function printReport(teamFilter = 0) {
                   <td>${esc(r.cx || "-")}</td>
                   <td>${esc(r.cont || "-")}</td>
                   <td>${esc(r.terra || "-")}</td>
+                  <td>${esc(r.horaFoto || "-")}</td>
                   <td>${esc(r.pl || "-")}</td>
                   <td style="font-weight:bold;color:${diag.ok ? "#15803D" : "#B91C1C"}">${esc(diag.ok ? diag.short : `${diag.short}: ${diag.detail}`)}</td>
                 </tr>`;
@@ -2334,28 +3368,15 @@ async function printReport(teamFilter = 0) {
             </tbody>
           </table>` : ""}
         ${blockNCs.length ? `
-          <div style="margin-top:8px"><b>Não Conformidades e Recomendações de Reparo:</b>
+          <div style="margin-top:8px"><b>Não Conformidades:</b>
             <table class="p-tbl">
               <thead><tr><th>Item</th><th>Ponto</th><th>Sev.</th><th>Desvio</th><th>Recomendação Técnica</th></tr></thead>
-              <tbody>
-                ${blockNCs.map(n => `<tr><td><b>${esc(n.code)}</b></td><td>${esc(n.ponto)}</td><td><b>${esc(n.sev)}</b></td><td>${esc(n.titulo)}</td><td>${esc(n.detalhe)}</td></tr>`).join("")}
-              </tbody>
+              <tbody>${blockNCs.map(n => `<tr><td><b>${esc(n.code)}</b></td><td>${esc(n.ponto)}</td><td><b>${esc(n.sev)}</b></td><td>${esc(n.titulo)}</td><td>${esc(n.detalhe)}</td></tr>`).join("")}</tbody>
             </table>
           </div>` : ""}
-        ${photos.length ? `
-          <div class="p-grid-ph">
-            ${photos.map(p => `<div class="p-ph"><img data-ph="${esc(p.k)}"><div style="font-size:11px;font-weight:600;margin-top:4px">${esc(p.cap)}</div></div>`).join("")}
-          </div>` : ""}
+        ${photos.length ? `<div class="p-grid-ph">${photos.map(p => `<div class="p-ph"><img data-ph="${esc(p.k)}"><div style="font-size:11px;font-weight:600;margin-top:4px">${esc(p.cap)}</div></div>`).join("")}</div>` : ""}
       </div>`;
   }
-
-  html += `
-    <div class="p-card" style="text-align:center;padding:24px;margin-top:18px">
-      <div style="font-weight:bold;color:#475569;margin-bottom:70px">ESPAÇO PARA CARIMBO DO RESPONSÁVEL TÉCNICO / SELO DA ART</div>
-      <div>________________________________________________________</div>
-      <div style="font-weight:bold;margin-top:4px">Responsável Técnico: ${esc(c.resp || "____________________________________")}</div>
-      <div>CREA / CFT: ${esc(c.crea || "____________________")} | ART: ${esc(c.art || "____________________")}</div>
-    </div>`;
 
   $("#print-area").innerHTML = html;
   await hydrateThumbs();
@@ -2364,13 +3385,17 @@ async function printReport(teamFilter = 0) {
 
 (async () => {
   db = await idb();
-  const saved = await kget("S");
-  if (saved) S = saved;
+  let lsRaw = null;
+  try { lsRaw = localStorage.getItem(LS_STATE_KEY); } catch (e) {}
+  const idbState = await kget("S");
+  const best = loadBestState(lsRaw, idbState);
+  if (best) S = best;
+
   S.cfg = {
     empresa: "TH ELÉTRICA — ENGENHARIA E LAUDOS TÉCNICOS",
-    cliente: "Amigos do Bem",
-    local: "Inajá - PE",
-    proposta: "NBR 5419:2015",
+    cliente: "Fazenda Amigos do Bem",
+    local: "Serra do Catimbau, Buíque/PE",
+    proposta: "Projeto Prioriza Cód. 260053 • ABNT NBR 5419:2015",
     data: new Date().toISOString().slice(0, 10),
     equipeAtiva: 1,
     driveA: DRIVE_FOLDERS[1].url,
@@ -2383,14 +3408,27 @@ async function printReport(teamFilter = 0) {
     art: "",
     limC: 0.2,
     limT: 10,
+    limTSeco: 20,
     url: "",
     tok: "",
     eq: "",
     ap: "",
+    apTerra: "",
     ...S.cfg
+  };
+  S.reposicao = {
+    placasQtd: "",
+    placasLocais: "",
+    conectoresQtd: "",
+    conectoresLocais: "",
+    outros: "",
+    anotacoesLivres: "",
+    ...(S.reposicao || {})
   };
   S.lib ??= {};
   getB();
+  saveNow(false);
+
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
     navigator.serviceWorker.register("sw.js").catch(() => {});
   }
