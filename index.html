@@ -167,9 +167,84 @@ small{color:var(--muted);font-size:12px}
 }
 .chk-pill.on{background:var(--ok);color:#fff;border-color:var(--ok)}
 .foot{font:.76rem var(--f-mono);color:var(--muted);display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center}
+/* Câmera Integrada Estilo Timestamp Camera (Sem sobreposição nos ícones) */
+.cam-overlay{
+  position:fixed;inset:0;background:#000;color:#fff;z-index:100;
+  display:flex;flex-direction:column;justify-content:space-between;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+  user-select:none;
+}
+.cam-top{
+  height:54px;padding:0 12px;display:flex;align-items:center;justify-content:space-between;
+  background:#000;border-bottom:1px solid #1e293b;z-index:5;flex-shrink:0;
+}
+.cam-icon-btn{
+  background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.18);
+  border-radius:999px;min-width:40px;height:40px;padding:0 10px;font-size:15px;font-weight:600;
+  display:inline-flex;align-items:center;justify-content:center;gap:4px;cursor:pointer;
+}
+.cam-icon-btn.active{background:#a3e635;color:#000;border-color:#a3e635}
+.cam-stage{
+  position:relative;flex:1;overflow:hidden;background:#090b0d;
+  display:flex;align-items:center;justify-content:center;
+}
+#cam-video{width:100%;height:100%;object-fit:cover;display:block}
+.cam-stamp-live{
+  position:absolute;top:12px;left:12px;max-width:calc(100% - 24px);
+  background:rgba(22,26,30,.78);color:#fff;border-radius:12px;
+  padding:9px 14px;backdrop-filter:blur(4px);cursor:pointer;z-index:4;
+  border:1px solid rgba(255,255,255,.16);
+}
+.cam-stamp-live b{display:block;font-size:15px;line-height:1.25}
+.cam-stamp-live span{display:block;font-size:12.5px;opacity:.95;margin-top:2px}
+.cam-stamp-live small{display:block;font-size:11.5px;color:#fde047;margin-top:2px;font-weight:600}
+.cam-balloon-live{
+  position:absolute;z-index:4;padding:8px 13px;border-radius:12px;font-weight:700;
+  font-size:14px;max-width:86%;box-shadow:0 3px 12px rgba(0,0,0,.48);cursor:pointer;
+  word-break:break-word;text-align:center;
+}
+.cam-balloon-live.pos-bottom{bottom:16px;left:50%;transform:translateX(-50%)}
+.cam-balloon-live.pos-center{top:50%;left:50%;transform:translate(-50%,-50%)}
+.cam-balloon-live.pos-top-right{top:12px;right:12px;max-width:45%}
+.cam-countdown{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-size:84px;font-weight:800;color:#a3e635;text-shadow:0 4px 20px rgba(0,0,0,.85);
+  pointer-events:none;z-index:6;
+}
+.cam-rec-badge{
+  position:absolute;top:12px;right:12px;background:#dc2626;color:#fff;
+  padding:4px 10px;border-radius:999px;font:700 12px var(--f-mono);z-index:6;
+}
+.cam-bottom{
+  background:#000;padding:10px 14px 16px;display:flex;flex-direction:column;gap:12px;
+  border-top:1px solid #1e293b;flex-shrink:0;z-index:5;
+}
+.cam-modes{display:flex;justify-content:center;gap:14px;align-items:center}
+.cam-modes button{
+  background:transparent;color:#cbd5e1;border:0;font:700 13px var(--f-mono);
+  padding:5px 14px;border-radius:6px;cursor:pointer;letter-spacing:.05em;
+}
+.cam-modes button.on{background:#a3e635;color:#000}
+.cam-controls{display:flex;align-items:center;justify-content:space-around;gap:8px}
+.cam-shutter{
+  width:72px;height:72px;border-radius:50%;background:#fff;border:4px solid #a3e635;
+  box-shadow:0 0 0 3px rgba(0,0,0,.6);cursor:pointer;display:flex;align-items:center;justify-content:center;
+}
+.cam-shutter:active{transform:scale(.93)}
+.cam-shutter.recording{background:#dc2626;border-color:#fff}
+.cam-shutter.recording::after{content:"";width:24px;height:24px;background:#fff;border-radius:4px}
+.cam-subpanel{
+  position:absolute;inset:0;background:rgba(15,20,25,.95);z-index:10;
+  padding:16px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;
+}
+.cam-subpanel label{color:#94a3b8}
+.cam-subpanel input,.cam-subpanel select,.cam-subpanel textarea{background:#1e293b;color:#fff;border-color:#334155}
+.cam-fallback{
+  padding:24px;text-align:center;max-width:360px;display:flex;flex-direction:column;gap:10px;
+}
 #print-area{display:none}
 @media print{
-  .wrap,.modal-bg{display:none!important}
+  .wrap,.modal-bg,.cam-overlay{display:none!important}
   body{background:#fff!important;color:#000!important;padding:0!important;font-size:11.5px}
   #print-area{display:block!important;padding:8mm}
   .p-card{border:1px solid #888;padding:10px;margin-bottom:14px;page-break-inside:avoid}
@@ -185,6 +260,7 @@ small{color:var(--muted);font-size:12px}
 <body>
 <div class="wrap" id="app-wrap"></div>
 <div id="modal-root"></div>
+<div id="cam-root"></div>
 <div id="print-area"></div>
 
 <script>
@@ -274,6 +350,7 @@ let S = {
     driveB: DRIVE_FOLDERS[2].url,
     resFoto: 2560,
     carimboOn: 1,
+    autoSaveGallery: 1,
     soPreenchidos: 1,
     resp: "",
     crea: "",
@@ -750,23 +827,289 @@ function renderThumbs(id, list, kind, idx) {
   `).join("")}</div>`;
 }
 
+function getPhotoDestinationOptions(blockId) {
+  const b = getB().find(x => x[0] == blockId) || [blockId, blockId, 1, ""];
+  const f = F(blockId);
+  const o = b[3] || "";
+  const opts = [];
+  if (!o.includes("only")) {
+    opts.push({ key: "fachada:-1:-1", label: "Fachada", ponto: "Fachada", kind: "fachada", ri: -1, ni: -1 });
+    opts.push({ key: "telhado:-1:-1", label: "Telhado / Captação", ponto: "Telhado", kind: "telhado", ri: -1, ni: -1 });
+  }
+  if (o.includes("bep") || o.includes("only")) {
+    opts.push({ key: "bep:-1:-1", label: "BEP (Barramento)", ponto: "BEP", kind: "bep", ri: -1, ni: -1 });
+  }
+  (f.rows || []).forEach((r, idx) => {
+    opts.push({
+      key: `row:${idx}:-1`,
+      label: r.loc ? `${r.p} (${r.loc})` : r.p,
+      ponto: r.p,
+      kind: "row",
+      ri: idx,
+      ni: -1
+    });
+  });
+  (f.ncs || []).forEach((n, idx) => {
+    opts.push({
+      key: `nc:-1:${idx}`,
+      label: `NC-${String(idx + 1).padStart(2, "0")}${n.ponto ? ` (${n.ponto})` : ""}`,
+      ponto: `NC-${idx + 1}`,
+      kind: "nc",
+      ri: -1,
+      ni: idx
+    });
+  });
+  return opts;
+}
+
+function getDefaultMeasureLine(blockId, kind, ri) {
+  const f = F(blockId);
+  if (kind === "row" && ri >= 0 && f.rows[ri]) {
+    const r = f.rows[ri];
+    const parts = [];
+    if (r.cont !== "") parts.push(`Cont: ${r.cont} Ohm`);
+    if (r.terra !== "") parts.push(`Terra: ${r.terra} Ohm`);
+    return parts.join("  |  ");
+  }
+  if (kind === "bep") {
+    const parts = [];
+    if (f.bepC !== "") parts.push(`Cont BEP: ${f.bepC} Ohm`);
+    if (f.bepT !== "") parts.push(`Terra BEP: ${f.bepT} Ohm`);
+    return parts.join("  |  ");
+  }
+  return "";
+}
+
+function removePhotoRefFromBlock(blockId, photoName) {
+  const f = S.f[blockId];
+  if (!f) return;
+  const rm = arr => {
+    if (!Array.isArray(arr)) return;
+    const idx = arr.indexOf(photoName);
+    if (idx >= 0) arr.splice(idx, 1);
+  };
+  rm(f.fachadaPh);
+  rm(f.telhadoPh);
+  rm(f.bepPh);
+  (f.rows || []).forEach(r => rm(r.ph));
+  (f.ncs || []).forEach(n => rm(n.ph));
+}
+
+function addPhotoRefToBlock(blockId, kind, ri, ni, photoName, horaFotoStr) {
+  const f = F(blockId);
+  if (kind === "fachada") {
+    if (!f.fachadaPh.includes(photoName)) f.fachadaPh.push(photoName);
+    if (horaFotoStr) f.fachadaHora = horaFotoStr;
+  } else if (kind === "telhado") {
+    if (!f.telhadoPh.includes(photoName)) f.telhadoPh.push(photoName);
+    if (horaFotoStr) f.telhadoHora = horaFotoStr;
+  } else if (kind === "row" && ri >= 0 && f.rows[ri]) {
+    if (!f.rows[ri].ph.includes(photoName)) f.rows[ri].ph.push(photoName);
+    if (horaFotoStr) f.rows[ri].horaFoto = horaFotoStr;
+    f.rows[ri].fotoVisorOk = 1;
+  } else if (kind === "nc" && ni >= 0 && f.ncs[ni]) {
+    f.ncs[ni].ph ??= [];
+    if (!f.ncs[ni].ph.includes(photoName)) f.ncs[ni].ph.push(photoName);
+    if (horaFotoStr) f.ncs[ni].horaFoto = horaFotoStr;
+  } else {
+    f.bepPh ??= [];
+    if (!f.bepPh.includes(photoName)) f.bepPh.push(photoName);
+    if (horaFotoStr) f.bepHora = horaFotoStr;
+  }
+}
+
+function saveToDeviceGallery(blob, filename) {
+  try {
+    const u = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = u;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(u), 3000);
+  } catch (e) {}
+}
+
+function onViewPhotoBlockChange() {
+  const blkId = $("#vp-block").value;
+  const opts = getPhotoDestinationOptions(blkId);
+  const sel = $("#vp-target");
+  sel.innerHTML = opts.map(o => `<option value="${esc(o.key)}">${esc(o.label)}</option>`).join("");
+  onViewPhotoTargetChange();
+}
+
+function onViewPhotoTargetChange() {
+  const blkId = $("#vp-block").value;
+  const b = getB().find(x => x[0] == blkId) || [blkId, blkId];
+  const key = $("#vp-target").value;
+  const opts = getPhotoDestinationOptions(blkId);
+  const chosen = opts.find(o => o.key === key) || opts[0];
+  if (chosen) {
+    $("#vp-title").value = `${b[1]}--${chosen.label}`;
+    const m = getDefaultMeasureLine(blkId, chosen.kind, chosen.ri);
+    if (m) $("#vp-meas").value = m;
+  }
+}
+
+async function reapplyPhotoStamp(name, updates = {}) {
+  const rec = await pget(name);
+  if (!rec) return null;
+  const sourceBlob = rec.rawBlob || rec.b;
+  if (!sourceBlob) return null;
+
+  const newBlockId = updates.newBlockId || rec.id;
+  const newKind = updates.newKind || rec.kind || "row";
+  const newRi = updates.newRi !== undefined ? updates.newRi : (rec.ri ?? -1);
+  const newNi = updates.newNi !== undefined ? updates.newNi : (rec.ni ?? -1);
+  const newPonto = updates.newPonto || rec.ponto;
+
+  const stampTitle = updates.stampTitle !== undefined ? updates.stampTitle : (rec.stampTitle || "");
+  const stampDate = updates.stampDate !== undefined ? updates.stampDate : (rec.stampDate || "");
+  const extraMeasure = updates.extraMeasure !== undefined ? updates.extraMeasure : (rec.extraMeasure || "");
+  const noteText = updates.noteText !== undefined ? updates.noteText : (rec.noteText || "");
+  const notePos = updates.notePos || rec.notePos || "bottom";
+  const noteColor = updates.noteColor || rec.noteColor || "yellow";
+
+  const newStamped = await processPhotoHDWithStamp(sourceBlob, stampTitle, stampDate, extraMeasure, {
+    noteText,
+    notePos,
+    noteColor
+  });
+
+  // Se trocou de bloco ou ponto, move a referência nas fichas
+  if (newBlockId !== rec.id || newKind !== rec.kind || newRi !== rec.ri || newNi !== rec.ni) {
+    removePhotoRefFromBlock(rec.id, name);
+    addPhotoRefToBlock(newBlockId, newKind, newRi, newNi, name, rec.horaFoto || "");
+  }
+
+  const updatedRec = {
+    ...rec,
+    b: newStamped,
+    rawBlob: rec.rawBlob || sourceBlob,
+    id: newBlockId,
+    kind: newKind,
+    ri: newRi,
+    ni: newNi,
+    ponto: newPonto,
+    stampTitle,
+    stampDate,
+    extraMeasure,
+    noteText,
+    notePos,
+    noteColor,
+    s: 0
+  };
+  await pset(name, updatedRec);
+  if (photoURLCache[name]) {
+    URL.revokeObjectURL(photoURLCache[name]);
+    delete photoURLCache[name];
+  }
+  saveNow(true);
+  return updatedRec;
+}
+
+async function savePhotoEdits(name) {
+  const blkId = $("#vp-block").value;
+  const targetKey = $("#vp-target").value;
+  const opts = getPhotoDestinationOptions(blkId);
+  const chosen = opts.find(o => o.key === targetKey) || { kind: "bep", ri: -1, ni: -1, ponto: "Geral" };
+
+  await reapplyPhotoStamp(name, {
+    newBlockId: blkId,
+    newKind: chosen.kind,
+    newRi: chosen.ri,
+    newNi: chosen.ni,
+    newPonto: chosen.ponto,
+    stampTitle: $("#vp-title").value.trim(),
+    stampDate: $("#vp-date").value.trim(),
+    extraMeasure: $("#vp-meas").value.trim(),
+    noteText: $("#vp-note").value.trim(),
+    notePos: $("#vp-npos").value,
+    noteColor: $("#vp-ncolor").value
+  });
+
+  await render();
+  await viewPhoto(name);
+}
+
 async function viewPhoto(name) {
   const rec = await pget(name);
   if (!rec || !rec.b) return;
   const u = await getThumbURL(name);
+  const rawUrl = rec.rawBlob ? URL.createObjectURL(rec.rawBlob) : "";
+  const B = getB();
+  const destOpts = getPhotoDestinationOptions(rec.id || B[0][0]);
+  const curKey = `${rec.kind || "bep"}:${rec.ri ?? -1}:${rec.ni ?? -1}`;
+
   $("#modal-root").innerHTML = `
     <div class="modal-bg" onclick="closeModal()">
-      <div class="modal" onclick="event.stopPropagation()" style="text-align:center">
+      <div class="modal" onclick="event.stopPropagation()">
         <div class="row" style="margin-bottom:8px">
           <b class="grow mono" style="font-size:12px;word-break:break-all">${esc(name)}</b>
           <button class="b" onclick="closeModal()">Fechar</button>
         </div>
-        <img src="${u}" style="max-width:100%;max-height:72vh;border:1px solid var(--line)">
-        <div style="margin-top:8px;font-size:12px;color:var(--muted)">
-          ${esc(rec.stampTitle || "")} • ${esc(rec.stampDate || "")}
+        <div style="text-align:center;background:#090b0d;padding:6px">
+          <img src="${u}" style="max-width:100%;max-height:52vh;border:1px solid var(--line)">
         </div>
-        <div style="margin-top:10px">
-          <a href="${u}" download="${esc(name)}" class="big" style="text-decoration:none">📥 Baixar Foto HD no Celular</a>
+        <div class="g2" style="margin-top:8px">
+          <a href="${u}" download="${esc(name)}" class="big wa" style="margin:0;font-size:13px;padding:10px">📲 Salvar na Galeria</a>
+          ${rawUrl ? `<a href="${rawUrl}" download="ORIG_${esc(name)}" class="big out" style="margin:0;font-size:13px;padding:10px">📥 Baixar Original Limpa</a>` : `<span class="tag CONCLUIDO" style="align-self:center;text-align:center">Original HD protegida</span>`}
+        </div>
+
+        <div style="margin-top:12px;border-top:2px solid var(--line);padding-top:10px">
+          <h3 style="margin-bottom:6px">✏️ Editar Foto, Carimbo ou Trocar de Bloco</h3>
+          <div class="g2">
+            <div>
+              <label>Bloco / Edificação</label>
+              <select id="vp-block" onchange="onViewPhotoBlockChange()">
+                ${B.map(x => `<option value="${esc(x[0])}" ${x[0] == rec.id ? "selected" : ""}>${esc(x[1])} [${esc(x[0])}]</option>`).join("")}
+              </select>
+            </div>
+            <div>
+              <label>Ponto / Destino</label>
+              <select id="vp-target" onchange="onViewPhotoTargetChange()">
+                ${destOpts.map(o => `<option value="${esc(o.key)}" ${o.key === curKey ? "selected" : ""}>${esc(o.label)}</option>`).join("")}
+              </select>
+            </div>
+          </div>
+
+          <label>Texto Principal do Carimbo (Linha 1)</label>
+          <input id="vp-title" value="${esc(rec.stampTitle || "")}" placeholder="Ex.: edifício B--Bepe">
+
+          <div class="g2">
+            <div>
+              <label>Data e Hora (Linha 2)</label>
+              <input id="vp-date" value="${esc(rec.stampDate || "")}">
+            </div>
+            <div>
+              <label>Medições (Linha 3 amarela)</label>
+              <input id="vp-meas" value="${esc(rec.extraMeasure || "")}" placeholder="Cont / Terra Ohm">
+            </div>
+          </div>
+
+          <label>Balãozinho / Anotação Escrita na Imagem</label>
+          <input id="vp-note" value="${esc(rec.noteText || "")}" placeholder="Ex.: RETIFICAÇÃO BLOCO B, CAIXA QUEBRADA...">
+          <div class="g2">
+            <div>
+              <label>Posição do Balão</label>
+              <select id="vp-npos">
+                <option value="bottom" ${(rec.notePos || "bottom") === "bottom" ? "selected" : ""}>Embaixo (Centro)</option>
+                <option value="center" ${rec.notePos === "center" ? "selected" : ""}>Centro da Foto</option>
+                <option value="top-right" ${rec.notePos === "top-right" ? "selected" : ""}>Topo Direito</option>
+              </select>
+            </div>
+            <div>
+              <label>Cor do Balão</label>
+              <select id="vp-ncolor">
+                <option value="yellow" ${(rec.noteColor || "yellow") === "yellow" ? "selected" : ""}>Amarelo Destaque</option>
+                <option value="red" ${rec.noteColor === "red" ? "selected" : ""}>Vermelho Alerta (NC)</option>
+                <option value="white" ${rec.noteColor === "white" ? "selected" : ""}>Branco Limpo</option>
+              </select>
+            </div>
+          </div>
+
+          <button class="big" style="margin-top:10px;background:var(--navy)" onclick="savePhotoEdits('${esc(name)}')">💾 Re-aplicar Carimbo na Foto Original</button>
         </div>
       </div>
     </div>`;
@@ -794,7 +1137,7 @@ function closeModal() {
 }
 
 /* ============================================================================
-   CAPTURA DE FOTO EM HD + CARIMBO + REGISTRO AUTOMÁTICO DE HORA DA FOTO
+   CAPTURA DE FOTO EM HD + CARIMBO + BALÃOZINHO + CÂMERA INTEGRADA AO VIVO
    ============================================================================ */
 function formatStampDate(d) {
   const meses = ["jan.", "fev.", "mar.", "abr.", "mai.", "jun.", "jul.", "ago.", "set.", "out.", "nov.", "dez."];
@@ -821,7 +1164,42 @@ function roundRectCanvas(ctx, x, y, w, h, r) {
   ctx.closePath();
 }
 
-function processPhotoHDWithStamp(file, stampLine1, stampLine2, stampLine3 = "") {
+function prepareRawPhotoBlob(file) {
+  return new Promise(res => {
+    const img = new Image();
+    img.onload = () => {
+      const maxDim = Number(S.cfg.resFoto) || 2560;
+      const scale = maxDim > 0 ? Math.min(1, maxDim / Math.max(img.width, img.height)) : 1;
+      const W = Math.round(img.width * scale);
+      const H = Math.round(img.height * scale);
+      const c = document.createElement("canvas");
+      c.width = W;
+      c.height = H;
+      c.getContext("2d").drawImage(img, 0, 0, W, H);
+      c.toBlob(blob => res(blob), "image/jpeg", 0.94);
+    };
+    img.onerror = () => res(file);
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+function wrapCanvasText(ctx, text, maxW) {
+  const words = String(text || "").split(/\s+/).filter(Boolean);
+  const lines = [];
+  let cur = "";
+  for (const w of words) {
+    const cand = cur ? cur + " " + w : w;
+    if (ctx.measureText(cand).width <= maxW) cur = cand;
+    else {
+      if (cur) lines.push(cur);
+      cur = w;
+    }
+  }
+  if (cur) lines.push(cur);
+  return lines.length ? lines : [""];
+}
+
+function processPhotoHDWithStamp(file, stampLine1, stampLine2, stampLine3 = "", opts = {}) {
   return new Promise(res => {
     const img = new Image();
     img.onload = () => {
@@ -836,10 +1214,11 @@ function processPhotoHDWithStamp(file, stampLine1, stampLine2, stampLine3 = "") 
       const ctx = c.getContext("2d");
       ctx.drawImage(img, 0, 0, W, H);
 
-      if (S.cfg.carimboOn !== 0) {
-        const refSide = Math.min(W, H);
-        const marginX = Math.round(refSide * 0.035);
-        const marginY = Math.round(refSide * 0.035);
+      const refSide = Math.min(W, H);
+      const marginX = Math.round(refSide * 0.035);
+      const marginY = Math.round(refSide * 0.035);
+
+      if (S.cfg.carimboOn !== 0 && (stampLine1 || stampLine2 || stampLine3)) {
         const fontTitle = Math.max(24, Math.round(refSide * 0.048));
         const fontSub = Math.max(20, Math.round(refSide * 0.038));
         const padX = Math.round(fontTitle * 0.72);
@@ -847,9 +1226,9 @@ function processPhotoHDWithStamp(file, stampLine1, stampLine2, stampLine3 = "") 
         const lineGap = Math.round(fontTitle * 0.34);
 
         ctx.font = `700 ${fontTitle}px system-ui, -apple-system, Roboto, Arial, sans-serif`;
-        const w1 = ctx.measureText(stampLine1).width;
+        const w1 = ctx.measureText(stampLine1 || "").width;
         ctx.font = `400 ${fontSub}px system-ui, -apple-system, Roboto, Arial, sans-serif`;
-        const w2 = ctx.measureText(stampLine2).width;
+        const w2 = ctx.measureText(stampLine2 || "").width;
         const w3 = stampLine3 ? ctx.measureText(stampLine3).width : 0;
 
         const minBoxW = Math.round(W * 0.72);
@@ -867,15 +1246,61 @@ function processPhotoHDWithStamp(file, stampLine1, stampLine2, stampLine3 = "") 
         ctx.fillStyle = "#ffffff";
         ctx.textBaseline = "top";
         ctx.font = `700 ${fontTitle}px system-ui, -apple-system, Roboto, Arial, sans-serif`;
-        ctx.fillText(stampLine1, marginX + padX, marginY + padY);
+        ctx.fillText(stampLine1 || "", marginX + padX, marginY + padY);
 
         ctx.font = `400 ${fontSub}px system-ui, -apple-system, Roboto, Arial, sans-serif`;
-        ctx.fillText(stampLine2, marginX + padX, marginY + padY + fontTitle + lineGap);
+        ctx.fillText(stampLine2 || "", marginX + padX, marginY + padY + fontTitle + lineGap);
 
         if (stampLine3) {
           ctx.fillStyle = "#fde047";
           ctx.font = `600 ${fontSub}px system-ui, -apple-system, Roboto, Arial, sans-serif`;
           ctx.fillText(stampLine3, marginX + padX, marginY + padY + fontTitle + lineGap * 2 + fontSub);
+        }
+        ctx.restore();
+      }
+
+      // Desenha balãozinho de texto escrito pelo técnico na tela
+      if (opts.noteText && String(opts.noteText).trim()) {
+        const noteStr = String(opts.noteText).trim();
+        const fontNote = Math.max(22, Math.round(refSide * 0.042));
+        const bPadX = Math.round(fontNote * 0.8);
+        const bPadY = Math.round(fontNote * 0.55);
+        const maxBubbleW = Math.round(W * 0.86);
+        ctx.font = `700 ${fontNote}px system-ui, -apple-system, Roboto, Arial, sans-serif`;
+        const bLines = wrapCanvasText(ctx, noteStr, maxBubbleW - bPadX * 2);
+        const lineStep = Math.round(fontNote * 1.25);
+        const longest = Math.max(...bLines.map(l => ctx.measureText(l).width));
+        const bw = Math.min(maxBubbleW, Math.round(longest + bPadX * 2));
+        const bh = Math.round(bPadY * 2 + bLines.length * lineStep - (lineStep - fontNote));
+
+        let bx = Math.round((W - bw) / 2);
+        let by = H - bh - marginY;
+        if (opts.notePos === "center") {
+          by = Math.round((H - bh) / 2);
+        } else if (opts.notePos === "top-right") {
+          bx = W - bw - marginX;
+          by = Math.round(H * 0.22);
+        }
+
+        const palette = opts.noteColor === "red"
+          ? { bg: "rgba(220, 38, 38, 0.92)", fg: "#ffffff", br: "#7f1d1d" }
+          : (opts.noteColor === "white"
+            ? { bg: "rgba(255, 255, 255, 0.94)", fg: "#111827", br: "#1F3A5F" }
+            : { bg: "rgba(253, 224, 71, 0.95)", fg: "#111827", br: "#a16207" });
+
+        ctx.save();
+        roundRectCanvas(ctx, bx, by, bw, bh, Math.round(fontNote * 0.55));
+        ctx.fillStyle = palette.bg;
+        ctx.fill();
+        ctx.lineWidth = Math.max(3, Math.round(refSide * 0.004));
+        ctx.strokeStyle = palette.br;
+        ctx.stroke();
+
+        ctx.fillStyle = palette.fg;
+        ctx.textBaseline = "top";
+        ctx.font = `700 ${fontNote}px system-ui, -apple-system, Roboto, Arial, sans-serif`;
+        for (let li = 0; li < bLines.length; li++) {
+          ctx.fillText(bLines[li], bx + bPadX, by + bPadY + li * lineStep);
         }
         ctx.restore();
       }
@@ -886,7 +1311,7 @@ function processPhotoHDWithStamp(file, stampLine1, stampLine2, stampLine3 = "") 
   });
 }
 
-async function attachPhotoBlob(id, ponto, ri, ni, blobOrFile, kindOverride = "", dateObj = null) {
+async function attachPhotoBlob(id, ponto, ri, ni, blobOrFile, kindOverride = "", dateObj = null, opts = {}) {
   const b = getB().find(x => x[0] == id) || [id, id, 1, ""];
   const f = F(id);
   let subLabel = ponto;
@@ -907,10 +1332,18 @@ async function attachPhotoBlob(id, ponto, ri, ni, blobOrFile, kindOverride = "",
   }
 
   const d = dateObj || new Date();
-  const stampLine1 = `${b[1]}--${subLabel}`;
+  const stampLine1 = opts.stampTitleOverride || `${b[1]}--${subLabel}`;
   const stampLine2 = formatStampDate(d);
   const horaFotoStr = d.toTimeString().slice(0, 8);
-  const bl = await processPhotoHDWithStamp(blobOrFile, stampLine1, stampLine2, extraMeasure);
+  const resolvedKind = kindOverride || (ri >= 0 ? "row" : (ni >= 0 ? "nc" : "bep"));
+
+  // Salva 2 versões: (1) Original limpa em HD para permitir editar depois sem perder a foto, (2) Versão carimbada final
+  const rawBlob = await prepareRawPhotoBlob(blobOrFile);
+  const bl = await processPhotoHDWithStamp(rawBlob, stampLine1, stampLine2, extraMeasure, {
+    noteText: opts.noteText || "",
+    notePos: opts.notePos || "bottom",
+    noteColor: opts.noteColor || "yellow"
+  });
 
   const hh = horaFotoStr.replace(/:/g, "");
   const cleanPonto = String(ponto).replace(/[^a-zA-Z0-9_-]/g, "");
@@ -918,39 +1351,506 @@ async function attachPhotoBlob(id, ponto, ri, ni, blobOrFile, kindOverride = "",
 
   await pset(name, {
     b: bl,
+    rawBlob,
     id,
     ponto,
-    kind: kindOverride || (ri >= 0 ? "row" : (ni >= 0 ? "nc" : "bep")),
+    kind: resolvedKind,
+    ri: ri ?? -1,
+    ni: ni ?? -1,
     stampTitle: stampLine1,
     stampDate: stampLine2,
     horaFoto: horaFotoStr,
     extraMeasure,
+    noteText: opts.noteText || "",
+    notePos: opts.notePos || "bottom",
+    noteColor: opts.noteColor || "yellow",
     t: d.toISOString(),
     s: 0
   });
 
-  if (kindOverride === "fachada") {
-    f.fachadaPh.push(name);
-    f.fachadaHora = horaFotoStr;
-  } else if (kindOverride === "telhado") {
-    f.telhadoPh.push(name);
-    f.telhadoHora = horaFotoStr;
-  } else if (ri >= 0 && ri != null && ri !== undefined) {
-    f.rows[ri].ph.push(name);
-    f.rows[ri].horaFoto = horaFotoStr;
-    f.rows[ri].fotoVisorOk = 1;
-  } else if (ni != null && ni >= 0) {
-    (f.ncs[ni].ph ??= []).push(name);
-    f.ncs[ni].horaFoto = horaFotoStr;
-  } else {
-    (f.bepPh ??= []).push(name);
-    f.bepHora = horaFotoStr;
-  }
+  addPhotoRefToBlock(id, resolvedKind, ri ?? -1, ni ?? -1, name, horaFotoStr);
   saveNow(true);
+
+  if (opts.autoDownloadGallery && S.cfg.autoSaveGallery !== 0) {
+    saveToDeviceGallery(bl, name);
+  }
   return name;
 }
 
-function photo(id, ponto, ri, ni, useCam = true, kindOverride = "") {
+/* ============================================================================
+   CÂMERA INTEGRADA EM TELA CHEIA (FLASH, TIMER, INVERSÃO, FOTO/VÍDEO, TEXTO)
+   ============================================================================ */
+let camState = null, camClockTimer = null, camRecInterval = null;
+
+function buildCamStampTitle() {
+  if (!camState) return "";
+  if (camState.customTitle) return camState.customTitle;
+  const b = getB().find(x => x[0] == camState.id) || [camState.id, camState.id];
+  const f = F(camState.id);
+  let sub = camState.ponto;
+  if (camState.kind === "row" && camState.ri >= 0 && f.rows[camState.ri]) {
+    const r = f.rows[camState.ri];
+    sub = r.loc ? `${r.p} (${r.loc})` : r.p;
+  }
+  return `${b[1]}--${sub}`;
+}
+
+function updateCamLiveOverlay() {
+  if (!camState) return;
+  const l1 = $("#cam-st-l1"), l2 = $("#cam-st-l2"), l3 = $("#cam-st-l3");
+  if (l1) l1.textContent = buildCamStampTitle();
+  if (l2) l2.textContent = formatStampDate(new Date());
+  if (l3) {
+    const m = getDefaultMeasureLine(camState.id, camState.kind, camState.ri);
+    l3.textContent = m;
+    l3.style.display = m ? "block" : "none";
+  }
+
+  const bal = $("#cam-balloon-live");
+  if (bal) {
+    if (camState.noteText && camState.noteText.trim()) {
+      bal.style.display = "block";
+      bal.textContent = camState.noteText.trim();
+      bal.className = `cam-balloon-live pos-${camState.notePos || "bottom"}`;
+      const pal = camState.noteColor === "red"
+        ? "background:rgba(220,38,38,.92);color:#fff;border:2px solid #7f1d1d"
+        : (camState.noteColor === "white"
+          ? "background:rgba(255,255,255,.94);color:#111827;border:2px solid #1F3A5F"
+          : "background:rgba(253,224,71,.95);color:#111827;border:2px solid #a16207");
+      bal.style.cssText = pal;
+    } else {
+      bal.style.display = "none";
+    }
+  }
+}
+
+async function startCamStream() {
+  if (!camState) return;
+  stopCamStreamOnly();
+  const fb = $("#cam-fallback-box"), vid = $("#cam-video");
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    if (vid) vid.style.display = "none";
+    if (fb) fb.style.display = "flex";
+    return;
+  }
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: { ideal: camState.facing },
+        width: { ideal: 3840 },
+        height: { ideal: 2160 }
+      },
+      audio: camState.mode === "video"
+    });
+    if (!camState) { stream.getTracks().forEach(t => t.stop()); return; }
+    camState.stream = stream;
+    if (vid) {
+      vid.style.display = "block";
+      vid.srcObject = stream;
+      await vid.play().catch(() => {});
+    }
+    if (fb) fb.style.display = "none";
+    if (camState.torch) await applyCamTorch(true);
+  } catch (err) {
+    if (vid) vid.style.display = "none";
+    if (fb) {
+      fb.style.display = "flex";
+      const msg = $("#cam-fb-msg");
+      if (msg) msg.textContent = "Não foi possível abrir a câmera ao vivo neste aparelho/permissão. Use os botões abaixo:";
+    }
+  }
+}
+
+function stopCamStreamOnly() {
+  if (camState && camState.stream) {
+    camState.stream.getTracks().forEach(t => t.stop());
+    camState.stream = null;
+  }
+}
+
+async function applyCamTorch(on) {
+  if (!camState || !camState.stream) return false;
+  const track = camState.stream.getVideoTracks()[0];
+  if (!track || !track.applyConstraints) return false;
+  try {
+    await track.applyConstraints({ advanced: [{ torch: !!on }] });
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+async function toggleCamTorch() {
+  if (!camState) return;
+  camState.torch = !camState.torch;
+  const ok = await applyCamTorch(camState.torch);
+  const btn = $("#cam-btn-torch");
+  if (btn) {
+    btn.classList.toggle("active", camState.torch && ok);
+    btn.textContent = camState.torch ? "⚡ ON" : "⚡";
+  }
+  if (camState.torch && !ok) {
+    camState.torch = false;
+    if (btn) btn.classList.remove("active");
+    alert("Seu navegador ou câmera atual não liberou controle direto do flash. Você pode usar o botão '📷 Nativa' no topo para usar o app de câmera do aparelho.");
+  }
+}
+
+function cycleCamTimer() {
+  if (!camState) return;
+  const next = camState.timer === 0 ? 3 : (camState.timer === 3 ? 5 : 0);
+  camState.timer = next;
+  const btn = $("#cam-btn-timer");
+  if (btn) {
+    btn.classList.toggle("active", next > 0);
+    btn.textContent = next > 0 ? `⏱ ${next}s` : "⏱";
+  }
+}
+
+async function flipCamFacing() {
+  if (!camState) return;
+  camState.facing = camState.facing === "environment" ? "user" : "environment";
+  camState.torch = false;
+  await startCamStream();
+}
+
+async function setCamMode(mode) {
+  if (!camState || camState.mode === mode) return;
+  if (camState.recorder && camState.recorder.state === "recording") {
+    camState.recorder.stop();
+  }
+  camState.mode = mode;
+  renderCamOverlay();
+  await startCamStream();
+}
+
+function toggleCamAutoGallery() {
+  S.cfg.autoSaveGallery = S.cfg.autoSaveGallery === 0 ? 1 : 0;
+  saveNow(false);
+  const btn = $("#cam-btn-autogal");
+  if (btn) {
+    btn.classList.toggle("active", S.cfg.autoSaveGallery !== 0);
+    btn.title = S.cfg.autoSaveGallery !== 0 ? "Auto-salvar na galeria: ATIVADO" : "Auto-salvar na galeria: DESATIVADO";
+  }
+}
+
+function openCamSubpanel(panel) {
+  if (!camState) return;
+  camState.subpanel = camState.subpanel === panel ? "" : panel;
+  renderCamSubpanel();
+}
+
+function renderCamSubpanel() {
+  const root = $("#cam-sub-root");
+  if (!root || !camState) return;
+  if (!camState.subpanel) { root.innerHTML = ""; return; }
+
+  if (camState.subpanel === "loc") {
+    const B = getB();
+    const opts = getPhotoDestinationOptions(camState.id);
+    const curKey = `${camState.kind}:${camState.ri}:${camState.ni}`;
+    root.innerHTML = `
+      <div class="cam-subpanel">
+        <div class="row">
+          <b class="grow" style="font-size:16px">📍 Mudar Bloco / Ponto na Câmera</b>
+          <button class="b" onclick="openCamSubpanel('')">Fechar</button>
+        </div>
+        <label>Bloco / Edificação</label>
+        <select id="cs-blk" onchange="onCamSubBlockChange()">
+          ${B.map(x => `<option value="${esc(x[0])}" ${x[0] == camState.id ? "selected" : ""}>${esc(x[1])} [${esc(x[0])}]</option>`).join("")}
+        </select>
+        <label>Ponto / Descida / Item</label>
+        <select id="cs-tgt">
+          ${opts.map(o => `<option value="${esc(o.key)}" ${o.key === curKey ? "selected" : ""}>${esc(o.label)}</option>`).join("")}
+        </select>
+        <button class="big wa" style="margin-top:10px" onclick="applyCamSubLocation()">✓ Aplicar Local no Carimbo</button>
+      </div>`;
+  } else if (camState.subpanel === "edit") {
+    root.innerHTML = `
+      <div class="cam-subpanel">
+        <div class="row">
+          <b class="grow" style="font-size:16px">✏️ Escrever na Tela / Editar Carimbo</b>
+          <button class="b" onclick="openCamSubpanel('')">Fechar</button>
+        </div>
+        <label>Texto Principal do Carimbo (Linha 1 — deixe vazio p/ automático)</label>
+        <input id="cs-title" value="${esc(camState.customTitle)}" placeholder="${esc(buildCamStampTitle())}">
+        <label>Balãozinho / Texto Livre na Foto (opcional)</label>
+        <input id="cs-note" value="${esc(camState.noteText)}" placeholder="Ex.: A, BLOCO B, CAIXA SEM TAMPA...">
+        <div class="g2">
+          <div>
+            <label>Posição do Balão</label>
+            <select id="cs-npos">
+              <option value="bottom" ${camState.notePos === "bottom" ? "selected" : ""}>Embaixo (Centro)</option>
+              <option value="center" ${camState.notePos === "center" ? "selected" : ""}>Centro da Foto</option>
+              <option value="top-right" ${camState.notePos === "top-right" ? "selected" : ""}>Topo Direito</option>
+            </select>
+          </div>
+          <div>
+            <label>Cor do Balão</label>
+            <select id="cs-ncolor">
+              <option value="yellow" ${camState.noteColor === "yellow" ? "selected" : ""}>Amarelo</option>
+              <option value="red" ${camState.noteColor === "red" ? "selected" : ""}>Vermelho (NC)</option>
+              <option value="white" ${camState.noteColor === "white" ? "selected" : ""}>Branco</option>
+            </select>
+          </div>
+        </div>
+        <div class="g2" style="margin-top:10px">
+          <button class="b" onclick="clearCamTextOverlay()">Limpar Balão</button>
+          <button class="big wa" style="margin:0" onclick="applyCamTextOverlay()">✓ Mostrar na Tela</button>
+        </div>
+      </div>`;
+  }
+}
+
+function onCamSubBlockChange() {
+  const blkId = $("#cs-blk").value;
+  const opts = getPhotoDestinationOptions(blkId);
+  $("#cs-tgt").innerHTML = opts.map(o => `<option value="${esc(o.key)}">${esc(o.label)}</option>`).join("");
+}
+
+function applyCamSubLocation() {
+  const blkId = $("#cs-blk").value;
+  const key = $("#cs-tgt").value;
+  const opts = getPhotoDestinationOptions(blkId);
+  const chosen = opts.find(o => o.key === key) || opts[0];
+  camState.id = blkId;
+  if (chosen) {
+    camState.kind = chosen.kind;
+    camState.ri = chosen.ri;
+    camState.ni = chosen.ni;
+    camState.ponto = chosen.ponto;
+  }
+  camState.customTitle = "";
+  camState.subpanel = "";
+  renderCamSubpanel();
+  updateCamLiveOverlay();
+}
+
+function clearCamTextOverlay() {
+  $("#cs-note").value = "";
+  $("#cs-title").value = "";
+  applyCamTextOverlay();
+}
+
+function applyCamTextOverlay() {
+  camState.customTitle = ($("#cs-title").value || "").trim();
+  camState.noteText = ($("#cs-note").value || "").trim();
+  camState.notePos = $("#cs-npos").value;
+  camState.noteColor = $("#cs-ncolor").value;
+  camState.subpanel = "";
+  renderCamSubpanel();
+  updateCamLiveOverlay();
+}
+
+async function triggerCamShutter() {
+  if (!camState) return;
+  if (camState.mode === "video") {
+    if (camState.recorder && camState.recorder.state === "recording") {
+      camState.recorder.stop();
+    } else {
+      startCamVideoRecording();
+    }
+    return;
+  }
+
+  if (camState.timer > 0) {
+    const cd = $("#cam-countdown");
+    for (let s = camState.timer; s > 0; s--) {
+      if (!camState) return;
+      if (cd) cd.textContent = String(s);
+      await new Promise(r => setTimeout(r, 1000));
+    }
+    if (cd) cd.textContent = "";
+  }
+  await captureLivePhoto();
+}
+
+async function captureLivePhoto() {
+  const vid = $("#cam-video");
+  if (!vid || !vid.videoWidth) {
+    alert("Câmera ao vivo não está ativa. Use '📷 Nativa' ou '🖼 Galeria'.");
+    return;
+  }
+  const c = document.createElement("canvas");
+  c.width = vid.videoWidth;
+  c.height = vid.videoHeight;
+  const ctx = c.getContext("2d");
+  if (camState.facing === "user") {
+    ctx.translate(c.width, 0);
+    ctx.scale(-1, 1);
+  }
+  ctx.drawImage(vid, 0, 0, c.width, c.height);
+
+  const rawCapture = await new Promise(res => c.toBlob(res, "image/jpeg", 0.95));
+  const name = await attachPhotoBlob(camState.id, camState.ponto, camState.ri, camState.ni, rawCapture, camState.kind, new Date(), {
+    stampTitleOverride: camState.customTitle || "",
+    noteText: camState.noteText || "",
+    notePos: camState.notePos || "bottom",
+    noteColor: camState.noteColor || "yellow",
+    autoDownloadGallery: true
+  });
+
+  camState.lastPhotoName = name;
+  const chip = $("#cam-last-chip");
+  if (chip) {
+    chip.style.display = "inline-flex";
+    chip.textContent = `✓ Foto salva (${camState.ponto}) — Editar ✎`;
+  }
+  render();
+}
+
+function startCamVideoRecording() {
+  if (!camState || !camState.stream || typeof MediaRecorder === "undefined") {
+    alert("Gravação de vídeo ao vivo não suportada neste navegador. Use '📷 Nativa' para gravar vídeo.");
+    return;
+  }
+  camState.chunks = [];
+  const rec = new MediaRecorder(camState.stream);
+  camState.recorder = rec;
+  const sh = $("#cam-shutter"), badge = $("#cam-rec-badge");
+  if (sh) sh.classList.add("recording");
+  let secs = 0;
+  if (badge) { badge.style.display = "block"; badge.textContent = "REC 00:00"; }
+  camRecInterval = setInterval(() => {
+    secs++;
+    if (badge) badge.textContent = `REC ${String(Math.floor(secs / 60)).padStart(2, "0")}:${String(secs % 60).padStart(2, "0")}`;
+  }, 1000);
+
+  rec.ondataavailable = e => { if (e.data && e.data.size > 0) camState.chunks.push(e.data); };
+  rec.onstop = async () => {
+    clearInterval(camRecInterval);
+    if (sh) sh.classList.remove("recording");
+    if (badge) badge.style.display = "none";
+
+    // Salva vídeo na galeria do celular + captura um frame carimbado para constar no relatório PDF
+    const vBlob = new Blob(camState.chunks, { type: rec.mimeType || "video/webm" });
+    const d = new Date();
+    const vName = `${camState.id}_${camState.ponto}_${d.toISOString().slice(0, 10)}_${d.toTimeString().slice(0, 8).replace(/:/g, "")}.webm`;
+    saveToDeviceGallery(vBlob, vName);
+
+    const vid = $("#cam-video");
+    if (vid && vid.videoWidth) {
+      const c = document.createElement("canvas");
+      c.width = vid.videoWidth; c.height = vid.videoHeight;
+      c.getContext("2d").drawImage(vid, 0, 0, c.width, c.height);
+      const frameBlob = await new Promise(res => c.toBlob(res, "image/jpeg", 0.92));
+      const frameNote = camState.noteText ? `[VÍDEO] ${camState.noteText}` : "[FRAME DE VÍDEO GRAVADO]";
+      const pName = await attachPhotoBlob(camState.id, camState.ponto, camState.ri, camState.ni, frameBlob, camState.kind, d, {
+        stampTitleOverride: camState.customTitle || "",
+        noteText: frameNote,
+        notePos: camState.notePos || "bottom",
+        noteColor: camState.noteColor || "yellow",
+        autoDownloadGallery: false
+      });
+      camState.lastPhotoName = pName;
+      render();
+    }
+  };
+  rec.start(500);
+}
+
+function openLastCamPhoto() {
+  if (!camState || !camState.lastPhotoName) return;
+  const pName = camState.lastPhotoName;
+  closeInAppCamera();
+  viewPhoto(pName);
+}
+
+function closeInAppCamera() {
+  clearInterval(camClockTimer);
+  clearInterval(camRecInterval);
+  if (camState && camState.recorder && camState.recorder.state === "recording") {
+    try { camState.recorder.stop(); } catch (e) {}
+  }
+  stopCamStreamOnly();
+  camState = null;
+  const root = $("#cam-root");
+  if (root) root.innerHTML = "";
+}
+
+function renderCamOverlay() {
+  if (!camState) return;
+  const root = $("#cam-root");
+  const autoGal = S.cfg.autoSaveGallery !== 0;
+  root.innerHTML = `
+    <div class="cam-overlay">
+      <div class="cam-top">
+        <button class="cam-icon-btn" onclick="closeInAppCamera()" title="Fechar câmera">←</button>
+        <button id="cam-btn-torch" class="cam-icon-btn ${camState.torch ? "active" : ""}" onclick="toggleCamTorch()" title="Flash / Lanterna">${camState.torch ? "⚡ ON" : "⚡"}</button>
+        <button id="cam-btn-timer" class="cam-icon-btn ${camState.timer ? "active" : ""}" onclick="cycleCamTimer()" title="Temporizador">${camState.timer ? `⏱ ${camState.timer}s` : "⏱"}</button>
+        <button class="cam-icon-btn" onclick="flipCamFacing()" title="Alternar câmera">🔄</button>
+        <button class="cam-icon-btn" onclick="const s={...camState};closeInAppCamera();openNativeCapture(s.id,s.ponto,s.ri,s.ni,true,s.kind)" title="Abrir câmera nativa do aparelho">📷 Nativa</button>
+      </div>
+
+      <div class="cam-stage">
+        <video id="cam-video" playsinline autoplay muted></video>
+        <div id="cam-fallback-box" class="cam-fallback" style="display:none">
+          <div id="cam-fb-msg" style="font-size:14px;color:#e2e8f0"></div>
+          <button class="big wa" onclick="const s={...camState};closeInAppCamera();openNativeCapture(s.id,s.ponto,s.ri,s.ni,true,s.kind)">📷 Abrir Câmera Nativa do Celular</button>
+          <button class="big" style="background:#334155" onclick="const s={...camState};closeInAppCamera();openNativeCapture(s.id,s.ponto,s.ri,s.ni,false,s.kind)">🖼 Escolher da Galeria</button>
+        </div>
+
+        <div class="cam-stamp-live" onclick="openCamSubpanel('edit')" title="Toque para editar o texto do carimbo">
+          <b id="cam-st-l1"></b>
+          <span id="cam-st-l2"></span>
+          <small id="cam-st-l3"></small>
+        </div>
+
+        <div id="cam-balloon-live" class="cam-balloon-live" style="display:none" onclick="openCamSubpanel('edit')"></div>
+        <div id="cam-countdown" class="cam-countdown"></div>
+        <div id="cam-rec-badge" class="cam-rec-badge" style="display:none">REC 00:00</div>
+        <div id="cam-sub-root"></div>
+      </div>
+
+      <div class="cam-bottom">
+        <div style="text-align:center">
+          <button id="cam-last-chip" class="cam-icon-btn active" style="display:${camState.lastPhotoName ? "inline-flex" : "none"};height:30px;font-size:12px" onclick="openLastCamPhoto()">✓ Foto salva — Editar / Trocar Bloco ✎</button>
+        </div>
+        <div class="cam-modes">
+          <button class="${camState.mode === "photo" ? "on" : ""}" onclick="setCamMode('photo')">FOTO</button>
+          <button class="${camState.mode === "video" ? "on" : ""}" onclick="setCamMode('video')">VÍDEO</button>
+        </div>
+        <div class="cam-controls">
+          <button class="cam-icon-btn" onclick="const s={...camState};closeInAppCamera();openNativeCapture(s.id,s.ponto,s.ri,s.ni,false,s.kind)" title="Subir da Galeria">🖼</button>
+          <button id="cam-btn-autogal" class="cam-icon-btn ${autoGal ? "active" : ""}" onclick="toggleCamAutoGallery()" title="Salvar cópia automática na Galeria">📲</button>
+          <button id="cam-shutter" class="cam-shutter" onclick="triggerCamShutter()" title="Capturar"></button>
+          <button class="cam-icon-btn" onclick="openCamSubpanel('loc')" title="Trocar Bloco / Ponto">📍</button>
+          <button class="cam-icon-btn" onclick="openCamSubpanel('edit')" title="Escrever na foto / Editar carimbo">✏️</button>
+        </div>
+      </div>
+    </div>`;
+  updateCamLiveOverlay();
+}
+
+async function openInAppCamera(id, ponto, ri = -1, ni = -1, kindOverride = "") {
+  const resolvedKind = kindOverride || (ri >= 0 ? "row" : (ni >= 0 ? "nc" : "bep"));
+  camState = {
+    id,
+    ponto,
+    ri: ri ?? -1,
+    ni: ni ?? -1,
+    kind: resolvedKind,
+    mode: "photo",
+    facing: "environment",
+    torch: false,
+    timer: 0,
+    noteText: "",
+    notePos: "bottom",
+    noteColor: "yellow",
+    customTitle: "",
+    stream: null,
+    recorder: null,
+    chunks: [],
+    lastPhotoName: "",
+    subpanel: ""
+  };
+  renderCamOverlay();
+  clearInterval(camClockTimer);
+  camClockTimer = setInterval(updateCamLiveOverlay, 1000);
+  await startCamStream();
+}
+
+function openNativeCapture(id, ponto, ri = -1, ni = -1, useCam = true, kindOverride = "") {
   const i = document.createElement("input");
   i.type = "file";
   i.accept = "image/*";
@@ -963,12 +1863,22 @@ function photo(id, ponto, ri, ni, useCam = true, kindOverride = "") {
     if (st) st.textContent = "Processando foto HD com carimbo…";
 
     for (const file of i.files) {
-      await attachPhotoBlob(id, ponto, ri, ni, file, kindOverride);
+      await attachPhotoBlob(id, ponto, ri, ni, file, kindOverride, null, {
+        autoDownloadGallery: useCam
+      });
     }
     if (st) st.textContent = "";
     render();
   };
   i.click();
+}
+
+function photo(id, ponto, ri = -1, ni = -1, useCam = true, kindOverride = "") {
+  if (useCam) {
+    openInAppCamera(id, ponto, ri, ni, kindOverride);
+  } else {
+    openNativeCapture(id, ponto, ri, ni, false, kindOverride);
+  }
 }
 
 /* ============================================================================
@@ -3052,6 +3962,10 @@ function renderConfigView() {
         <input type="checkbox" ${c.carimboOn !== 0 ? "checked" : ""} onchange="setCfgSilent('carimboOn',this.checked?1:0)">
         Gravar carimbo escuro na foto (<b>Bloco--Ponto</b> + <b>Data/Hora</b> + <b>Leitura Ω</b>)
       </label>
+      <label style="display:flex;gap:10px;align-items:center;font-size:14px;color:var(--fg);margin-top:8px;text-transform:none">
+        <input type="checkbox" ${c.autoSaveGallery !== 0 ? "checked" : ""} onchange="setCfgSilent('autoSaveGallery',this.checked?1:0)">
+        Salvar cópia automática na Galeria / Downloads do celular ao fotografar
+      </label>
     </div>
 
     <div class="card">
@@ -3402,6 +4316,7 @@ async function printReport(teamFilter = 0) {
     driveB: DRIVE_FOLDERS[2].url,
     resFoto: 2560,
     carimboOn: 1,
+    autoSaveGallery: 1,
     soPreenchidos: 1,
     resp: "",
     crea: "",
