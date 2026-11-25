@@ -282,24 +282,32 @@ const DRIVE_FOLDERS = {
   }
 };
 
-// [sigla, nome, dupla, flags, qtdDescidasPadrao]
+// [sigla, nome, dupla, flags, qtdDescidasPadrao, prefixo, pontosExtras]
+// Quantidades conforme plantas Bom Contato RV00 (24/11/2025), FL01–FL15
+const LAYOUT_VER = "plantas-rv00-2025-11-24";
 const DEFAULT_B = [
-  ["A","Bloco A",1,"",10],
-  ["B","Bloco B",1,"",10],
-  ["D","Bloco D",1,"",10],
-  ["E","Bloco E",2,"",10],
-  ["G","Bloco G",2,"",10],
-  ["H","Bloco H",2,"",10],
-  ["I","Bloco I",1,"",10],
-  ["J","Bloco J",1,"",10],
-  ["K","Bloco K",2,"",10],
-  ["L","Bloco L",2,"",10],
-  ["N","Bloco N (+ BEP)",2,"bep",10],
-  ["Q","Quadra Coberta (+ BEP)",1,"bep",12],
-  ["Bi","Biblioteca",2,"",10],
-  ["P","Portaria (+ BEP Principal)",1,"bep dps",8],
-  ["R","BEP Reservatório",1,"only",0]
+  ["A","Bloco A",1,"",14],                         // FL02
+  ["B","Bloco B (auditório)",1,"",16],             // FL03
+  ["D","Bloco D",1,"",12],                         // FL04
+  ["E","Bloco E",2,"",12],                         // FL05
+  ["G","Bloco G",2,"",12],                         // FL06
+  ["H","Bloco H",2,"",12],                         // FL07
+  ["I","Bloco I",1,"",12],                         // FL08
+  ["J","Bloco J",1,"",12],                         // FL09
+  ["K","Bloco K",2,"",12,"D",["CAP-01"]],          // FL10 (1 captor Franklin)
+  ["L","Bloco L",2,"",12,"D",["CAP-01","CAP-02"]], // FL11 (2 captores Franklin)
+  ["N","Bloco N",2,"",12],                         // FL12
+  ["BQ","Brinquedoteca",2,"",4],                   // FL13 (Biblioteca na FL01)
+  ["P","Portaria (+ BEP Principal)",1,"bep dps",6],// FL14
+  ["Q","Quadra Coberta",1,"",10,"D",["CAP-01","CAP-02"]], // FL15 (2 captores Franklin)
+  ["BEL1","BEL-1",1,"bep only",0],                 // FL01
+  ["BEL2","BEL-2",1,"bep only",0],                 // FL01
+  ["BEL3","BEL-3 (escopo a confirmar)",1,"bep only",0], // FL01
+  ["BEL4","BEL-4 / ETE (escopo a confirmar)",2,"bep only",0], // FL01
+  ["AL","Alambrado (aterramento)",2,"",27,"AL"]    // FL01 — 27 pontos "ATERRAR ALAMBRADO"
 ];
+
+const PRANCHA = {A:"FL02",B:"FL03",D:"FL04",E:"FL05",G:"FL06",H:"FL07",I:"FL08",J:"FL09",K:"FL10",L:"FL11",N:"FL12",BQ:"FL13",P:"FL14",Q:"FL15",BEL1:"FL01",BEL2:"FL01",BEL3:"FL01",BEL4:"FL01",AL:"FL01"};
 
 const COD = {
   C1:["Continuidade alta (> limite) ou aberta","A","Refazer conexão elétrica ou substituir trecho/conector oxidado para restabelecer continuidade <= 0,20 Ohm (NBR 5419-3)."],
@@ -329,7 +337,8 @@ const LIB_CHK = [
   "Todos os blocos da Equipe B (Dupla 2) inspecionados e medidos",
   "Continuidade elétrica das descidas conferida (critério <= 0,20 Ohm — NBR 5419-3)",
   "Resistência de aterramento medida nas caixas/BEP (<= 10 Ohm ideal / <= 20 Ohm solo seco)",
-  "BEPs (Bloco N, Quadra, Portaria e Reservatório) verificados e fotografados",
+  "Captores Franklin (K, L e Quadra) e 27 pontos do alambrado verificados",
+  "BEP Principal (Portaria) e BEL-1 a BEL-4 verificados e fotografados",
   "DPS do QDG da Portaria verificado (indicador Verde/Vermelho)",
   "Fotos de Fachada, Telhado, Descidas e BEP em HD com carimbo e hora registradas",
   "Pontos conformes (Rosa) e não conformes (Vermelho) pintados na planta A3",
@@ -343,7 +352,7 @@ let S = {
     empresa: "TH ELÉTRICA — ENGENHARIA E LAUDOS TÉCNICOS",
     cliente: "Fazenda Amigos do Bem",
     local: "Serra do Catimbau, Buíque/PE",
-    proposta: "Projeto Prioriza Cód. 260053 • ABNT NBR 5419:2015",
+    proposta: "Projeto SPDA Bom Contato RV00 (24/11/2025) • ABNT NBR 5419:2015",
     data: new Date().toISOString().slice(0,10),
     equipeAtiva: 1,
     driveA: DRIVE_FOLDERS[1].url,
@@ -362,7 +371,8 @@ let S = {
     tok: "",
     eq: "",
     ap: "",
-    apTerra: ""
+    apTerra: "",
+    layoutVer: LAYOUT_VER
   },
   reposicao: {
     placasQtd: "",
@@ -393,6 +403,7 @@ function getDriveUrl(teamNum) {
 }
 
 function getB() {
+  if (S.cfg && S.cfg.layoutVer !== LAYOUT_VER) migrateLayout();
   if (!Array.isArray(S.blocos) || !S.blocos.length) {
     S.blocos = DEFAULT_B.map(x => [...x]);
   }
@@ -530,8 +541,8 @@ function loadBestState(lsRaw, idbState) {
   return countFilledMetrics(lsState) >= countFilledMetrics(idbState) ? lsState : idbState;
 }
 
-const R = i => ({
-  p: "D" + String(i + 1).padStart(2, "0"),
+const R = (i, pre = "D") => ({
+  p: pre + String(i + 1).padStart(2, "0"),
   loc: "",
   barra: "",
   eld: "",
@@ -544,6 +555,49 @@ const R = i => ({
   pl: "",
   obs: ""
 });
+
+function rowsFor(b) {
+  const o = b[3] || "";
+  if (o.includes("only")) return [];
+  const n = typeof b[4] === "number" ? b[4] : 10, pre = b[5] || "D";
+  const rows = Array.from({length: n}, (_, i) => R(i, pre));
+  (b[6] || []).forEach(name => { const r = R(0, pre); r.p = name; rows.push(r); });
+  return rows;
+}
+
+function newRow(id) {
+  const b = getB().find(x => x[0] == id) || [];
+  const pre = b[5] || "D";
+  const f = F(id);
+  const n = f.rows.filter(r => String(r.p).startsWith(pre) && /\d+$/.test(r.p)).length;
+  return R(n, pre);
+}
+
+function rowHasData(r) {
+  return ["cont","terra","barra","eld","cx","obs","loc","horaFoto"].some(k => String(r[k] ?? "") !== "") || (r.ph || []).length > 0;
+}
+
+function blockHasData(f) {
+  if (!f) return false;
+  if ((f.rows || []).some(rowHasData)) return true;
+  if ((f.ncs || []).length || (f.fachadaPh || []).length || (f.telhadoPh || []).length || (f.bepPh || []).length) return true;
+  return ["bepC","bepT","obs","data","hi"].some(k => String(f[k] ?? "") !== "");
+}
+
+function migrateLayout() {
+  if (S.cfg.layoutVer === LAYOUT_VER) return;
+  const oldB = Array.isArray(S.blocos) ? S.blocos : [];
+  const nb = DEFAULT_B.map(x => [...x]);
+  Object.keys(S.f || {}).forEach(id => {
+    if (!blockHasData(S.f[id])) { delete S.f[id]; return; }
+    if (!nb.some(x => x[0] === id)) {
+      const ob = oldB.find(x => x[0] === id);
+      if (ob) nb.push(ob);
+    }
+  });
+  S.blocos = nb;
+  S.cfg.layoutVer = LAYOUT_VER;
+}
 
 function F(id) {
   const b = getB().find(x => x[0] == id) || [id, id, 1, "", 10];
@@ -578,7 +632,7 @@ function F(id) {
     bepPh: [],
     dps: "",
     dpsCor: "",
-    rows: Array.from({length: defCount}, (_, i) => R(i)),
+    rows: rowsFor(b),
     ncs: [],
     done: {vis: 0, med: 0, foto: 0, pl: 0}
   };
@@ -594,12 +648,30 @@ function F(id) {
   return f;
 }
 
-const num = v => parseFloat(String(v ?? "").replace(",", "."));
+const num = v => {
+  let t = String(v ?? "").trim();
+  if (t.includes(",")) t = t.replace(/\./g, "").replace(",", ".");
+  return parseFloat(t);
+};
+// Leitura preenchida mas não numérica (OL, aberto, ---, ∞) = circuito aberto / sem leitura válida
+const badRead = v => String(v ?? "").trim() !== "" && isNaN(num(v));
+// Avaliação do BEP/BEL (continuidade, terra, integridade e corrosão)
+function bepIssues(f) {
+  const out = [], refs = [], recs = [];
+  const c = num(f.bepC), t = num(f.bepT);
+  if ((!isNaN(c) && c > S.cfg.limC) || badRead(f.bepC)) { out.push(badRead(f.bepC) ? `Continuidade BEP sem leitura válida ("${f.bepC}")` : `Continuidade BEP = ${f.bepC} Ohm (limite <= ${S.cfg.limC} Ohm)`); refs.push("C1"); recs.push(COD.C1[2]); }
+  if ((!isNaN(t) && t > S.cfg.limT) || badRead(f.bepT)) { out.push(badRead(f.bepT) ? `Terra BEP sem leitura válida ("${f.bepT}")` : `Resistência de terra BEP = ${f.bepT} Ohm (limite <= ${S.cfg.limT} Ohm)`); refs.push("C10"); recs.push(COD.C10[2]); }
+  if (f.bepOk === "Não") { out.push("BEP/BEL não íntegro"); refs.push("C11"); recs.push(COD.C11[2]); }
+  if (f.bepCorr === "Sim") { out.push("Corrosão / folga nas conexões do BEP"); refs.push("C3"); recs.push(COD.C3[2]); }
+  return {out, refs, recs};
+}
 
 function judge(r) {
   const c = num(r.cont), t = num(r.terra), bad = [];
   if (!isNaN(c) && c > S.cfg.limC) bad.push(`Cont. ${c} Ohm > ${S.cfg.limC}`);
+  if (badRead(r.cont)) bad.push(`Cont. "${r.cont}" (aberto/sem leitura válida)`);
   if (!isNaN(t) && t > S.cfg.limT) bad.push(`Terra ${t} Ohm > ${S.cfg.limT}`);
+  if (badRead(r.terra)) bad.push(`Terra "${r.terra}" (sem leitura válida)`);
   return bad;
 }
 
@@ -641,15 +713,22 @@ function collectAllBlockNCs(b) {
     const issues = [];
     let sev = "B";
     const recs = [];
-    if (!isNaN(c) && c > S.cfg.limC) {
-      issues.push(`Continuidade medida = ${r.cont} Ohm (limite <= ${S.cfg.limC} Ohm)`);
+    const refs = [];
+    if ((!isNaN(c) && c > S.cfg.limC) || badRead(r.cont)) {
+      issues.push(badRead(r.cont)
+        ? `Continuidade sem leitura válida ("${r.cont}") — circuito aberto (limite <= ${S.cfg.limC} Ohm)`
+        : `Continuidade medida = ${r.cont} Ohm (limite <= ${S.cfg.limC} Ohm)`);
       sev = "A";
       recs.push(COD.C1[2]);
+      refs.push("C1");
     }
-    if (!isNaN(t) && t > S.cfg.limT) {
-      issues.push(`Resistência de terra = ${r.terra} Ohm (limite <= ${S.cfg.limT} Ohm)`);
+    if ((!isNaN(t) && t > S.cfg.limT) || badRead(r.terra)) {
+      issues.push(badRead(r.terra)
+        ? `Resistência de terra sem leitura válida ("${r.terra}")`
+        : `Resistência de terra = ${r.terra} Ohm (limite <= ${S.cfg.limT} Ohm)`);
       sev = "A";
       recs.push(COD.C10[2]);
+      refs.push("C10");
     }
     if (r.barra === "NC") {
       issues.push("Barra chata / fixação com anomalia (NC)");
@@ -668,7 +747,7 @@ function collectAllBlockNCs(b) {
       list.push({
         code: `NC-${String(list.length + 1).padStart(2, "0")}`,
         ponto: pontoName,
-        codRef: !isNaN(c) && c > S.cfg.limC ? "C1/C10" : "Visual",
+        codRef: refs.length ? refs.join("/") : "Visual",
         horaFoto: r.horaFoto || "—",
         titulo: issues.join("; "),
         sev,
@@ -677,6 +756,20 @@ function collectAllBlockNCs(b) {
       });
     }
   });
+
+  const bi = bepIssues(f);
+  if (bi.out.length) {
+    list.push({
+      code: `NC-${String(list.length + 1).padStart(2, "0")}`,
+      ponto: "BEP/BEL",
+      codRef: bi.refs.join("/"),
+      horaFoto: f.bepHora || "—",
+      titulo: bi.out.join("; "),
+      sev: bi.refs.some(x => x === "C1" || x === "C10") ? "A" : "B",
+      detalhe: bi.recs.join(" "),
+      ph: f.bepPh || []
+    });
+  }
 
   return list;
 }
@@ -688,7 +781,7 @@ function blockStats(b) {
   const totR = f.rows.length;
   const medR = f.rows.filter(r => r.cont !== "" || r.terra !== "" || r.barra || r.eld || r.cx).length;
   const ncsRows = f.rows.filter(r => judge(r).length || [r.barra, r.eld, r.cx].includes("NC")).length;
-  const totNC = f.ncs.length + ncsRows;
+  const totNC = f.ncs.length + ncsRows + (bepIssues(f).out.length ? 1 : 0);
   const totPh = (f.fachadaPh || []).length + (f.telhadoPh || []).length + (f.bepPh || []).length +
     f.rows.reduce((a, r) => a + (r.ph || []).length, 0) +
     f.ncs.reduce((a, n) => a + (n.ph || []).length, 0);
@@ -916,6 +1009,40 @@ function addPhotoRefToBlock(blockId, kind, ri, ni, photoName, horaFotoStr) {
     if (!f.bepPh.includes(photoName)) f.bepPh.push(photoName);
     if (horaFotoStr) f.bepHora = horaFotoStr;
   }
+}
+
+/* ============================================================================
+   PLANILHA (CSV ; com BOM — abre direto no Excel / Google Planilhas)
+   ============================================================================ */
+function csvCell(v) {
+  const t = String(v ?? "").replace(/\r?\n/g, " ");
+  return /[;"]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t;
+}
+
+function csvBlob(rows) {
+  return new Blob(["\uFEFF" + rows.map(r => r.map(csvCell).join(";")).join("\r\n")], {type: "text/csv;charset=utf-8"});
+}
+
+function downloadCSV(teamFilter = 0) {
+  const B = getB().filter(b => !teamFilter || F(b[0]).dupla == teamFilter);
+  const med = [["Prancha","Sigla","Local","Equipe","Data","Ponto","Referência","Barra/Fixação","Eletroduto/Placa","Caixa/Bimetálico","Continuidade (Ohm)","Terra (Ohm)","Status","Diagnóstico","Hora foto","Nº fotos","Obs"]];
+  const ncs = [["Prancha","Sigla","Local","Equipe","Código","Ponto","Cód. defeito","Severidade","Descrição","Recomendação / detalhe","Hora foto","Nº fotos"]];
+  B.forEach(b => {
+    const f = F(b[0]), pr = PRANCHA[b[0]] || "", eq = f.dupla == 2 ? "B" : "A";
+    if ((b[3] || "").includes("bep")) {
+      med.push([pr, b[0], b[1], eq, f.data, "BEP/BEL", "", "", "", "", f.bepC, f.bepT, "", "", f.bepHora, (f.bepPh || []).length, `Estado: ${f.bepOk || "-"} | Acesso: ${f.bepAcess || "-"} | Corrosão: ${f.bepCorr || "-"} | Ligações: ${f.bepResLig || "-"} | Placa: ${f.bepPlaca || "-"}`]);
+    }
+    (f.rows || []).forEach(r => {
+      const d = rowDiagnosis(r);
+      med.push([pr, b[0], b[1], eq, f.data, r.p, r.loc, r.barra, r.eld, r.cx, r.cont, r.terra, d.short, d.measured ? d.detail : "", r.horaFoto, (r.ph || []).length, r.obs]);
+    });
+    collectAllBlockNCs(b).forEach(n => {
+      ncs.push([pr, b[0], b[1], eq, n.code, n.ponto, n.codRef, n.sev, n.titulo, n.detalhe, n.horaFoto, (n.ph || []).length]);
+    });
+  });
+  const tag = (S.cfg.data || new Date().toISOString().slice(0, 10)) + (teamFilter ? "_Equipe" + (teamFilter == 2 ? "B" : "A") : "");
+  saveToDeviceGallery(csvBlob(med), `SPDA_medicoes_${tag}.csv`);
+  setTimeout(() => saveToDeviceGallery(csvBlob(ncs), `SPDA_NCs_${tag}.csv`), 600);
 }
 
 function saveToDeviceGallery(blob, filename) {
@@ -2248,8 +2375,8 @@ async function buildPDFFile(teamFilter = 0) {
 
       const descRows = rowsToPrint.map(r => {
         const diag = rowDiagnosis(r);
-        const cBad = !isNaN(num(r.cont)) && num(r.cont) > c.limC;
-        const tBad = !isNaN(num(r.terra)) && num(r.terra) > c.limT;
+        const cBad = (!isNaN(num(r.cont)) && num(r.cont) > c.limC) || badRead(r.cont);
+        const tBad = (!isNaN(num(r.terra)) && num(r.terra) > c.limT) || badRead(r.terra);
         return [
           {t: r.loc ? `${r.p} (${r.loc})` : r.p, b: true},
           {t: r.barra || "-", b: r.barra === "NC", fg: r.barra === "NC" ? [0.75, 0.12, 0.12] : [0.1, 0.12, 0.14]},
@@ -3486,6 +3613,7 @@ async function render() {
           </div>
           <div class="g2" style="margin-top:6px">
             <button class="big ai" onclick="downloadAIFile(${filterDupla})">🤖 Baixar Arquivo p/ IA (.MD)</button>
+            <button class="big" style="background:#15803d;color:#fff" onclick="downloadCSV(${filterDupla})">📊 Baixar Planilha (CSV — medições + NCs)</button>
             <button class="big wa" onclick="sharePDFAndAI(${filterDupla})">📦 Enviar Pacote Completo (PDF + .MD + JSON)</button>
           </div>
         </div>
@@ -3506,13 +3634,13 @@ async function render() {
         <div style="padding:12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px">
           <div class="card" style="margin:0">
             <h3>🅰 Equipe A (Dupla 1)</h3>
-            <small>Blocos A, B, D, I, J, Quadra, Portaria, Reservatório</small>
+            <small>Blocos A, B, D, I, J, Quadra, Portaria, BEL-1/2/3</small>
             <button class="big drv" style="margin-top:8px" onclick="sendToTeamDrive(1)">☁ Enviar Pacote p/ Drive Equipe A</button>
             <a class="big out" href="${esc(getDriveUrl(1))}" target="_blank" rel="noopener">📁 Abrir Pasta Drive — Equipe A</a>
           </div>
           <div class="card" style="margin:0">
             <h3>🅱 Equipe B (Dupla 2)</h3>
-            <small>Blocos E, G, H, K, L, N, Biblioteca</small>
+            <small>Blocos E, G, H, K, L, N, Brinquedoteca, Alambrado</small>
             <button class="big drv" style="margin-top:8px" onclick="sendToTeamDrive(2)">☁ Enviar Pacote p/ Drive Equipe B</button>
             <a class="big out" href="${esc(getDriveUrl(2))}" target="_blank" rel="noopener">📁 Abrir Pasta Drive — Equipe B</a>
           </div>
@@ -3597,6 +3725,7 @@ async function render() {
         <button class="b" style="padding:4px 8px;font-size:11px" onclick="go('cfg')">⚙ Dados RT / Obra</button>
         <button class="b" style="padding:4px 8px;font-size:11px;background:#b91c1c;color:#fff;border-color:#b91c1c" onclick="downloadPDF(${filterDupla})">📄 PDF c/ Fotos</button>
         <button class="b" style="padding:4px 8px;font-size:11px;background:var(--ai);color:#fff;border-color:var(--ai)" onclick="downloadAIFile(${filterDupla})">🤖 Arquivo IA (.MD)</button>
+        <button class="b" style="padding:4px 8px;font-size:11px;background:#15803d;color:#fff;border-color:#15803d" onclick="downloadCSV(${filterDupla})">📊 Planilha (CSV)</button>
       </div>
     </div>`;
 }
@@ -3810,7 +3939,7 @@ function renderBlockDetailView(blockId) {
           ${renderThumbs(blockId, r.ph || [], "row", i)}
         </div>`;
     });
-    h += `<button class="b" style="width:100%;margin-bottom:10px" onclick="F('${esc(blockId)}').rows.push(R(F('${esc(blockId)}').rows.length));saveNow(true);render()">+ Adicionar Descida</button>`;
+    h += `<button class="b" style="width:100%;margin-bottom:10px" onclick="F('${esc(blockId)}').rows.push(newRow('${esc(blockId)}'));saveNow(true);render()">+ Adicionar Descida</button>`;
   }
 
   h += `
@@ -4068,7 +4197,7 @@ function saveBlockModal(editId) {
     const qtd = Math.max(0, Math.min(60, parseInt($("#mb-qtd")?.value ?? 10)));
     B.push([id, nome, dupla, optStr, qtd]);
     const f = F(id);
-    f.rows = optStr.includes("only") ? [] : Array.from({length: qtd}, (_, i) => R(i));
+    f.rows = rowsFor([id, nome, dupla, optStr, qtd]);
   }
   saveNow(true);
   closeModal();
@@ -4207,7 +4336,7 @@ function restoreSnapshot(idx) {
 }
 
 function resetDefaultBlocks() {
-  if (!confirm("Restaurar a lista de blocos padrão (Bloco A até BEP Reservatório)?")) return;
+  if (!confirm("Restaurar a lista de locais padrão das plantas RV00 (Bloco A até Alambrado)?")) return;
   S.blocos = DEFAULT_B.map(x => [...x]);
   saveNow(true);
   render();
@@ -4309,7 +4438,7 @@ async function printReport(teamFilter = 0) {
     empresa: "TH ELÉTRICA — ENGENHARIA E LAUDOS TÉCNICOS",
     cliente: "Fazenda Amigos do Bem",
     local: "Serra do Catimbau, Buíque/PE",
-    proposta: "Projeto Prioriza Cód. 260053 • ABNT NBR 5419:2015",
+    proposta: "Projeto SPDA Bom Contato RV00 (24/11/2025) • ABNT NBR 5419:2015",
     data: new Date().toISOString().slice(0, 10),
     equipeAtiva: 1,
     driveA: DRIVE_FOLDERS[1].url,

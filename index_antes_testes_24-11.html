@@ -1,0 +1,4445 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>SPDA Campo — Caderneta, Progresso e Laudo PDF/IA/Word</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<meta name="theme-color" content="#1F3A5F">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap">
+<style>
+:root{
+  --bg:#f5f6f4;--panel:#ffffff;--fg:#1c2421;--muted:#5f6b66;--line:#d6dbd8;
+  --accent:#c98a00;--ok:#2f7d4f;--warn:#b5561c;--nc:#d13b3b;--info:#2b5f8a;--chip:#eef0ee;
+  --navy:#1F3A5F;--wa:#1fa855;--drv:#1a73e8;--word:#185abd;--ai:#6d28d9;--pink:#d66094;
+  --f-disp:"Barlow Condensed",Impact,system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#131816;--panel:#1b2220;--fg:#e4e9e6;--muted:#97a39e;--line:#2d3633;
+    --accent:#f0b429;--ok:#5cc28a;--warn:#f08a4b;--nc:#f26464;--info:#6fa8d6;--chip:#232b29;
+    color-scheme:dark;
+  }
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{
+  margin:0;background:var(--bg);color:var(--fg);font:15px/1.45 var(--f-body);
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:calc(env(safe-area-inset-bottom,0px) + 28px);
+}
+.wrap{
+  max-width:1080px;margin:0 auto;padding-block:12px 40px;
+  padding-left:max(12px,env(safe-area-inset-left,0px));
+  padding-right:max(12px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:12px;
+}
+header.top-stamp{
+  display:flex;flex-wrap:wrap;gap:10px 18px;align-items:flex-end;justify-content:space-between;
+  border-bottom:3px solid var(--fg);padding-bottom:10px;
+}
+h1{font:700 1.9rem/1 var(--f-disp);letter-spacing:.02em;margin:0;text-transform:uppercase}
+.sub{color:var(--muted);font-size:.85rem;margin-top:4px}
+.meta{font:500 .75rem/1.45 var(--f-mono);color:var(--muted);text-align:right}
+.save-badge{
+  display:inline-flex;align-items:center;gap:5px;padding:3px 8px;
+  background:rgba(47,125,79,.12);border:1px solid var(--ok);color:var(--ok);
+  font:600 .72rem var(--f-mono);margin-top:4px;
+}
+.prog{display:flex;flex-direction:column;gap:5px;background:var(--panel);border:1px solid var(--line);padding:10px 12px}
+.bar{height:10px;background:var(--chip);border:1px solid var(--line);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);width:0;transition:width .3s}
+.bar i.ok-bar{background:var(--ok)}
+.prog .lbl{display:flex;justify-content:space-between;font:500 .8rem var(--f-mono);color:var(--muted)}
+.prog .lbl b{color:var(--fg)}
+.next{
+  background:var(--panel);border:1px solid var(--line);border-left:5px solid var(--accent);
+  padding:10px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px;cursor:pointer;
+}
+.next:active{opacity:.85}
+.next .k{font:600 .7rem var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.next .v{font-weight:600;margin-top:2px;font-size:.94rem}
+nav.tabs{display:flex;flex-wrap:wrap;gap:5px}
+nav.tabs button{
+  font:600 .82rem var(--f-body);background:var(--chip);color:var(--fg);
+  border:1px solid var(--line);padding:8px 10px;cursor:pointer;flex:1 1 auto;text-align:center;
+}
+nav.tabs button[aria-selected="true"]{background:var(--navy);color:#fff;border-color:var(--navy)}
+section.box{background:var(--panel);border:1px solid var(--line)}
+section.box h2{
+  font:700 1.15rem var(--f-disp);text-transform:uppercase;letter-spacing:.03em;
+  margin:0;padding:10px 14px;border-bottom:1px solid var(--line);
+  display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;
+}
+.filt{display:flex;flex-wrap:wrap;gap:6px;padding:10px 12px;border-bottom:1px solid var(--line);align-items:center}
+.filt button{
+  font:600 .74rem var(--f-mono);background:none;color:var(--muted);
+  border:1px solid var(--line);padding:5px 9px;cursor:pointer;
+}
+.filt button[aria-pressed="true"]{color:var(--bg);background:var(--fg);border-color:var(--fg)}
+.scroll{overflow-x:auto}
+table.tbl{width:100%;border-collapse:collapse;font-size:.88rem}
+table.tbl th,table.tbl td{text-align:left;padding:8px 9px;border-bottom:1px solid var(--line);vertical-align:middle}
+table.tbl th{
+  font:600 .7rem var(--f-mono);text-transform:uppercase;letter-spacing:.05em;
+  color:var(--muted);background:var(--chip);white-space:nowrap;
+}
+td.n{font:600 .84rem var(--f-mono);white-space:nowrap}
+code,.mono{font-family:var(--f-mono);font-size:.8rem}
+tr.done td:not(.c):not(.no-strike){opacity:.58}
+td.c{width:34px;text-align:center}
+input[type=checkbox]{width:18px;height:18px;accent-color:var(--ok);cursor:pointer}
+.tag{
+  display:inline-block;font:600 .68rem var(--f-mono);padding:2px 6px;
+  border:1px solid currentColor;white-space:nowrap;text-transform:uppercase;
+}
+.tag.CONCLUIDO{color:var(--ok)}
+.tag.ANDAMENTO{color:var(--info)}
+.tag.NC{color:var(--nc)}
+.tag.PENDENTE{color:var(--muted)}
+.note{padding:10px 14px;color:var(--muted);font-size:.82rem;border-top:1px solid var(--line)}
+.card{background:var(--panel);border:1px solid var(--line);padding:12px;margin-bottom:10px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.grow{flex:1}
+h3{margin:2px 0 10px;font:700 1rem var(--f-disp);color:var(--fg);text-transform:uppercase;letter-spacing:.04em}
+button.b,.seg button{
+  border:1px solid var(--line);background:var(--chip);color:var(--fg);
+  padding:8px 11px;font:600 .82rem var(--f-body);cursor:pointer;
+}
+button.b:active,.seg button:active{transform:scale(.98)}
+.seg{display:inline-flex;gap:4px;flex-wrap:wrap}
+.seg button.on{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.seg button.on.bad{background:var(--nc);color:#fff;border-color:var(--nc)}
+.seg button.on.good{background:var(--ok);color:#fff;border-color:var(--ok)}
+.seg button.on.pink{background:var(--pink);color:#fff;border-color:var(--pink)}
+input:not([type=checkbox]),select,textarea{
+  width:100%;padding:9px 10px;border:1px solid var(--line);
+  background:var(--bg);color:var(--fg);font:15px var(--f-body);
+}
+label{font:600 .73rem var(--f-mono);color:var(--muted);display:block;margin:6px 0 3px;text-transform:uppercase}
+.d{border-left:5px solid var(--line)}
+.d.ok{border-left-color:var(--ok)}
+.d.nc{border-left-color:var(--nc)}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.g3{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+small{color:var(--muted);font-size:12px}
+.big{
+  width:100%;padding:12px 14px;font:700 .95rem var(--f-disp);letter-spacing:.03em;text-transform:uppercase;
+  border:1px solid var(--fg);background:var(--fg);color:var(--bg);margin:4px 0;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;
+}
+.big.pdf{background:#b91c1c;border-color:#b91c1c;color:#fff}
+.big.ai{background:var(--ai);border-color:var(--ai);color:#fff}
+.big.word{background:var(--word);border-color:var(--word);color:#fff}
+.big.wa{background:var(--wa);border-color:var(--wa);color:#fff}
+.big.drv{background:var(--drv);border-color:var(--drv);color:#fff}
+.big.out{background:var(--panel);color:var(--fg);border:1px solid var(--line)}
+.thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.th{
+  position:relative;width:82px;height:82px;overflow:hidden;
+  border:1px solid var(--line);background:#000;flex-shrink:0;
+}
+.th img{width:100%;height:100%;object-fit:cover;display:block;cursor:pointer}
+.th button{
+  position:absolute;top:2px;right:2px;width:22px;height:22px;
+  border:0;background:rgba(209,59,59,.92);color:#fff;font-size:12px;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;
+}
+.modal-bg{
+  position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:60;
+  display:flex;align-items:center;justify-content:center;padding:14px;
+}
+.modal{
+  background:var(--panel);color:var(--fg);max-width:540px;width:100%;
+  max-height:92vh;overflow-y:auto;padding:16px;border:2px solid var(--fg);
+}
+.inline-edit{
+  border:1px dashed var(--line);padding:4px 8px;font:600 .9rem var(--f-mono);
+  width:auto;min-width:78px;max-width:160px;background:transparent;
+}
+.chk-pill{
+  display:inline-flex;align-items:center;gap:3px;font:500 .72rem var(--f-mono);
+  padding:2px 5px;border:1px solid var(--line);background:var(--chip);cursor:pointer;margin-right:3px;
+}
+.chk-pill.on{background:var(--ok);color:#fff;border-color:var(--ok)}
+.foot{font:.76rem var(--f-mono);color:var(--muted);display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center}
+/* Câmera Integrada Estilo Timestamp Camera (Sem sobreposição nos ícones) */
+.cam-overlay{
+  position:fixed;inset:0;background:#000;color:#fff;z-index:100;
+  display:flex;flex-direction:column;justify-content:space-between;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+  user-select:none;
+}
+.cam-top{
+  height:54px;padding:0 12px;display:flex;align-items:center;justify-content:space-between;
+  background:#000;border-bottom:1px solid #1e293b;z-index:5;flex-shrink:0;
+}
+.cam-icon-btn{
+  background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.18);
+  border-radius:999px;min-width:40px;height:40px;padding:0 10px;font-size:15px;font-weight:600;
+  display:inline-flex;align-items:center;justify-content:center;gap:4px;cursor:pointer;
+}
+.cam-icon-btn.active{background:#a3e635;color:#000;border-color:#a3e635}
+.cam-stage{
+  position:relative;flex:1;overflow:hidden;background:#090b0d;
+  display:flex;align-items:center;justify-content:center;
+}
+#cam-video{width:100%;height:100%;object-fit:cover;display:block}
+.cam-stamp-live{
+  position:absolute;top:12px;left:12px;max-width:calc(100% - 24px);
+  background:rgba(22,26,30,.78);color:#fff;border-radius:12px;
+  padding:9px 14px;backdrop-filter:blur(4px);cursor:pointer;z-index:4;
+  border:1px solid rgba(255,255,255,.16);
+}
+.cam-stamp-live b{display:block;font-size:15px;line-height:1.25}
+.cam-stamp-live span{display:block;font-size:12.5px;opacity:.95;margin-top:2px}
+.cam-stamp-live small{display:block;font-size:11.5px;color:#fde047;margin-top:2px;font-weight:600}
+.cam-balloon-live{
+  position:absolute;z-index:4;padding:8px 13px;border-radius:12px;font-weight:700;
+  font-size:14px;max-width:86%;box-shadow:0 3px 12px rgba(0,0,0,.48);cursor:pointer;
+  word-break:break-word;text-align:center;
+}
+.cam-balloon-live.pos-bottom{bottom:16px;left:50%;transform:translateX(-50%)}
+.cam-balloon-live.pos-center{top:50%;left:50%;transform:translate(-50%,-50%)}
+.cam-balloon-live.pos-top-right{top:12px;right:12px;max-width:45%}
+.cam-countdown{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-size:84px;font-weight:800;color:#a3e635;text-shadow:0 4px 20px rgba(0,0,0,.85);
+  pointer-events:none;z-index:6;
+}
+.cam-rec-badge{
+  position:absolute;top:12px;right:12px;background:#dc2626;color:#fff;
+  padding:4px 10px;border-radius:999px;font:700 12px var(--f-mono);z-index:6;
+}
+.cam-bottom{
+  background:#000;padding:10px 14px 16px;display:flex;flex-direction:column;gap:12px;
+  border-top:1px solid #1e293b;flex-shrink:0;z-index:5;
+}
+.cam-modes{display:flex;justify-content:center;gap:14px;align-items:center}
+.cam-modes button{
+  background:transparent;color:#cbd5e1;border:0;font:700 13px var(--f-mono);
+  padding:5px 14px;border-radius:6px;cursor:pointer;letter-spacing:.05em;
+}
+.cam-modes button.on{background:#a3e635;color:#000}
+.cam-controls{display:flex;align-items:center;justify-content:space-around;gap:8px}
+.cam-shutter{
+  width:72px;height:72px;border-radius:50%;background:#fff;border:4px solid #a3e635;
+  box-shadow:0 0 0 3px rgba(0,0,0,.6);cursor:pointer;display:flex;align-items:center;justify-content:center;
+}
+.cam-shutter:active{transform:scale(.93)}
+.cam-shutter.recording{background:#dc2626;border-color:#fff}
+.cam-shutter.recording::after{content:"";width:24px;height:24px;background:#fff;border-radius:4px}
+.cam-subpanel{
+  position:absolute;inset:0;background:rgba(15,20,25,.95);z-index:10;
+  padding:16px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;
+}
+.cam-subpanel label{color:#94a3b8}
+.cam-subpanel input,.cam-subpanel select,.cam-subpanel textarea{background:#1e293b;color:#fff;border-color:#334155}
+.cam-fallback{
+  padding:24px;text-align:center;max-width:360px;display:flex;flex-direction:column;gap:10px;
+}
+#print-area{display:none}
+@media print{
+  .wrap,.modal-bg,.cam-overlay{display:none!important}
+  body{background:#fff!important;color:#000!important;padding:0!important;font-size:11.5px}
+  #print-area{display:block!important;padding:8mm}
+  .p-card{border:1px solid #888;padding:10px;margin-bottom:14px;page-break-inside:avoid}
+  .p-tbl{width:100%;border-collapse:collapse;margin:6px 0;font-size:11px}
+  .p-tbl th,.p-tbl td{border:1px solid #777;padding:5px 6px;text-align:left}
+  .p-tbl th{background:#1F3A5F;color:#fff}
+  .p-grid-ph{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:8px}
+  .p-ph{border:1px solid #999;padding:6px;text-align:center;page-break-inside:avoid;background:#fafafa}
+  .p-ph img{max-width:100%;height:260px;object-fit:contain}
+}
+</style>
+</head>
+<body>
+<div class="wrap" id="app-wrap"></div>
+<div id="modal-root"></div>
+<div id="cam-root"></div>
+<div id="print-area"></div>
+
+<script>
+const LS_STATE_KEY = "spda_state_v1";
+const LS_SNAPS_KEY = "spda_snapshots_v1";
+
+const DRIVE_FOLDERS = {
+  1: {
+    label: "Equipe A (Dupla 1)",
+    short: "EquipeA",
+    id: "1Yb-zWeo4lCsbByDpDlL0YMxbF3GlqHqA",
+    url: "https://drive.google.com/drive/folders/1Yb-zWeo4lCsbByDpDlL0YMxbF3GlqHqA?usp=drive_link"
+  },
+  2: {
+    label: "Equipe B (Dupla 2)",
+    short: "EquipeB",
+    id: "1HgzIPxKpqCl9-1c6H2LZIW46egbPU75r",
+    url: "https://drive.google.com/drive/folders/1HgzIPxKpqCl9-1c6H2LZIW46egbPU75r?usp=drive_link"
+  }
+};
+
+// [sigla, nome, dupla, flags, qtdDescidasPadrao, prefixo, pontosExtras]
+// Quantidades conforme plantas Bom Contato RV00 (24/11/2025), FL01–FL15
+const LAYOUT_VER = "plantas-rv00-2025-11-24";
+const DEFAULT_B = [
+  ["A","Bloco A",1,"",14],                         // FL02
+  ["B","Bloco B (auditório)",1,"",16],             // FL03
+  ["D","Bloco D",1,"",12],                         // FL04
+  ["E","Bloco E",2,"",12],                         // FL05
+  ["G","Bloco G",2,"",12],                         // FL06
+  ["H","Bloco H",2,"",12],                         // FL07
+  ["I","Bloco I",1,"",12],                         // FL08
+  ["J","Bloco J",1,"",12],                         // FL09
+  ["K","Bloco K",2,"",12,"D",["CAP-01"]],          // FL10 (1 captor Franklin)
+  ["L","Bloco L",2,"",12,"D",["CAP-01","CAP-02"]], // FL11 (2 captores Franklin)
+  ["N","Bloco N",2,"",12],                         // FL12
+  ["BQ","Brinquedoteca",2,"",4],                   // FL13 (Biblioteca na FL01)
+  ["P","Portaria (+ BEP Principal)",1,"bep dps",6],// FL14
+  ["Q","Quadra Coberta",1,"",10,"D",["CAP-01","CAP-02"]], // FL15 (2 captores Franklin)
+  ["BEL1","BEL-1",1,"bep only",0],                 // FL01
+  ["BEL2","BEL-2",1,"bep only",0],                 // FL01
+  ["BEL3","BEL-3 (escopo a confirmar)",1,"bep only",0], // FL01
+  ["BEL4","BEL-4 / ETE (escopo a confirmar)",2,"bep only",0], // FL01
+  ["AL","Alambrado (aterramento)",2,"",27,"AL"]    // FL01 — 27 pontos "ATERRAR ALAMBRADO"
+];
+
+const PRANCHA = {A:"FL02",B:"FL03",D:"FL04",E:"FL05",G:"FL06",H:"FL07",I:"FL08",J:"FL09",K:"FL10",L:"FL11",N:"FL12",BQ:"FL13",P:"FL14",Q:"FL15",BEL1:"FL01",BEL2:"FL01",BEL3:"FL01",BEL4:"FL01",AL:"FL01"};
+
+const COD = {
+  C1:["Continuidade alta (> limite) ou aberta","A","Refazer conexão elétrica ou substituir trecho/conector oxidado para restabelecer continuidade <= 0,20 Ohm (NBR 5419-3)."],
+  C2:["Falta conector bimetálico (alumínio direto no cobre)","B","Instalar conector bimetálico apropriado na transição cobre/alumínio para evitar par galvânico."],
+  C3:["Conector frouxo, oxidado ou sem parafuso inox","B","Limpar oxidação, aplicar pasta antioxidante e reapertar conector com parafuso inox."],
+  C4:["Caixa de inspeção sem tampa, quebrada ou soterrada","B","Substituir/recompor caixa de inspeção de solo e tampa identificadora."],
+  C5:["Falta placa de advertência 'Risco de Choque Elétrico'","C","Fixar placa de sinalização e advertência no pé da descida conforme NBR 5419-3."],
+  C6:["Falta eletroduto PVC 1\" de proteção mecânica na descida","C","Instalar eletroduto de PVC rígido 1\" nos primeiros metros acima do solo."],
+  C7:["Barra chata de Al amassada, solta ou buchas arrancadas","B","Realinhar e refixar barra chata de alumínio com isoladores/abraçadeiras a cada 1,0 m."],
+  C8:["Cordoalha Cu 50 mm² solta ou suporte quebrado no telhado","A","Substituir suporte guia/castanha danificado e retensionar cordoalha de cobre 50 mm²."],
+  C9:["Estrutura metálica / esquadria / telhado sem equipotencialização","B","Interligar estrutura/massa metálica ao subsistema de captação ou BEP mais próximo."],
+  C10:["Resistência de aterramento acima do limite ou sem haste","A","Complementar malha de aterramento com novas hastes interligadas e tratadas até atingir R <= limite."],
+  C11:["Outro (descrever no campo Detalhe)","C","Executar adequação técnica conforme diretrizes da ABNT NBR 5419:2015."]
+};
+
+const CHK = [
+  ["cap","1. Captação (telhado): cordoalha Cu 50 mm² e suportes íntegros?"],
+  ["top","2. Conexão de topo: Cu 50 mm² com barra de Al firme e sem corrosão?"],
+  ["desc","3. Descidas: barras chatas de Al retas e fixadas a cada 1 m?"],
+  ["prot","4a. Proteção mecânica: eletroduto PVC 1\" no pé da descida?"],
+  ["placa","4b. Sinalização: placa 'Risco de Choque' no pé da descida?"],
+  ["mass","5. Massas metálicas: esquadrias / estruturas aterradas?"]
+];
+
+const LIB_CHK = [
+  "Todos os blocos da Equipe A (Dupla 1) inspecionados e medidos",
+  "Todos os blocos da Equipe B (Dupla 2) inspecionados e medidos",
+  "Continuidade elétrica das descidas conferida (critério <= 0,20 Ohm — NBR 5419-3)",
+  "Resistência de aterramento medida nas caixas/BEP (<= 10 Ohm ideal / <= 20 Ohm solo seco)",
+  "Captores Franklin (K, L e Quadra) e 27 pontos do alambrado verificados",
+  "BEP Principal (Portaria) e BEL-1 a BEL-4 verificados e fotografados",
+  "DPS do QDG da Portaria verificado (indicador Verde/Vermelho)",
+  "Fotos de Fachada, Telhado, Descidas e BEP em HD com carimbo e hora registradas",
+  "Pontos conformes (Rosa) e não conformes (Vermelho) pintados na planta A3",
+  "Controle de Reposição em Campo (placas e conectores) preenchido",
+  "PDF com fotos + Arquivo estruturado p/ IA (.MD) + Backup JSON gerados e enviados"
+];
+
+let S = {
+  updatedAt: 0,
+  cfg: {
+    empresa: "TH ELÉTRICA — ENGENHARIA E LAUDOS TÉCNICOS",
+    cliente: "Fazenda Amigos do Bem",
+    local: "Serra do Catimbau, Buíque/PE",
+    proposta: "Projeto SPDA Bom Contato RV00 (24/11/2025) • ABNT NBR 5419:2015",
+    data: new Date().toISOString().slice(0,10),
+    equipeAtiva: 1,
+    driveA: DRIVE_FOLDERS[1].url,
+    driveB: DRIVE_FOLDERS[2].url,
+    resFoto: 2560,
+    carimboOn: 1,
+    autoSaveGallery: 1,
+    soPreenchidos: 1,
+    resp: "",
+    crea: "",
+    art: "",
+    limC: 0.2,
+    limT: 10,
+    limTSeco: 20,
+    url: "",
+    tok: "",
+    eq: "",
+    ap: "",
+    apTerra: "",
+    layoutVer: LAYOUT_VER
+  },
+  reposicao: {
+    placasQtd: "",
+    placasLocais: "",
+    conectoresQtd: "",
+    conectoresLocais: "",
+    outros: "",
+    anotacoesLivres: ""
+  },
+  blocos: null,
+  lib: {},
+  f: {}
+};
+
+let db = null, view = "", activeTab = "blocos", searchQ = "", filterMode = "ALL", filterDupla = 0, photoURLCache = {};
+let lastSnapWrite = 0, lastSavedTimeStr = "";
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function teamLabel(d) {
+  return d == 2 ? "Equipe B (Dupla 2)" : "Equipe A (Dupla 1)";
+}
+
+function getDriveUrl(teamNum) {
+  if (teamNum == 2) return S.cfg.driveB || DRIVE_FOLDERS[2].url;
+  return S.cfg.driveA || DRIVE_FOLDERS[1].url;
+}
+
+function getB() {
+  if (S.cfg && S.cfg.layoutVer !== LAYOUT_VER) migrateLayout();
+  if (!Array.isArray(S.blocos) || !S.blocos.length) {
+    S.blocos = DEFAULT_B.map(x => [...x]);
+  }
+  return S.blocos;
+}
+
+function idb() {
+  return new Promise(r => {
+    try {
+      const q = indexedDB.open("spda", 1);
+      q.onupgradeneeded = () => {
+        if (!q.result.objectStoreNames.contains("kv")) q.result.createObjectStore("kv");
+        if (!q.result.objectStoreNames.contains("ph")) q.result.createObjectStore("ph");
+      };
+      q.onsuccess = () => r(q.result);
+      q.onerror = () => r(null);
+    } catch (e) {
+      r(null);
+    }
+  });
+}
+
+const tx = (st, m, f) => new Promise(r => {
+  if (!db) return r(null);
+  try {
+    const t = db.transaction(st, m), o = f(t.objectStore(st));
+    t.oncomplete = () => r(o && o.result);
+    t.onerror = () => r(null);
+  } catch (e) {
+    r(null);
+  }
+});
+const kget = k => tx("kv", "readonly", s => s.get(k));
+const kset = (k, v) => tx("kv", "readwrite", s => s.put(v, k));
+const pall = () => tx("ph", "readonly", s => s.getAll()).then(r => r || []);
+const pkeys = () => tx("ph", "readonly", s => s.getAllKeys()).then(r => r || []);
+const pset = (k, v) => tx("ph", "readwrite", s => s.put(v, k));
+const pget = k => tx("ph", "readonly", s => s.get(k));
+const pdel = k => tx("ph", "readwrite", s => s.delete(k));
+
+/* ============================================================================
+   SISTEMA BLINDADO CONTRA PERDA DE DADOS (DUPLA PERSISTÊNCIA SÍNCRONA + IDB)
+   ============================================================================ */
+function updateSaveIndicator() {
+  const el = $("#save-ind");
+  if (el && lastSavedTimeStr) {
+    el.textContent = `✓ Salvo ${lastSavedTimeStr}`;
+  }
+}
+
+function getSnapshots() {
+  try {
+    const raw = localStorage.getItem(LS_SNAPS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function saveNow(forceSnapshot = false) {
+  S.updatedAt = Date.now();
+  lastSavedTimeStr = new Date(S.updatedAt).toTimeString().slice(0, 8);
+  const serialized = JSON.stringify(S);
+
+  // 1. Gravação SÍNCRONA imediata em localStorage (zero risco se fechar a aba/app na hora)
+  try {
+    localStorage.setItem(LS_STATE_KEY, serialized);
+    if (forceSnapshot || (S.updatedAt - lastSnapWrite > 15000)) {
+      lastSnapWrite = S.updatedAt;
+      const snaps = getSnapshots();
+      snaps.unshift({ t: S.updatedAt, h: lastSavedTimeStr, data: serialized });
+      if (snaps.length > 5) snaps.length = 5;
+      localStorage.setItem(LS_SNAPS_KEY, JSON.stringify(snaps));
+    }
+  } catch (e) {
+    // Caso localStorage atinja limite, tenta salvar sem snapshots antigos
+    try {
+      localStorage.removeItem(LS_SNAPS_KEY);
+      localStorage.setItem(LS_STATE_KEY, serialized);
+    } catch (e2) {}
+  }
+
+  // 2. Gravação em IndexedDB (assíncrona imediata)
+  if (db) {
+    kset("S", JSON.parse(serialized));
+  }
+
+  updateSaveIndicator();
+}
+
+let idbTimer;
+function save() {
+  clearTimeout(idbTimer);
+  saveNow(false);
+  idbTimer = setTimeout(() => saveNow(false), 120);
+}
+
+window.addEventListener("pagehide", () => saveNow(true));
+window.addEventListener("beforeunload", () => saveNow(true));
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden") saveNow(true);
+});
+
+function countFilledMetrics(st) {
+  if (!st || !st.f) return 0;
+  let n = 0;
+  for (const k of Object.keys(st.f)) {
+    const f = st.f[k];
+    if (!f) continue;
+    if (f.hi || f.hf || f.solo || f.bepC || f.bepT || f.obs) n++;
+    if (Array.isArray(f.rows)) {
+      for (const r of f.rows) {
+        if (r.cont !== "" || r.terra !== "" || r.barra || r.eld || r.cx) n += 2;
+      }
+    }
+    if (Array.isArray(f.ncs)) n += f.ncs.length * 2;
+  }
+  return n;
+}
+
+function loadBestState(lsRaw, idbState) {
+  let lsState = null;
+  try {
+    if (lsRaw) lsState = JSON.parse(lsRaw);
+  } catch (e) {}
+
+  if (!lsState && !idbState) return null;
+  if (lsState && !idbState) return lsState;
+  if (!lsState && idbState) return idbState;
+
+  const lsTime = Number(lsState.updatedAt || 0);
+  const idbTime = Number(idbState.updatedAt || 0);
+  if (lsTime !== idbTime) return lsTime > idbTime ? lsState : idbState;
+
+  return countFilledMetrics(lsState) >= countFilledMetrics(idbState) ? lsState : idbState;
+}
+
+const R = (i, pre = "D") => ({
+  p: pre + String(i + 1).padStart(2, "0"),
+  loc: "",
+  barra: "",
+  eld: "",
+  cx: "",
+  cont: "",
+  terra: "",
+  horaFoto: "",
+  fotoVisorOk: 0,
+  ph: [],
+  pl: "",
+  obs: ""
+});
+
+function rowsFor(b) {
+  const o = b[3] || "";
+  if (o.includes("only")) return [];
+  const n = typeof b[4] === "number" ? b[4] : 10, pre = b[5] || "D";
+  const rows = Array.from({length: n}, (_, i) => R(i, pre));
+  (b[6] || []).forEach(name => { const r = R(0, pre); r.p = name; rows.push(r); });
+  return rows;
+}
+
+function newRow(id) {
+  const b = getB().find(x => x[0] == id) || [];
+  const pre = b[5] || "D";
+  const f = F(id);
+  const n = f.rows.filter(r => String(r.p).startsWith(pre) && /\d+$/.test(r.p)).length;
+  return R(n, pre);
+}
+
+function rowHasData(r) {
+  return ["cont","terra","barra","eld","cx","obs","loc","horaFoto"].some(k => String(r[k] ?? "") !== "") || (r.ph || []).length > 0;
+}
+
+function blockHasData(f) {
+  if (!f) return false;
+  if ((f.rows || []).some(rowHasData)) return true;
+  if ((f.ncs || []).length || (f.fachadaPh || []).length || (f.telhadoPh || []).length || (f.bepPh || []).length) return true;
+  return ["bepC","bepT","obs","data","hi"].some(k => String(f[k] ?? "") !== "");
+}
+
+function migrateLayout() {
+  if (S.cfg.layoutVer === LAYOUT_VER) return;
+  const oldB = Array.isArray(S.blocos) ? S.blocos : [];
+  const nb = DEFAULT_B.map(x => [...x]);
+  Object.keys(S.f || {}).forEach(id => {
+    if (!blockHasData(S.f[id])) { delete S.f[id]; return; }
+    if (!nb.some(x => x[0] === id)) {
+      const ob = oldB.find(x => x[0] === id);
+      if (ob) nb.push(ob);
+    }
+  });
+  S.blocos = nb;
+  S.cfg.layoutVer = LAYOUT_VER;
+}
+
+function F(id) {
+  const b = getB().find(x => x[0] == id) || [id, id, 1, "", 10];
+  const o = b[3] || "";
+  const defCount = o.includes("only") ? 0 : (typeof b[4] === "number" ? b[4] : 10);
+  const f = S.f[id] ??= {
+    id,
+    data: "",
+    hi: "",
+    hf: "",
+    horaConc: "",
+    solo: "",
+    clima: "",
+    obs: "",
+    reparosCampo: "",
+    respBloco: "",
+    visto: "",
+    dupla: b[2],
+    chk: {},
+    fachadaPh: [],
+    fachadaHora: "",
+    telhadoPh: [],
+    telhadoHora: "",
+    bepOk: "",
+    bepAcess: "",
+    bepCorr: "",
+    bepResLig: "",
+    bepPlaca: "",
+    bepC: "",
+    bepT: "",
+    bepHora: "",
+    bepPh: [],
+    dps: "",
+    dpsCor: "",
+    rows: rowsFor(b),
+    ncs: [],
+    done: {vis: 0, med: 0, foto: 0, pl: 0}
+  };
+  // Garante campos novos em registros migrados
+  f.chk ??= {};
+  f.fachadaPh ??= [];
+  f.telhadoPh ??= [];
+  f.bepPh ??= [];
+  f.ncs ??= [];
+  f.rows ??= [];
+  f.done ??= {vis: 0, med: 0, foto: 0, pl: 0};
+  f.rows.forEach(r => { r.ph ??= []; r.horaFoto ??= ""; });
+  return f;
+}
+
+const num = v => parseFloat(String(v ?? "").replace(",", "."));
+
+function judge(r) {
+  const c = num(r.cont), t = num(r.terra), bad = [];
+  if (!isNaN(c) && c > S.cfg.limC) bad.push(`Cont. ${c} Ohm > ${S.cfg.limC}`);
+  if (!isNaN(t) && t > S.cfg.limT) bad.push(`Terra ${t} Ohm > ${S.cfg.limT}`);
+  return bad;
+}
+
+function rowDiagnosis(r) {
+  const j = judge(r);
+  const visBad = [];
+  if (r.barra === "NC") visBad.push("Barra/Fixação NC");
+  if (r.eld === "NC") visBad.push("Eletroduto/Placa NC");
+  if (r.cx === "NC") visBad.push("Caixa/Bimetálico NC");
+  const allBad = [...visBad, ...j];
+  if (allBad.length) {
+    return {ok: false, measured: true, short: "REPROVADO (NC)", detail: allBad.join(" | ")};
+  }
+  if (r.cont !== "" || r.terra !== "" || [r.barra, r.eld, r.cx].includes("OK")) {
+    return {ok: true, measured: true, short: "APROVADO (OK)", detail: "Dentro dos parâmetros da NBR 5419"};
+  }
+  return {ok: true, measured: false, short: "NÃO MEDIDO", detail: "Sem leitura registrada"};
+}
+
+function collectAllBlockNCs(b) {
+  const f = F(b[0]);
+  const list = [];
+  (f.ncs || []).forEach(n => {
+    const info = COD[n.cod] || ["Desvio técnico identificado em campo", n.sev || "B", "Realizar adequação conforme NBR 5419:2015."];
+    list.push({
+      code: `NC-${String(list.length + 1).padStart(2, "0")}`,
+      ponto: n.ponto || "Geral",
+      codRef: n.cod || "—",
+      horaFoto: n.horaFoto || "—",
+      titulo: info[0],
+      sev: n.sev || info[1] || "B",
+      detalhe: n.det || info[2],
+      ph: n.ph || []
+    });
+  });
+
+  (f.rows || []).forEach(r => {
+    const c = num(r.cont), t = num(r.terra);
+    const issues = [];
+    let sev = "B";
+    const recs = [];
+    if (!isNaN(c) && c > S.cfg.limC) {
+      issues.push(`Continuidade medida = ${r.cont} Ohm (limite <= ${S.cfg.limC} Ohm)`);
+      sev = "A";
+      recs.push(COD.C1[2]);
+    }
+    if (!isNaN(t) && t > S.cfg.limT) {
+      issues.push(`Resistência de terra = ${r.terra} Ohm (limite <= ${S.cfg.limT} Ohm)`);
+      sev = "A";
+      recs.push(COD.C10[2]);
+    }
+    if (r.barra === "NC") {
+      issues.push("Barra chata / fixação com anomalia (NC)");
+      recs.push(COD.C7[2]);
+    }
+    if (r.eld === "NC") {
+      issues.push("Eletroduto PVC / placa de advertência ausente ou danificado (NC)");
+      recs.push(COD.C6[2]);
+    }
+    if (r.cx === "NC") {
+      issues.push("Caixa de inspeção / conector bimetálico com anomalia (NC)");
+      recs.push(COD.C4[2]);
+    }
+    if (issues.length) {
+      const pontoName = r.loc ? `${r.p} (${r.loc})` : r.p;
+      list.push({
+        code: `NC-${String(list.length + 1).padStart(2, "0")}`,
+        ponto: pontoName,
+        codRef: !isNaN(c) && c > S.cfg.limC ? "C1/C10" : "Visual",
+        horaFoto: r.horaFoto || "—",
+        titulo: issues.join("; "),
+        sev,
+        detalhe: recs.join(" "),
+        ph: r.ph || []
+      });
+    }
+  });
+
+  return list;
+}
+
+function blockStats(b) {
+  const f = F(b[0]);
+  const o = b[3] || "";
+  const isOnly = o.includes("only");
+  const totR = f.rows.length;
+  const medR = f.rows.filter(r => r.cont !== "" || r.terra !== "" || r.barra || r.eld || r.cx).length;
+  const ncsRows = f.rows.filter(r => judge(r).length || [r.barra, r.eld, r.cx].includes("NC")).length;
+  const totNC = f.ncs.length + ncsRows;
+  const totPh = (f.fachadaPh || []).length + (f.telhadoPh || []).length + (f.bepPh || []).length +
+    f.rows.reduce((a, r) => a + (r.ph || []).length, 0) +
+    f.ncs.reduce((a, n) => a + (n.ph || []).length, 0);
+  const chkCount = Object.values(f.chk || {}).filter(Boolean).length;
+
+  const isCompleted = !!(f.done && f.done.vis && f.done.med && f.done.foto && f.done.pl) ||
+    (isOnly ? (f.bepOk && (f.bepC || f.bepT) && totPh > 0) : (totR > 0 && medR === totR && chkCount >= 4 && totPh > 0));
+  const isStarted = !!(medR > 0 || chkCount > 0 || totPh > 0 || f.bepOk || f.bepC || f.bepT || f.hi || f.done.vis || f.done.med || f.reparosCampo);
+
+  let status = "PENDENTE";
+  if (totNC > 0 && !f.done.pl) status = "NC";
+  else if (isCompleted) status = "CONCLUIDO";
+  else if (isStarted) status = "ANDAMENTO";
+
+  const missing = [];
+  if (!isOnly && chkCount < CHK.length && !f.done.vis) missing.push(`Checklist (${chkCount}/${CHK.length})`);
+  if (!isOnly && medR < totR && !f.done.med) missing.push(`Medições (${medR}/${totR})`);
+  if ((o.includes("bep") || isOnly) && !f.bepC && !f.bepT) missing.push("Medir BEP");
+  if (totPh === 0 && !f.done.foto) missing.push("Fotos HD");
+  if (!f.done.pl) missing.push("Planta A3");
+
+  return {f, totR, medR, totNC, totPh, chkCount, isCompleted, isStarted, status, missing};
+}
+
+function go(v, tab) {
+  saveNow(false);
+  view = v;
+  if (tab) activeTab = tab;
+  render();
+  scrollTo(0, 0);
+}
+
+// Atualização com re-render (usada para botões de seleção, nunca durante digitação em input)
+function set(id, path, v, rr) {
+  let o = F(id), k = path.split(".");
+  while (k.length > 1) o = o[k.shift()];
+  o[k[0]] = v;
+  saveNow(false);
+  if (rr) render();
+}
+
+// Atualização silenciosa no oninput: salva imediatamente sem perder foco ou fechar teclado
+function setSilent(id, path, v) {
+  let o = F(id), k = path.split(".");
+  while (k.length > 1) o = o[k.shift()];
+  o[k[0]] = v;
+  saveNow(false);
+  if (path.startsWith("rows.")) {
+    const idx = parseInt(path.split(".")[1]);
+    if (!isNaN(idx)) refreshRowCardStatus(id, idx);
+  }
+}
+
+function refreshRowCardStatus(id, idx) {
+  const card = document.getElementById(`row-card-${idx}`);
+  if (!card) return;
+  const r = F(id).rows[idx];
+  if (!r) return;
+  const j = judge(r);
+  const hasNC = j.length || [r.barra, r.eld, r.cx].includes("NC");
+  const isOk = !hasNC && (r.cont !== "" || r.terra !== "");
+  card.classList.remove("ok", "nc");
+  if (hasNC) card.classList.add("nc");
+  else if (isOk) card.classList.add("ok");
+  const badges = card.querySelector(".row-badges");
+  if (badges) {
+    badges.innerHTML = j.map(x => `<span class="tag NC">${esc(x)}</span>`).join("");
+  }
+}
+
+function setCfgSilent(key, v) {
+  S.cfg[key] = v;
+  saveNow(false);
+}
+
+function setRepSilent(key, v) {
+  S.reposicao ??= {};
+  S.reposicao[key] = v;
+  saveNow(false);
+}
+
+function toggleDone(id, key) {
+  const f = F(id);
+  f.done[key] = f.done[key] ? 0 : 1;
+  saveNow(true);
+  render();
+}
+
+function toggleBlockAllDone(id, checked) {
+  const f = F(id);
+  const v = checked ? 1 : 0;
+  f.done = {vis: v, med: v, foto: v, pl: v};
+  saveNow(true);
+  render();
+}
+
+function toggleLib(idx, checked) {
+  S.lib ??= {};
+  S.lib["k" + idx] = checked ? 1 : 0;
+  saveNow(false);
+  render();
+}
+
+const seg = (id, path, cur, opts) =>
+  `<span class="seg">${opts.map(([v, l, c]) =>
+    `<button type="button" class="${cur === v ? "on " + (c || "") : ""}" onclick="set('${esc(id)}','${path}','${cur === v ? "" : v}',1)">${l}</button>`
+  ).join("")}</span>`;
+
+async function getThumbURL(name) {
+  if (photoURLCache[name]) return photoURLCache[name];
+  const rec = await pget(name);
+  if (rec && rec.b) {
+    const u = URL.createObjectURL(rec.b);
+    photoURLCache[name] = u;
+    return u;
+  }
+  return "";
+}
+
+async function hydrateThumbs() {
+  const imgs = document.querySelectorAll("img[data-ph]");
+  for (const img of imgs) {
+    const k = img.getAttribute("data-ph");
+    const u = await getThumbURL(k);
+    if (u) img.src = u;
+  }
+}
+
+function renderThumbs(id, list, kind, idx) {
+  if (!list || !list.length) return "";
+  return `<div class="thumbs">${list.map((name, pi) => `
+    <div class="th">
+      <img data-ph="${esc(name)}" alt="Foto HD" onclick="viewPhoto('${esc(name)}')">
+      <button type="button" title="Excluir foto" onclick="delPhoto('${esc(id)}','${kind}',${idx},${pi},'${esc(name)}')">✕</button>
+    </div>
+  `).join("")}</div>`;
+}
+
+function getPhotoDestinationOptions(blockId) {
+  const b = getB().find(x => x[0] == blockId) || [blockId, blockId, 1, ""];
+  const f = F(blockId);
+  const o = b[3] || "";
+  const opts = [];
+  if (!o.includes("only")) {
+    opts.push({ key: "fachada:-1:-1", label: "Fachada", ponto: "Fachada", kind: "fachada", ri: -1, ni: -1 });
+    opts.push({ key: "telhado:-1:-1", label: "Telhado / Captação", ponto: "Telhado", kind: "telhado", ri: -1, ni: -1 });
+  }
+  if (o.includes("bep") || o.includes("only")) {
+    opts.push({ key: "bep:-1:-1", label: "BEP (Barramento)", ponto: "BEP", kind: "bep", ri: -1, ni: -1 });
+  }
+  (f.rows || []).forEach((r, idx) => {
+    opts.push({
+      key: `row:${idx}:-1`,
+      label: r.loc ? `${r.p} (${r.loc})` : r.p,
+      ponto: r.p,
+      kind: "row",
+      ri: idx,
+      ni: -1
+    });
+  });
+  (f.ncs || []).forEach((n, idx) => {
+    opts.push({
+      key: `nc:-1:${idx}`,
+      label: `NC-${String(idx + 1).padStart(2, "0")}${n.ponto ? ` (${n.ponto})` : ""}`,
+      ponto: `NC-${idx + 1}`,
+      kind: "nc",
+      ri: -1,
+      ni: idx
+    });
+  });
+  return opts;
+}
+
+function getDefaultMeasureLine(blockId, kind, ri) {
+  const f = F(blockId);
+  if (kind === "row" && ri >= 0 && f.rows[ri]) {
+    const r = f.rows[ri];
+    const parts = [];
+    if (r.cont !== "") parts.push(`Cont: ${r.cont} Ohm`);
+    if (r.terra !== "") parts.push(`Terra: ${r.terra} Ohm`);
+    return parts.join("  |  ");
+  }
+  if (kind === "bep") {
+    const parts = [];
+    if (f.bepC !== "") parts.push(`Cont BEP: ${f.bepC} Ohm`);
+    if (f.bepT !== "") parts.push(`Terra BEP: ${f.bepT} Ohm`);
+    return parts.join("  |  ");
+  }
+  return "";
+}
+
+function removePhotoRefFromBlock(blockId, photoName) {
+  const f = S.f[blockId];
+  if (!f) return;
+  const rm = arr => {
+    if (!Array.isArray(arr)) return;
+    const idx = arr.indexOf(photoName);
+    if (idx >= 0) arr.splice(idx, 1);
+  };
+  rm(f.fachadaPh);
+  rm(f.telhadoPh);
+  rm(f.bepPh);
+  (f.rows || []).forEach(r => rm(r.ph));
+  (f.ncs || []).forEach(n => rm(n.ph));
+}
+
+function addPhotoRefToBlock(blockId, kind, ri, ni, photoName, horaFotoStr) {
+  const f = F(blockId);
+  if (kind === "fachada") {
+    if (!f.fachadaPh.includes(photoName)) f.fachadaPh.push(photoName);
+    if (horaFotoStr) f.fachadaHora = horaFotoStr;
+  } else if (kind === "telhado") {
+    if (!f.telhadoPh.includes(photoName)) f.telhadoPh.push(photoName);
+    if (horaFotoStr) f.telhadoHora = horaFotoStr;
+  } else if (kind === "row" && ri >= 0 && f.rows[ri]) {
+    if (!f.rows[ri].ph.includes(photoName)) f.rows[ri].ph.push(photoName);
+    if (horaFotoStr) f.rows[ri].horaFoto = horaFotoStr;
+    f.rows[ri].fotoVisorOk = 1;
+  } else if (kind === "nc" && ni >= 0 && f.ncs[ni]) {
+    f.ncs[ni].ph ??= [];
+    if (!f.ncs[ni].ph.includes(photoName)) f.ncs[ni].ph.push(photoName);
+    if (horaFotoStr) f.ncs[ni].horaFoto = horaFotoStr;
+  } else {
+    f.bepPh ??= [];
+    if (!f.bepPh.includes(photoName)) f.bepPh.push(photoName);
+    if (horaFotoStr) f.bepHora = horaFotoStr;
+  }
+}
+
+/* ============================================================================
+   PLANILHA (CSV ; com BOM — abre direto no Excel / Google Planilhas)
+   ============================================================================ */
+function csvCell(v) {
+  const t = String(v ?? "").replace(/\r?\n/g, " ");
+  return /[;"]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t;
+}
+
+function csvBlob(rows) {
+  return new Blob(["\uFEFF" + rows.map(r => r.map(csvCell).join(";")).join("\r\n")], {type: "text/csv;charset=utf-8"});
+}
+
+function downloadCSV(teamFilter = 0) {
+  const B = getB().filter(b => !teamFilter || F(b[0]).dupla == teamFilter);
+  const med = [["Prancha","Sigla","Local","Equipe","Data","Ponto","Referência","Barra/Fixação","Eletroduto/Placa","Caixa/Bimetálico","Continuidade (Ohm)","Terra (Ohm)","Status","Diagnóstico","Hora foto","Nº fotos","Obs"]];
+  const ncs = [["Prancha","Sigla","Local","Equipe","Código","Ponto","Cód. defeito","Severidade","Descrição","Recomendação / detalhe","Hora foto","Nº fotos"]];
+  B.forEach(b => {
+    const f = F(b[0]), pr = PRANCHA[b[0]] || "", eq = f.dupla == 2 ? "B" : "A";
+    if ((b[3] || "").includes("bep")) {
+      med.push([pr, b[0], b[1], eq, f.data, "BEP/BEL", "", "", "", "", f.bepC, f.bepT, "", "", f.bepHora, (f.bepPh || []).length, `Estado: ${f.bepOk || "-"} | Acesso: ${f.bepAcess || "-"} | Corrosão: ${f.bepCorr || "-"} | Ligações: ${f.bepResLig || "-"} | Placa: ${f.bepPlaca || "-"}`]);
+    }
+    (f.rows || []).forEach(r => {
+      const d = rowDiagnosis(r);
+      med.push([pr, b[0], b[1], eq, f.data, r.p, r.loc, r.barra, r.eld, r.cx, r.cont, r.terra, d.short, d.measured ? d.detail : "", r.horaFoto, (r.ph || []).length, r.obs]);
+    });
+    collectAllBlockNCs(b).forEach(n => {
+      ncs.push([pr, b[0], b[1], eq, n.code, n.ponto, n.codRef, n.sev, n.titulo, n.detalhe, n.horaFoto, (n.ph || []).length]);
+    });
+  });
+  const tag = (S.cfg.data || new Date().toISOString().slice(0, 10)) + (teamFilter ? "_Equipe" + (teamFilter == 2 ? "B" : "A") : "");
+  saveToDeviceGallery(csvBlob(med), `SPDA_medicoes_${tag}.csv`);
+  setTimeout(() => saveToDeviceGallery(csvBlob(ncs), `SPDA_NCs_${tag}.csv`), 600);
+}
+
+function saveToDeviceGallery(blob, filename) {
+  try {
+    const u = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = u;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(u), 3000);
+  } catch (e) {}
+}
+
+function onViewPhotoBlockChange() {
+  const blkId = $("#vp-block").value;
+  const opts = getPhotoDestinationOptions(blkId);
+  const sel = $("#vp-target");
+  sel.innerHTML = opts.map(o => `<option value="${esc(o.key)}">${esc(o.label)}</option>`).join("");
+  onViewPhotoTargetChange();
+}
+
+function onViewPhotoTargetChange() {
+  const blkId = $("#vp-block").value;
+  const b = getB().find(x => x[0] == blkId) || [blkId, blkId];
+  const key = $("#vp-target").value;
+  const opts = getPhotoDestinationOptions(blkId);
+  const chosen = opts.find(o => o.key === key) || opts[0];
+  if (chosen) {
+    $("#vp-title").value = `${b[1]}--${chosen.label}`;
+    const m = getDefaultMeasureLine(blkId, chosen.kind, chosen.ri);
+    if (m) $("#vp-meas").value = m;
+  }
+}
+
+async function reapplyPhotoStamp(name, updates = {}) {
+  const rec = await pget(name);
+  if (!rec) return null;
+  const sourceBlob = rec.rawBlob || rec.b;
+  if (!sourceBlob) return null;
+
+  const newBlockId = updates.newBlockId || rec.id;
+  const newKind = updates.newKind || rec.kind || "row";
+  const newRi = updates.newRi !== undefined ? updates.newRi : (rec.ri ?? -1);
+  const newNi = updates.newNi !== undefined ? updates.newNi : (rec.ni ?? -1);
+  const newPonto = updates.newPonto || rec.ponto;
+
+  const stampTitle = updates.stampTitle !== undefined ? updates.stampTitle : (rec.stampTitle || "");
+  const stampDate = updates.stampDate !== undefined ? updates.stampDate : (rec.stampDate || "");
+  const extraMeasure = updates.extraMeasure !== undefined ? updates.extraMeasure : (rec.extraMeasure || "");
+  const noteText = updates.noteText !== undefined ? updates.noteText : (rec.noteText || "");
+  const notePos = updates.notePos || rec.notePos || "bottom";
+  const noteColor = updates.noteColor || rec.noteColor || "yellow";
+
+  const newStamped = await processPhotoHDWithStamp(sourceBlob, stampTitle, stampDate, extraMeasure, {
+    noteText,
+    notePos,
+    noteColor
+  });
+
+  // Se trocou de bloco ou ponto, move a referência nas fichas
+  if (newBlockId !== rec.id || newKind !== rec.kind || newRi !== rec.ri || newNi !== rec.ni) {
+    removePhotoRefFromBlock(rec.id, name);
+    addPhotoRefToBlock(newBlockId, newKind, newRi, newNi, name, rec.horaFoto || "");
+  }
+
+  const updatedRec = {
+    ...rec,
+    b: newStamped,
+    rawBlob: rec.rawBlob || sourceBlob,
+    id: newBlockId,
+    kind: newKind,
+    ri: newRi,
+    ni: newNi,
+    ponto: newPonto,
+    stampTitle,
+    stampDate,
+    extraMeasure,
+    noteText,
+    notePos,
+    noteColor,
+    s: 0
+  };
+  await pset(name, updatedRec);
+  if (photoURLCache[name]) {
+    URL.revokeObjectURL(photoURLCache[name]);
+    delete photoURLCache[name];
+  }
+  saveNow(true);
+  return updatedRec;
+}
+
+async function savePhotoEdits(name) {
+  const blkId = $("#vp-block").value;
+  const targetKey = $("#vp-target").value;
+  const opts = getPhotoDestinationOptions(blkId);
+  const chosen = opts.find(o => o.key === targetKey) || { kind: "bep", ri: -1, ni: -1, ponto: "Geral" };
+
+  await reapplyPhotoStamp(name, {
+    newBlockId: blkId,
+    newKind: chosen.kind,
+    newRi: chosen.ri,
+    newNi: chosen.ni,
+    newPonto: chosen.ponto,
+    stampTitle: $("#vp-title").value.trim(),
+    stampDate: $("#vp-date").value.trim(),
+    extraMeasure: $("#vp-meas").value.trim(),
+    noteText: $("#vp-note").value.trim(),
+    notePos: $("#vp-npos").value,
+    noteColor: $("#vp-ncolor").value
+  });
+
+  await render();
+  await viewPhoto(name);
+}
+
+async function viewPhoto(name) {
+  const rec = await pget(name);
+  if (!rec || !rec.b) return;
+  const u = await getThumbURL(name);
+  const rawUrl = rec.rawBlob ? URL.createObjectURL(rec.rawBlob) : "";
+  const B = getB();
+  const destOpts = getPhotoDestinationOptions(rec.id || B[0][0]);
+  const curKey = `${rec.kind || "bep"}:${rec.ri ?? -1}:${rec.ni ?? -1}`;
+
+  $("#modal-root").innerHTML = `
+    <div class="modal-bg" onclick="closeModal()">
+      <div class="modal" onclick="event.stopPropagation()">
+        <div class="row" style="margin-bottom:8px">
+          <b class="grow mono" style="font-size:12px;word-break:break-all">${esc(name)}</b>
+          <button class="b" onclick="closeModal()">Fechar</button>
+        </div>
+        <div style="text-align:center;background:#090b0d;padding:6px">
+          <img src="${u}" style="max-width:100%;max-height:52vh;border:1px solid var(--line)">
+        </div>
+        <div class="g2" style="margin-top:8px">
+          <a href="${u}" download="${esc(name)}" class="big wa" style="margin:0;font-size:13px;padding:10px">📲 Salvar na Galeria</a>
+          ${rawUrl ? `<a href="${rawUrl}" download="ORIG_${esc(name)}" class="big out" style="margin:0;font-size:13px;padding:10px">📥 Baixar Original Limpa</a>` : `<span class="tag CONCLUIDO" style="align-self:center;text-align:center">Original HD protegida</span>`}
+        </div>
+
+        <div style="margin-top:12px;border-top:2px solid var(--line);padding-top:10px">
+          <h3 style="margin-bottom:6px">✏️ Editar Foto, Carimbo ou Trocar de Bloco</h3>
+          <div class="g2">
+            <div>
+              <label>Bloco / Edificação</label>
+              <select id="vp-block" onchange="onViewPhotoBlockChange()">
+                ${B.map(x => `<option value="${esc(x[0])}" ${x[0] == rec.id ? "selected" : ""}>${esc(x[1])} [${esc(x[0])}]</option>`).join("")}
+              </select>
+            </div>
+            <div>
+              <label>Ponto / Destino</label>
+              <select id="vp-target" onchange="onViewPhotoTargetChange()">
+                ${destOpts.map(o => `<option value="${esc(o.key)}" ${o.key === curKey ? "selected" : ""}>${esc(o.label)}</option>`).join("")}
+              </select>
+            </div>
+          </div>
+
+          <label>Texto Principal do Carimbo (Linha 1)</label>
+          <input id="vp-title" value="${esc(rec.stampTitle || "")}" placeholder="Ex.: edifício B--Bepe">
+
+          <div class="g2">
+            <div>
+              <label>Data e Hora (Linha 2)</label>
+              <input id="vp-date" value="${esc(rec.stampDate || "")}">
+            </div>
+            <div>
+              <label>Medições (Linha 3 amarela)</label>
+              <input id="vp-meas" value="${esc(rec.extraMeasure || "")}" placeholder="Cont / Terra Ohm">
+            </div>
+          </div>
+
+          <label>Balãozinho / Anotação Escrita na Imagem</label>
+          <input id="vp-note" value="${esc(rec.noteText || "")}" placeholder="Ex.: RETIFICAÇÃO BLOCO B, CAIXA QUEBRADA...">
+          <div class="g2">
+            <div>
+              <label>Posição do Balão</label>
+              <select id="vp-npos">
+                <option value="bottom" ${(rec.notePos || "bottom") === "bottom" ? "selected" : ""}>Embaixo (Centro)</option>
+                <option value="center" ${rec.notePos === "center" ? "selected" : ""}>Centro da Foto</option>
+                <option value="top-right" ${rec.notePos === "top-right" ? "selected" : ""}>Topo Direito</option>
+              </select>
+            </div>
+            <div>
+              <label>Cor do Balão</label>
+              <select id="vp-ncolor">
+                <option value="yellow" ${(rec.noteColor || "yellow") === "yellow" ? "selected" : ""}>Amarelo Destaque</option>
+                <option value="red" ${rec.noteColor === "red" ? "selected" : ""}>Vermelho Alerta (NC)</option>
+                <option value="white" ${rec.noteColor === "white" ? "selected" : ""}>Branco Limpo</option>
+              </select>
+            </div>
+          </div>
+
+          <button class="big" style="margin-top:10px;background:var(--navy)" onclick="savePhotoEdits('${esc(name)}')">💾 Re-aplicar Carimbo na Foto Original</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+async function delPhoto(id, kind, idx, pi, name) {
+  if (!confirm("Excluir esta foto?")) return;
+  const f = F(id);
+  if (kind === "bep") (f.bepPh || []).splice(pi, 1);
+  else if (kind === "fachada") (f.fachadaPh || []).splice(pi, 1);
+  else if (kind === "telhado") (f.telhadoPh || []).splice(pi, 1);
+  else if (kind === "row") f.rows[idx].ph.splice(pi, 1);
+  else if (kind === "nc") (f.ncs[idx].ph || []).splice(pi, 1);
+  await pdel(name);
+  if (photoURLCache[name]) {
+    URL.revokeObjectURL(photoURLCache[name]);
+    delete photoURLCache[name];
+  }
+  saveNow(true);
+  render();
+}
+
+function closeModal() {
+  $("#modal-root").innerHTML = "";
+}
+
+/* ============================================================================
+   CAPTURA DE FOTO EM HD + CARIMBO + BALÃOZINHO + CÂMERA INTEGRADA AO VIVO
+   ============================================================================ */
+function formatStampDate(d) {
+  const meses = ["jan.", "fev.", "mar.", "abr.", "mai.", "jun.", "jul.", "ago.", "set.", "out.", "nov.", "dez."];
+  const dia = d.getDate();
+  const mes = meses[d.getMonth()];
+  const ano = d.getFullYear();
+  const hh = String(d.getHours()).padStart(2, "0");
+  const mm = String(d.getMinutes()).padStart(2, "0");
+  const ss = String(d.getSeconds()).padStart(2, "0");
+  return `${dia} de ${mes} de ${ano} ${hh}:${mm}:${ss}`;
+}
+
+function roundRectCanvas(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function prepareRawPhotoBlob(file) {
+  return new Promise(res => {
+    const img = new Image();
+    img.onload = () => {
+      const maxDim = Number(S.cfg.resFoto) || 2560;
+      const scale = maxDim > 0 ? Math.min(1, maxDim / Math.max(img.width, img.height)) : 1;
+      const W = Math.round(img.width * scale);
+      const H = Math.round(img.height * scale);
+      const c = document.createElement("canvas");
+      c.width = W;
+      c.height = H;
+      c.getContext("2d").drawImage(img, 0, 0, W, H);
+      c.toBlob(blob => res(blob), "image/jpeg", 0.94);
+    };
+    img.onerror = () => res(file);
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+function wrapCanvasText(ctx, text, maxW) {
+  const words = String(text || "").split(/\s+/).filter(Boolean);
+  const lines = [];
+  let cur = "";
+  for (const w of words) {
+    const cand = cur ? cur + " " + w : w;
+    if (ctx.measureText(cand).width <= maxW) cur = cand;
+    else {
+      if (cur) lines.push(cur);
+      cur = w;
+    }
+  }
+  if (cur) lines.push(cur);
+  return lines.length ? lines : [""];
+}
+
+function processPhotoHDWithStamp(file, stampLine1, stampLine2, stampLine3 = "", opts = {}) {
+  return new Promise(res => {
+    const img = new Image();
+    img.onload = () => {
+      const maxDim = Number(S.cfg.resFoto) || 2560;
+      const scale = maxDim > 0 ? Math.min(1, maxDim / Math.max(img.width, img.height)) : 1;
+      const W = Math.round(img.width * scale);
+      const H = Math.round(img.height * scale);
+
+      const c = document.createElement("canvas");
+      c.width = W;
+      c.height = H;
+      const ctx = c.getContext("2d");
+      ctx.drawImage(img, 0, 0, W, H);
+
+      const refSide = Math.min(W, H);
+      const marginX = Math.round(refSide * 0.035);
+      const marginY = Math.round(refSide * 0.035);
+
+      if (S.cfg.carimboOn !== 0 && (stampLine1 || stampLine2 || stampLine3)) {
+        const fontTitle = Math.max(24, Math.round(refSide * 0.048));
+        const fontSub = Math.max(20, Math.round(refSide * 0.038));
+        const padX = Math.round(fontTitle * 0.72);
+        const padY = Math.round(fontTitle * 0.62);
+        const lineGap = Math.round(fontTitle * 0.34);
+
+        ctx.font = `700 ${fontTitle}px system-ui, -apple-system, Roboto, Arial, sans-serif`;
+        const w1 = ctx.measureText(stampLine1 || "").width;
+        ctx.font = `400 ${fontSub}px system-ui, -apple-system, Roboto, Arial, sans-serif`;
+        const w2 = ctx.measureText(stampLine2 || "").width;
+        const w3 = stampLine3 ? ctx.measureText(stampLine3).width : 0;
+
+        const minBoxW = Math.round(W * 0.72);
+        const maxBoxW = W - marginX * 2;
+        const boxW = Math.min(maxBoxW, Math.max(minBoxW, Math.max(w1, w2, w3) + padX * 2));
+        const extraH = stampLine3 ? (fontSub + lineGap) : 0;
+        const boxH = padY * 2 + fontTitle + lineGap + fontSub + extraH;
+        const radius = Math.round(fontTitle * 0.52);
+
+        ctx.save();
+        roundRectCanvas(ctx, marginX, marginY, boxW, boxH, radius);
+        ctx.fillStyle = "rgba(22, 26, 30, 0.78)";
+        ctx.fill();
+
+        ctx.fillStyle = "#ffffff";
+        ctx.textBaseline = "top";
+        ctx.font = `700 ${fontTitle}px system-ui, -apple-system, Roboto, Arial, sans-serif`;
+        ctx.fillText(stampLine1 || "", marginX + padX, marginY + padY);
+
+        ctx.font = `400 ${fontSub}px system-ui, -apple-system, Roboto, Arial, sans-serif`;
+        ctx.fillText(stampLine2 || "", marginX + padX, marginY + padY + fontTitle + lineGap);
+
+        if (stampLine3) {
+          ctx.fillStyle = "#fde047";
+          ctx.font = `600 ${fontSub}px system-ui, -apple-system, Roboto, Arial, sans-serif`;
+          ctx.fillText(stampLine3, marginX + padX, marginY + padY + fontTitle + lineGap * 2 + fontSub);
+        }
+        ctx.restore();
+      }
+
+      // Desenha balãozinho de texto escrito pelo técnico na tela
+      if (opts.noteText && String(opts.noteText).trim()) {
+        const noteStr = String(opts.noteText).trim();
+        const fontNote = Math.max(22, Math.round(refSide * 0.042));
+        const bPadX = Math.round(fontNote * 0.8);
+        const bPadY = Math.round(fontNote * 0.55);
+        const maxBubbleW = Math.round(W * 0.86);
+        ctx.font = `700 ${fontNote}px system-ui, -apple-system, Roboto, Arial, sans-serif`;
+        const bLines = wrapCanvasText(ctx, noteStr, maxBubbleW - bPadX * 2);
+        const lineStep = Math.round(fontNote * 1.25);
+        const longest = Math.max(...bLines.map(l => ctx.measureText(l).width));
+        const bw = Math.min(maxBubbleW, Math.round(longest + bPadX * 2));
+        const bh = Math.round(bPadY * 2 + bLines.length * lineStep - (lineStep - fontNote));
+
+        let bx = Math.round((W - bw) / 2);
+        let by = H - bh - marginY;
+        if (opts.notePos === "center") {
+          by = Math.round((H - bh) / 2);
+        } else if (opts.notePos === "top-right") {
+          bx = W - bw - marginX;
+          by = Math.round(H * 0.22);
+        }
+
+        const palette = opts.noteColor === "red"
+          ? { bg: "rgba(220, 38, 38, 0.92)", fg: "#ffffff", br: "#7f1d1d" }
+          : (opts.noteColor === "white"
+            ? { bg: "rgba(255, 255, 255, 0.94)", fg: "#111827", br: "#1F3A5F" }
+            : { bg: "rgba(253, 224, 71, 0.95)", fg: "#111827", br: "#a16207" });
+
+        ctx.save();
+        roundRectCanvas(ctx, bx, by, bw, bh, Math.round(fontNote * 0.55));
+        ctx.fillStyle = palette.bg;
+        ctx.fill();
+        ctx.lineWidth = Math.max(3, Math.round(refSide * 0.004));
+        ctx.strokeStyle = palette.br;
+        ctx.stroke();
+
+        ctx.fillStyle = palette.fg;
+        ctx.textBaseline = "top";
+        ctx.font = `700 ${fontNote}px system-ui, -apple-system, Roboto, Arial, sans-serif`;
+        for (let li = 0; li < bLines.length; li++) {
+          ctx.fillText(bLines[li], bx + bPadX, by + bPadY + li * lineStep);
+        }
+        ctx.restore();
+      }
+
+      c.toBlob(blob => res(blob), "image/jpeg", 0.92);
+    };
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+async function attachPhotoBlob(id, ponto, ri, ni, blobOrFile, kindOverride = "", dateObj = null, opts = {}) {
+  const b = getB().find(x => x[0] == id) || [id, id, 1, ""];
+  const f = F(id);
+  let subLabel = ponto;
+  let extraMeasure = "";
+
+  if (ri >= 0 && ri != null && f.rows[ri]) {
+    const r = f.rows[ri];
+    if (r.loc) subLabel = `${r.p} (${r.loc})`;
+    const parts = [];
+    if (r.cont !== "") parts.push(`Cont: ${r.cont} Ohm`);
+    if (r.terra !== "") parts.push(`Terra: ${r.terra} Ohm`);
+    if (parts.length) extraMeasure = parts.join("  |  ");
+  } else if (kindOverride === "bep" || ponto === "BEP") {
+    const parts = [];
+    if (f.bepC !== "") parts.push(`Cont BEP: ${f.bepC} Ohm`);
+    if (f.bepT !== "") parts.push(`Terra BEP: ${f.bepT} Ohm`);
+    if (parts.length) extraMeasure = parts.join("  |  ");
+  }
+
+  const d = dateObj || new Date();
+  const stampLine1 = opts.stampTitleOverride || `${b[1]}--${subLabel}`;
+  const stampLine2 = formatStampDate(d);
+  const horaFotoStr = d.toTimeString().slice(0, 8);
+  const resolvedKind = kindOverride || (ri >= 0 ? "row" : (ni >= 0 ? "nc" : "bep"));
+
+  // Salva 2 versões: (1) Original limpa em HD para permitir editar depois sem perder a foto, (2) Versão carimbada final
+  const rawBlob = await prepareRawPhotoBlob(blobOrFile);
+  const bl = await processPhotoHDWithStamp(rawBlob, stampLine1, stampLine2, extraMeasure, {
+    noteText: opts.noteText || "",
+    notePos: opts.notePos || "bottom",
+    noteColor: opts.noteColor || "yellow"
+  });
+
+  const hh = horaFotoStr.replace(/:/g, "");
+  const cleanPonto = String(ponto).replace(/[^a-zA-Z0-9_-]/g, "");
+  const name = `${id}_${cleanPonto}_${d.toISOString().slice(0, 10)}_${hh}_${Math.random().toString(36).slice(2, 5)}.jpg`;
+
+  await pset(name, {
+    b: bl,
+    rawBlob,
+    id,
+    ponto,
+    kind: resolvedKind,
+    ri: ri ?? -1,
+    ni: ni ?? -1,
+    stampTitle: stampLine1,
+    stampDate: stampLine2,
+    horaFoto: horaFotoStr,
+    extraMeasure,
+    noteText: opts.noteText || "",
+    notePos: opts.notePos || "bottom",
+    noteColor: opts.noteColor || "yellow",
+    t: d.toISOString(),
+    s: 0
+  });
+
+  addPhotoRefToBlock(id, resolvedKind, ri ?? -1, ni ?? -1, name, horaFotoStr);
+  saveNow(true);
+
+  if (opts.autoDownloadGallery && S.cfg.autoSaveGallery !== 0) {
+    saveToDeviceGallery(bl, name);
+  }
+  return name;
+}
+
+/* ============================================================================
+   CÂMERA INTEGRADA EM TELA CHEIA (FLASH, TIMER, INVERSÃO, FOTO/VÍDEO, TEXTO)
+   ============================================================================ */
+let camState = null, camClockTimer = null, camRecInterval = null;
+
+function buildCamStampTitle() {
+  if (!camState) return "";
+  if (camState.customTitle) return camState.customTitle;
+  const b = getB().find(x => x[0] == camState.id) || [camState.id, camState.id];
+  const f = F(camState.id);
+  let sub = camState.ponto;
+  if (camState.kind === "row" && camState.ri >= 0 && f.rows[camState.ri]) {
+    const r = f.rows[camState.ri];
+    sub = r.loc ? `${r.p} (${r.loc})` : r.p;
+  }
+  return `${b[1]}--${sub}`;
+}
+
+function updateCamLiveOverlay() {
+  if (!camState) return;
+  const l1 = $("#cam-st-l1"), l2 = $("#cam-st-l2"), l3 = $("#cam-st-l3");
+  if (l1) l1.textContent = buildCamStampTitle();
+  if (l2) l2.textContent = formatStampDate(new Date());
+  if (l3) {
+    const m = getDefaultMeasureLine(camState.id, camState.kind, camState.ri);
+    l3.textContent = m;
+    l3.style.display = m ? "block" : "none";
+  }
+
+  const bal = $("#cam-balloon-live");
+  if (bal) {
+    if (camState.noteText && camState.noteText.trim()) {
+      bal.style.display = "block";
+      bal.textContent = camState.noteText.trim();
+      bal.className = `cam-balloon-live pos-${camState.notePos || "bottom"}`;
+      const pal = camState.noteColor === "red"
+        ? "background:rgba(220,38,38,.92);color:#fff;border:2px solid #7f1d1d"
+        : (camState.noteColor === "white"
+          ? "background:rgba(255,255,255,.94);color:#111827;border:2px solid #1F3A5F"
+          : "background:rgba(253,224,71,.95);color:#111827;border:2px solid #a16207");
+      bal.style.cssText = pal;
+    } else {
+      bal.style.display = "none";
+    }
+  }
+}
+
+async function startCamStream() {
+  if (!camState) return;
+  stopCamStreamOnly();
+  const fb = $("#cam-fallback-box"), vid = $("#cam-video");
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    if (vid) vid.style.display = "none";
+    if (fb) fb.style.display = "flex";
+    return;
+  }
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: { ideal: camState.facing },
+        width: { ideal: 3840 },
+        height: { ideal: 2160 }
+      },
+      audio: camState.mode === "video"
+    });
+    if (!camState) { stream.getTracks().forEach(t => t.stop()); return; }
+    camState.stream = stream;
+    if (vid) {
+      vid.style.display = "block";
+      vid.srcObject = stream;
+      await vid.play().catch(() => {});
+    }
+    if (fb) fb.style.display = "none";
+    if (camState.torch) await applyCamTorch(true);
+  } catch (err) {
+    if (vid) vid.style.display = "none";
+    if (fb) {
+      fb.style.display = "flex";
+      const msg = $("#cam-fb-msg");
+      if (msg) msg.textContent = "Não foi possível abrir a câmera ao vivo neste aparelho/permissão. Use os botões abaixo:";
+    }
+  }
+}
+
+function stopCamStreamOnly() {
+  if (camState && camState.stream) {
+    camState.stream.getTracks().forEach(t => t.stop());
+    camState.stream = null;
+  }
+}
+
+async function applyCamTorch(on) {
+  if (!camState || !camState.stream) return false;
+  const track = camState.stream.getVideoTracks()[0];
+  if (!track || !track.applyConstraints) return false;
+  try {
+    await track.applyConstraints({ advanced: [{ torch: !!on }] });
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+async function toggleCamTorch() {
+  if (!camState) return;
+  camState.torch = !camState.torch;
+  const ok = await applyCamTorch(camState.torch);
+  const btn = $("#cam-btn-torch");
+  if (btn) {
+    btn.classList.toggle("active", camState.torch && ok);
+    btn.textContent = camState.torch ? "⚡ ON" : "⚡";
+  }
+  if (camState.torch && !ok) {
+    camState.torch = false;
+    if (btn) btn.classList.remove("active");
+    alert("Seu navegador ou câmera atual não liberou controle direto do flash. Você pode usar o botão '📷 Nativa' no topo para usar o app de câmera do aparelho.");
+  }
+}
+
+function cycleCamTimer() {
+  if (!camState) return;
+  const next = camState.timer === 0 ? 3 : (camState.timer === 3 ? 5 : 0);
+  camState.timer = next;
+  const btn = $("#cam-btn-timer");
+  if (btn) {
+    btn.classList.toggle("active", next > 0);
+    btn.textContent = next > 0 ? `⏱ ${next}s` : "⏱";
+  }
+}
+
+async function flipCamFacing() {
+  if (!camState) return;
+  camState.facing = camState.facing === "environment" ? "user" : "environment";
+  camState.torch = false;
+  await startCamStream();
+}
+
+async function setCamMode(mode) {
+  if (!camState || camState.mode === mode) return;
+  if (camState.recorder && camState.recorder.state === "recording") {
+    camState.recorder.stop();
+  }
+  camState.mode = mode;
+  renderCamOverlay();
+  await startCamStream();
+}
+
+function toggleCamAutoGallery() {
+  S.cfg.autoSaveGallery = S.cfg.autoSaveGallery === 0 ? 1 : 0;
+  saveNow(false);
+  const btn = $("#cam-btn-autogal");
+  if (btn) {
+    btn.classList.toggle("active", S.cfg.autoSaveGallery !== 0);
+    btn.title = S.cfg.autoSaveGallery !== 0 ? "Auto-salvar na galeria: ATIVADO" : "Auto-salvar na galeria: DESATIVADO";
+  }
+}
+
+function openCamSubpanel(panel) {
+  if (!camState) return;
+  camState.subpanel = camState.subpanel === panel ? "" : panel;
+  renderCamSubpanel();
+}
+
+function renderCamSubpanel() {
+  const root = $("#cam-sub-root");
+  if (!root || !camState) return;
+  if (!camState.subpanel) { root.innerHTML = ""; return; }
+
+  if (camState.subpanel === "loc") {
+    const B = getB();
+    const opts = getPhotoDestinationOptions(camState.id);
+    const curKey = `${camState.kind}:${camState.ri}:${camState.ni}`;
+    root.innerHTML = `
+      <div class="cam-subpanel">
+        <div class="row">
+          <b class="grow" style="font-size:16px">📍 Mudar Bloco / Ponto na Câmera</b>
+          <button class="b" onclick="openCamSubpanel('')">Fechar</button>
+        </div>
+        <label>Bloco / Edificação</label>
+        <select id="cs-blk" onchange="onCamSubBlockChange()">
+          ${B.map(x => `<option value="${esc(x[0])}" ${x[0] == camState.id ? "selected" : ""}>${esc(x[1])} [${esc(x[0])}]</option>`).join("")}
+        </select>
+        <label>Ponto / Descida / Item</label>
+        <select id="cs-tgt">
+          ${opts.map(o => `<option value="${esc(o.key)}" ${o.key === curKey ? "selected" : ""}>${esc(o.label)}</option>`).join("")}
+        </select>
+        <button class="big wa" style="margin-top:10px" onclick="applyCamSubLocation()">✓ Aplicar Local no Carimbo</button>
+      </div>`;
+  } else if (camState.subpanel === "edit") {
+    root.innerHTML = `
+      <div class="cam-subpanel">
+        <div class="row">
+          <b class="grow" style="font-size:16px">✏️ Escrever na Tela / Editar Carimbo</b>
+          <button class="b" onclick="openCamSubpanel('')">Fechar</button>
+        </div>
+        <label>Texto Principal do Carimbo (Linha 1 — deixe vazio p/ automático)</label>
+        <input id="cs-title" value="${esc(camState.customTitle)}" placeholder="${esc(buildCamStampTitle())}">
+        <label>Balãozinho / Texto Livre na Foto (opcional)</label>
+        <input id="cs-note" value="${esc(camState.noteText)}" placeholder="Ex.: A, BLOCO B, CAIXA SEM TAMPA...">
+        <div class="g2">
+          <div>
+            <label>Posição do Balão</label>
+            <select id="cs-npos">
+              <option value="bottom" ${camState.notePos === "bottom" ? "selected" : ""}>Embaixo (Centro)</option>
+              <option value="center" ${camState.notePos === "center" ? "selected" : ""}>Centro da Foto</option>
+              <option value="top-right" ${camState.notePos === "top-right" ? "selected" : ""}>Topo Direito</option>
+            </select>
+          </div>
+          <div>
+            <label>Cor do Balão</label>
+            <select id="cs-ncolor">
+              <option value="yellow" ${camState.noteColor === "yellow" ? "selected" : ""}>Amarelo</option>
+              <option value="red" ${camState.noteColor === "red" ? "selected" : ""}>Vermelho (NC)</option>
+              <option value="white" ${camState.noteColor === "white" ? "selected" : ""}>Branco</option>
+            </select>
+          </div>
+        </div>
+        <div class="g2" style="margin-top:10px">
+          <button class="b" onclick="clearCamTextOverlay()">Limpar Balão</button>
+          <button class="big wa" style="margin:0" onclick="applyCamTextOverlay()">✓ Mostrar na Tela</button>
+        </div>
+      </div>`;
+  }
+}
+
+function onCamSubBlockChange() {
+  const blkId = $("#cs-blk").value;
+  const opts = getPhotoDestinationOptions(blkId);
+  $("#cs-tgt").innerHTML = opts.map(o => `<option value="${esc(o.key)}">${esc(o.label)}</option>`).join("");
+}
+
+function applyCamSubLocation() {
+  const blkId = $("#cs-blk").value;
+  const key = $("#cs-tgt").value;
+  const opts = getPhotoDestinationOptions(blkId);
+  const chosen = opts.find(o => o.key === key) || opts[0];
+  camState.id = blkId;
+  if (chosen) {
+    camState.kind = chosen.kind;
+    camState.ri = chosen.ri;
+    camState.ni = chosen.ni;
+    camState.ponto = chosen.ponto;
+  }
+  camState.customTitle = "";
+  camState.subpanel = "";
+  renderCamSubpanel();
+  updateCamLiveOverlay();
+}
+
+function clearCamTextOverlay() {
+  $("#cs-note").value = "";
+  $("#cs-title").value = "";
+  applyCamTextOverlay();
+}
+
+function applyCamTextOverlay() {
+  camState.customTitle = ($("#cs-title").value || "").trim();
+  camState.noteText = ($("#cs-note").value || "").trim();
+  camState.notePos = $("#cs-npos").value;
+  camState.noteColor = $("#cs-ncolor").value;
+  camState.subpanel = "";
+  renderCamSubpanel();
+  updateCamLiveOverlay();
+}
+
+async function triggerCamShutter() {
+  if (!camState) return;
+  if (camState.mode === "video") {
+    if (camState.recorder && camState.recorder.state === "recording") {
+      camState.recorder.stop();
+    } else {
+      startCamVideoRecording();
+    }
+    return;
+  }
+
+  if (camState.timer > 0) {
+    const cd = $("#cam-countdown");
+    for (let s = camState.timer; s > 0; s--) {
+      if (!camState) return;
+      if (cd) cd.textContent = String(s);
+      await new Promise(r => setTimeout(r, 1000));
+    }
+    if (cd) cd.textContent = "";
+  }
+  await captureLivePhoto();
+}
+
+async function captureLivePhoto() {
+  const vid = $("#cam-video");
+  if (!vid || !vid.videoWidth) {
+    alert("Câmera ao vivo não está ativa. Use '📷 Nativa' ou '🖼 Galeria'.");
+    return;
+  }
+  const c = document.createElement("canvas");
+  c.width = vid.videoWidth;
+  c.height = vid.videoHeight;
+  const ctx = c.getContext("2d");
+  if (camState.facing === "user") {
+    ctx.translate(c.width, 0);
+    ctx.scale(-1, 1);
+  }
+  ctx.drawImage(vid, 0, 0, c.width, c.height);
+
+  const rawCapture = await new Promise(res => c.toBlob(res, "image/jpeg", 0.95));
+  const name = await attachPhotoBlob(camState.id, camState.ponto, camState.ri, camState.ni, rawCapture, camState.kind, new Date(), {
+    stampTitleOverride: camState.customTitle || "",
+    noteText: camState.noteText || "",
+    notePos: camState.notePos || "bottom",
+    noteColor: camState.noteColor || "yellow",
+    autoDownloadGallery: true
+  });
+
+  camState.lastPhotoName = name;
+  const chip = $("#cam-last-chip");
+  if (chip) {
+    chip.style.display = "inline-flex";
+    chip.textContent = `✓ Foto salva (${camState.ponto}) — Editar ✎`;
+  }
+  render();
+}
+
+function startCamVideoRecording() {
+  if (!camState || !camState.stream || typeof MediaRecorder === "undefined") {
+    alert("Gravação de vídeo ao vivo não suportada neste navegador. Use '📷 Nativa' para gravar vídeo.");
+    return;
+  }
+  camState.chunks = [];
+  const rec = new MediaRecorder(camState.stream);
+  camState.recorder = rec;
+  const sh = $("#cam-shutter"), badge = $("#cam-rec-badge");
+  if (sh) sh.classList.add("recording");
+  let secs = 0;
+  if (badge) { badge.style.display = "block"; badge.textContent = "REC 00:00"; }
+  camRecInterval = setInterval(() => {
+    secs++;
+    if (badge) badge.textContent = `REC ${String(Math.floor(secs / 60)).padStart(2, "0")}:${String(secs % 60).padStart(2, "0")}`;
+  }, 1000);
+
+  rec.ondataavailable = e => { if (e.data && e.data.size > 0) camState.chunks.push(e.data); };
+  rec.onstop = async () => {
+    clearInterval(camRecInterval);
+    if (sh) sh.classList.remove("recording");
+    if (badge) badge.style.display = "none";
+
+    // Salva vídeo na galeria do celular + captura um frame carimbado para constar no relatório PDF
+    const vBlob = new Blob(camState.chunks, { type: rec.mimeType || "video/webm" });
+    const d = new Date();
+    const vName = `${camState.id}_${camState.ponto}_${d.toISOString().slice(0, 10)}_${d.toTimeString().slice(0, 8).replace(/:/g, "")}.webm`;
+    saveToDeviceGallery(vBlob, vName);
+
+    const vid = $("#cam-video");
+    if (vid && vid.videoWidth) {
+      const c = document.createElement("canvas");
+      c.width = vid.videoWidth; c.height = vid.videoHeight;
+      c.getContext("2d").drawImage(vid, 0, 0, c.width, c.height);
+      const frameBlob = await new Promise(res => c.toBlob(res, "image/jpeg", 0.92));
+      const frameNote = camState.noteText ? `[VÍDEO] ${camState.noteText}` : "[FRAME DE VÍDEO GRAVADO]";
+      const pName = await attachPhotoBlob(camState.id, camState.ponto, camState.ri, camState.ni, frameBlob, camState.kind, d, {
+        stampTitleOverride: camState.customTitle || "",
+        noteText: frameNote,
+        notePos: camState.notePos || "bottom",
+        noteColor: camState.noteColor || "yellow",
+        autoDownloadGallery: false
+      });
+      camState.lastPhotoName = pName;
+      render();
+    }
+  };
+  rec.start(500);
+}
+
+function openLastCamPhoto() {
+  if (!camState || !camState.lastPhotoName) return;
+  const pName = camState.lastPhotoName;
+  closeInAppCamera();
+  viewPhoto(pName);
+}
+
+function closeInAppCamera() {
+  clearInterval(camClockTimer);
+  clearInterval(camRecInterval);
+  if (camState && camState.recorder && camState.recorder.state === "recording") {
+    try { camState.recorder.stop(); } catch (e) {}
+  }
+  stopCamStreamOnly();
+  camState = null;
+  const root = $("#cam-root");
+  if (root) root.innerHTML = "";
+}
+
+function renderCamOverlay() {
+  if (!camState) return;
+  const root = $("#cam-root");
+  const autoGal = S.cfg.autoSaveGallery !== 0;
+  root.innerHTML = `
+    <div class="cam-overlay">
+      <div class="cam-top">
+        <button class="cam-icon-btn" onclick="closeInAppCamera()" title="Fechar câmera">←</button>
+        <button id="cam-btn-torch" class="cam-icon-btn ${camState.torch ? "active" : ""}" onclick="toggleCamTorch()" title="Flash / Lanterna">${camState.torch ? "⚡ ON" : "⚡"}</button>
+        <button id="cam-btn-timer" class="cam-icon-btn ${camState.timer ? "active" : ""}" onclick="cycleCamTimer()" title="Temporizador">${camState.timer ? `⏱ ${camState.timer}s` : "⏱"}</button>
+        <button class="cam-icon-btn" onclick="flipCamFacing()" title="Alternar câmera">🔄</button>
+        <button class="cam-icon-btn" onclick="const s={...camState};closeInAppCamera();openNativeCapture(s.id,s.ponto,s.ri,s.ni,true,s.kind)" title="Abrir câmera nativa do aparelho">📷 Nativa</button>
+      </div>
+
+      <div class="cam-stage">
+        <video id="cam-video" playsinline autoplay muted></video>
+        <div id="cam-fallback-box" class="cam-fallback" style="display:none">
+          <div id="cam-fb-msg" style="font-size:14px;color:#e2e8f0"></div>
+          <button class="big wa" onclick="const s={...camState};closeInAppCamera();openNativeCapture(s.id,s.ponto,s.ri,s.ni,true,s.kind)">📷 Abrir Câmera Nativa do Celular</button>
+          <button class="big" style="background:#334155" onclick="const s={...camState};closeInAppCamera();openNativeCapture(s.id,s.ponto,s.ri,s.ni,false,s.kind)">🖼 Escolher da Galeria</button>
+        </div>
+
+        <div class="cam-stamp-live" onclick="openCamSubpanel('edit')" title="Toque para editar o texto do carimbo">
+          <b id="cam-st-l1"></b>
+          <span id="cam-st-l2"></span>
+          <small id="cam-st-l3"></small>
+        </div>
+
+        <div id="cam-balloon-live" class="cam-balloon-live" style="display:none" onclick="openCamSubpanel('edit')"></div>
+        <div id="cam-countdown" class="cam-countdown"></div>
+        <div id="cam-rec-badge" class="cam-rec-badge" style="display:none">REC 00:00</div>
+        <div id="cam-sub-root"></div>
+      </div>
+
+      <div class="cam-bottom">
+        <div style="text-align:center">
+          <button id="cam-last-chip" class="cam-icon-btn active" style="display:${camState.lastPhotoName ? "inline-flex" : "none"};height:30px;font-size:12px" onclick="openLastCamPhoto()">✓ Foto salva — Editar / Trocar Bloco ✎</button>
+        </div>
+        <div class="cam-modes">
+          <button class="${camState.mode === "photo" ? "on" : ""}" onclick="setCamMode('photo')">FOTO</button>
+          <button class="${camState.mode === "video" ? "on" : ""}" onclick="setCamMode('video')">VÍDEO</button>
+        </div>
+        <div class="cam-controls">
+          <button class="cam-icon-btn" onclick="const s={...camState};closeInAppCamera();openNativeCapture(s.id,s.ponto,s.ri,s.ni,false,s.kind)" title="Subir da Galeria">🖼</button>
+          <button id="cam-btn-autogal" class="cam-icon-btn ${autoGal ? "active" : ""}" onclick="toggleCamAutoGallery()" title="Salvar cópia automática na Galeria">📲</button>
+          <button id="cam-shutter" class="cam-shutter" onclick="triggerCamShutter()" title="Capturar"></button>
+          <button class="cam-icon-btn" onclick="openCamSubpanel('loc')" title="Trocar Bloco / Ponto">📍</button>
+          <button class="cam-icon-btn" onclick="openCamSubpanel('edit')" title="Escrever na foto / Editar carimbo">✏️</button>
+        </div>
+      </div>
+    </div>`;
+  updateCamLiveOverlay();
+}
+
+async function openInAppCamera(id, ponto, ri = -1, ni = -1, kindOverride = "") {
+  const resolvedKind = kindOverride || (ri >= 0 ? "row" : (ni >= 0 ? "nc" : "bep"));
+  camState = {
+    id,
+    ponto,
+    ri: ri ?? -1,
+    ni: ni ?? -1,
+    kind: resolvedKind,
+    mode: "photo",
+    facing: "environment",
+    torch: false,
+    timer: 0,
+    noteText: "",
+    notePos: "bottom",
+    noteColor: "yellow",
+    customTitle: "",
+    stream: null,
+    recorder: null,
+    chunks: [],
+    lastPhotoName: "",
+    subpanel: ""
+  };
+  renderCamOverlay();
+  clearInterval(camClockTimer);
+  camClockTimer = setInterval(updateCamLiveOverlay, 1000);
+  await startCamStream();
+}
+
+function openNativeCapture(id, ponto, ri = -1, ni = -1, useCam = true, kindOverride = "") {
+  const i = document.createElement("input");
+  i.type = "file";
+  i.accept = "image/*";
+  if (useCam) i.capture = "environment";
+  else i.multiple = true;
+
+  i.onchange = async () => {
+    if (!i.files || !i.files.length) return;
+    const st = $("#st-msg");
+    if (st) st.textContent = "Processando foto HD com carimbo…";
+
+    for (const file of i.files) {
+      await attachPhotoBlob(id, ponto, ri, ni, file, kindOverride, null, {
+        autoDownloadGallery: useCam
+      });
+    }
+    if (st) st.textContent = "";
+    render();
+  };
+  i.click();
+}
+
+function photo(id, ponto, ri = -1, ni = -1, useCam = true, kindOverride = "") {
+  if (useCam) {
+    openInAppCamera(id, ponto, ri, ni, kindOverride);
+  } else {
+    openNativeCapture(id, ponto, ri, ni, false, kindOverride);
+  }
+}
+
+/* ============================================================================
+   GERADOR DE PDF NATIVO COM IMAGENS + WINANSI ACENTUADO + ANEXO P/ IA
+   ============================================================================ */
+function toWinAnsiLiteral(str) {
+  const cleaned = String(str ?? "")
+    .replace(/Ω/g, "Ohm")
+    .replace(/≤/g, "<=")
+    .replace(/≥/g, ">=")
+    .replace(/[•·]/g, "-")
+    .replace(/[—–]/g, "-")
+    .replace(/[“”]/g, '"')
+    .replace(/[‘’]/g, "'")
+    .replace(/✓/g, "OK")
+    .replace(/✕/g, "X")
+    .replace(/×/g, "x");
+
+  let out = "";
+  for (let i = 0; i < cleaned.length; i++) {
+    const code = cleaned.charCodeAt(i);
+    if (code === 40 || code === 41 || code === 92) { // ( ) \
+      out += "\\" + cleaned[i];
+    } else if (code >= 32 && code <= 126) {
+      out += cleaned[i];
+    } else if (code >= 160 && code <= 255) {
+      // Latin-1 / WinAnsi octal escape -> mantém 100% ASCII no stream e exibe á,é,í,ó,ú,ã,õ,ç,²,° perfeitamente!
+      out += "\\" + code.toString(8).padStart(3, "0");
+    } else {
+      out += " ";
+    }
+  }
+  return out;
+}
+
+function estimateWidth(str, size, bold = false) {
+  const s = String(str ?? "");
+  let w = 0;
+  for (let i = 0; i < s.length; i++) {
+    const ch = s[i];
+    if ("il.,;:|!I1[]()".includes(ch)) w += 0.28;
+    else if ("mwMW@#%&".includes(ch)) w += 0.80;
+    else if (ch >= "A" && ch <= "Z") w += 0.66;
+    else w += 0.52;
+  }
+  return w * size * (bold ? 1.05 : 1.0);
+}
+
+function wrapCellText(str, maxWidthPt, size, bold = false) {
+  const rawParagraphs = String(str ?? "").split(/\r?\n/);
+  const lines = [];
+  for (const para of rawParagraphs) {
+    const words = para.trim().split(/\s+/).filter(Boolean);
+    if (!words.length) {
+      lines.push("");
+      continue;
+    }
+    let cur = "";
+    for (const w of words) {
+      const cand = cur ? cur + " " + w : w;
+      if (estimateWidth(cand, size, bold) <= maxWidthPt) {
+        cur = cand;
+      } else {
+        if (cur) lines.push(cur);
+        // Caso uma única palavra seja maior que a coluna, quebra em pedaços
+        if (estimateWidth(w, size, bold) > maxWidthPt) {
+          let part = "";
+          for (const ch of w) {
+            if (estimateWidth(part + ch, size, bold) > maxWidthPt && part) {
+              lines.push(part);
+              part = ch;
+            } else {
+              part += ch;
+            }
+          }
+          cur = part;
+        } else {
+          cur = w;
+        }
+      }
+    }
+    if (cur) lines.push(cur);
+  }
+  return lines.length ? lines : [""];
+}
+
+function downscaleForPDF(blob) {
+  return new Promise(res => {
+    const img = new Image();
+    img.onload = () => {
+      const k = Math.min(1, 1000 / Math.max(img.width, img.height));
+      const w = Math.round(img.width * k), h = Math.round(img.height * k);
+      const c = document.createElement("canvas");
+      c.width = w;
+      c.height = h;
+      c.getContext("2d").drawImage(img, 0, 0, w, h);
+      c.toBlob(b => {
+        const fr = new FileReader();
+        fr.onload = () => res({bytes: new Uint8Array(fr.result), w, h});
+        fr.readAsArrayBuffer(b);
+      }, "image/jpeg", 0.82);
+    };
+    img.onerror = () => res(null);
+    img.src = URL.createObjectURL(blob);
+  });
+}
+
+async function buildPDFFile(teamFilter = 0) {
+  const st = $("#st-msg");
+  if (st) st.textContent = "Gerando PDF completo com imagens + anexo IA…";
+
+  const allB = getB();
+  const B = teamFilter ? allB.filter(b => b[2] == teamFilter) : allB;
+  const c = S.cfg;
+  const rep = S.reposicao || {};
+  const teamTag = teamFilter == 1 ? "Equipe A (Dupla 1)" : (teamFilter == 2 ? "Equipe B (Dupla 2)" : "Equipes A e B");
+
+  const PW = 595.28, PH = 841.89, ML = 32, MR = 32, MT = 42, MB = 38;
+  const CW = PW - ML - MR; // 531.28 pt exatos!
+  const pages = [];
+  const images = [];
+  let curOps = [];
+  let y = PH - MT;
+
+  function rectFill(x, ry, w, h, r, g, b) {
+    curOps.push(`${r.toFixed(2)} ${g.toFixed(2)} ${b.toFixed(2)} rg ${x.toFixed(2)} ${ry.toFixed(2)} ${w.toFixed(2)} ${h.toFixed(2)} re f`);
+  }
+
+  function rectStroke(x, ry, w, h, r = 0.72, g = 0.76, b = 0.80, lw = 0.6) {
+    curOps.push(`${lw} w ${r.toFixed(2)} ${g.toFixed(2)} ${b.toFixed(2)} RG ${x.toFixed(2)} ${ry.toFixed(2)} ${w.toFixed(2)} ${h.toFixed(2)} re S`);
+  }
+
+  function textAt(str, x, ty, size = 9, bold = false, r = 0.1, g = 0.12, b = 0.15) {
+    const s = toWinAnsiLiteral(str);
+    curOps.push(`BT /${bold ? "F2" : "F1"} ${size} Tf ${r.toFixed(2)} ${g.toFixed(2)} ${b.toFixed(2)} rg ${x.toFixed(2)} ${ty.toFixed(2)} Td (${s}) Tj ET`);
+  }
+
+  function newPage() {
+    if (curOps.length) pages.push(curOps.join("\n"));
+    curOps = [];
+    // Barra superior estilo Caderneta de Campo TH Elétrica
+    rectFill(ML, PH - 34, CW, 20, 0.12, 0.23, 0.37);
+    textAt(`TH ELÉTRICA • NBR 5419:2015  |  LAUDO E CADERNETA SPDA (${teamTag})`, ML + 6, PH - 27, 8.2, true, 1, 1, 1);
+    textAt(`${c.cliente || "Amigos do Bem"}`, PW - MR - estimateWidth(c.cliente || "Amigos do Bem", 8, false) - 6, PH - 27, 8, false, 0.9, 0.94, 1);
+    y = PH - 46;
+  }
+
+  function ensureSpace(hNeeded) {
+    if (y - hNeeded < MB) newPage();
+  }
+
+  function drawSectionTitle(title) {
+    ensureSpace(24);
+    textAt(title, ML, y - 10, 10, true, 0.12, 0.23, 0.37);
+    rectFill(ML, y - 13, CW, 1.2, 0.12, 0.23, 0.37);
+    y -= 19;
+  }
+
+  function drawTable(headers, colWidths, rowsData, fontSize = 7.8) {
+    const lineH = fontSize + 2.4;
+    const padX = 4;
+    const padY = 4;
+
+    function drawRow(cells, isHeader = false) {
+      const wrappedCols = cells.map((cell, ci) => {
+        const val = typeof cell === "object" && cell !== null ? cell.t : cell;
+        const bold = isHeader || (typeof cell === "object" && cell !== null && cell.b);
+        return wrapCellText(val, colWidths[ci] - padX * 2, fontSize, bold);
+      });
+      const maxLines = Math.max(1, ...wrappedCols.map(l => l.length));
+      const rowH = maxLines * lineH + padY * 2;
+      ensureSpace(rowH + 2);
+
+      let cx = ML;
+      for (let ci = 0; ci < colWidths.length; ci++) {
+        const w = colWidths[ci];
+        const cell = cells[ci];
+        const bg = isHeader ? [0.12, 0.23, 0.37] : (typeof cell === "object" && cell?.bg ? cell.bg : [1, 1, 1]);
+        const fg = isHeader ? [1, 1, 1] : (typeof cell === "object" && cell?.fg ? cell.fg : [0.11, 0.14, 0.13]);
+        const bold = isHeader || (typeof cell === "object" && cell?.b);
+
+        rectFill(cx, y - rowH, w, rowH, bg[0], bg[1], bg[2]);
+        rectStroke(cx, y - rowH, w, rowH, 0.78, 0.81, 0.85, 0.5);
+
+        const lines = wrappedCols[ci];
+        for (let li = 0; li < lines.length; li++) {
+          const tx = cx + padX;
+          const ty = y - padY - fontSize - li * lineH + 1.5;
+          textAt(lines[li], tx, ty, fontSize, bold, fg[0], fg[1], fg[2]);
+        }
+        cx += w;
+      }
+      y -= rowH;
+    }
+
+    if (headers && headers.length) {
+      drawRow(headers, true);
+    }
+    for (const r of rowsData) {
+      if (y - (lineH + padY * 2) < MB && headers && headers.length) {
+        newPage();
+        drawRow(headers, true);
+      }
+      drawRow(r, false);
+    }
+    y -= 8;
+  }
+
+  newPage();
+
+  // CAPA / CABEÇALHO DE DADOS DA OBRA
+  drawTable([], [265.64, 265.64], [
+    [
+      {t: `EMPRESA: ${c.empresa || "TH ELÉTRICA"}`, b: true, bg: [0.94, 0.96, 0.98]},
+      {t: `NORMA / REF.: ${c.proposta || "ABNT NBR 5419:2015"}`, b: true, bg: [0.94, 0.96, 0.98]}
+    ],
+    [
+      {t: `CLIENTE / OBRA: ${c.cliente || "Fazenda Amigos do Bem"}`, b: true},
+      {t: `LOCALIDADE: ${c.local || "Serra do Catimbau, Buíque/PE"}`}
+    ],
+    [
+      {t: `DATA DA INSPEÇÃO: ${c.data || "-"}   |   ESCOPO: ${teamTag}`},
+      {t: `EQUIPE / OPERADORES: ${c.eq || "-"}`}
+    ],
+    [
+      {t: `APARELHO (CONTINUIDADE / TERRA): ${c.ap || "-"} ${c.apTerra ? "/ " + c.apTerra : ""}`},
+      {t: `CRITÉRIOS: Continuidade <= ${c.limC} Ohm  |  Terra <= ${c.limT} Ohm (<= ${c.limTSeco || 20} Ohm solo seco)`}
+    ],
+    [
+      {t: `RESPONSÁVEL TÉCNICO: ${c.resp || "A preencher no carimbo da RT"}`, b: true},
+      {t: `REGISTRO (CREA / CFT / ART): ${[c.crea, c.art].filter(Boolean).join(" | ") || "A anexar"}`}
+    ]
+  ], 7.8);
+
+  // 1. PAINEL DE CONTROLE GERAL (CAPA DA CADERNETA)
+  drawSectionTitle("1. PAINEL DE CONTROLE GERAL — CHECKOUT DAS EDIFICAÇÕES");
+  const summaryRows = B.map(b => {
+    const bs = blockStats(b);
+    const f = bs.f;
+    let stObj = {t: "PENDENTE", b: true, fg: [0.4, 0.44, 0.48], bg: [0.97, 0.98, 0.98]};
+    if (bs.totNC > 0) stObj = {t: `COM NC (${bs.totNC})`, b: true, fg: [0.75, 0.12, 0.12], bg: [0.99, 0.91, 0.91]};
+    else if (bs.isCompleted || bs.medR > 0) stObj = {t: "CONFORME", b: true, fg: [0.1, 0.5, 0.25], bg: [0.89, 0.97, 0.91]};
+    return [
+      {t: b[0], b: true},
+      {t: b[1], b: true},
+      `Eq. ${b[2] == 2 ? "B (2)" : "A (1)"}`,
+      f.hi || f.hf ? `${f.hi || "--"}-${f.hf || "--"}` : "-",
+      [f.solo, f.clima].filter(Boolean).join("/") || "-",
+      bs.totR ? `${bs.medR}/${bs.totR}` : "BEP",
+      `${bs.totPh} foto(s)`,
+      stObj
+    ];
+  });
+  drawTable(
+    ["Cód", "Edificação / Bloco", "Dupla", "Horário", "Solo/Clima", "Medições", "Fotos", "Status"],
+    [32, 138, 46, 62, 62, 50, 52, 89.28],
+    summaryRows,
+    7.6
+  );
+
+  // CONTROLE DE REPOSIÇÃO EM CAMPO E ANOTAÇÕES LIVRES
+  if (rep.placasQtd || rep.placasLocais || rep.conectoresQtd || rep.conectoresLocais || rep.outros || rep.anotacoesLivres) {
+    drawSectionTitle("2. CONTROLE DE REPOSIÇÃO EM CAMPO E ANOTAÇÕES GERAIS");
+    drawTable(
+      ["Item de Reposição / Anotação", "Quantidade / Descrição e Locais"],
+      [190, 341.28],
+      [
+        ["Placas 'Risco de Choque' instaladas", `Qtd: ${rep.placasQtd || "0"} | Locais: ${rep.placasLocais || "-"}`],
+        ["Conectores Bimetálicos / Split-Bolt trocados", `Qtd: ${rep.conectoresQtd || "0"} | Locais: ${rep.conectoresLocais || "-"}`],
+        ["Outros materiais / observações gerais", rep.outros || "-"],
+        ["Anotações Livres (Edificação • Ponto • Hora)", rep.anotacoesLivres || "-"]
+      ],
+      7.8
+    );
+  }
+
+  // 3. FICHAS DETALHADAS E RELATÓRIO FOTOGRÁFICO
+  drawSectionTitle("3. FICHAS DE INSPEÇÃO, MEDIÇÕES ÔHMICAS E RELATÓRIO FOTOGRÁFICO");
+
+  const blocksToRender = B.filter(b => {
+    const bs = blockStats(b);
+    return c.soPreenchidos ? (bs.isStarted || bs.totNC > 0) : true;
+  });
+  const finalBlocks = blocksToRender.length ? blocksToRender : B;
+
+  for (let bi = 0; bi < finalBlocks.length; bi++) {
+    const b = finalBlocks[bi];
+    const bs = blockStats(b);
+    const f = bs.f;
+    const o = b[3] || "";
+
+    ensureSpace(58);
+    rectFill(ML, y - 20, CW, 20, 0.12, 0.23, 0.37);
+    textAt(`3.${bi + 1}  ${b[1].toUpperCase()} [${b[0]}] — ${teamLabel(b[2]).toUpperCase()}`, ML + 6, y - 13, 9.2, true, 1, 1, 1);
+    y -= 23;
+
+    const metaLine = `Data: ${f.data || c.data || "-"} | Início: ${f.hi || "-"} | Fim: ${f.hf || "-"} | Conclusão: ${f.horaConc || "-"} | Solo: ${f.solo || "-"} | Clima: ${f.clima || "-"} | Resp.: ${f.respBloco || "-"}`;
+    const metaWrapped = wrapCellText(metaLine, CW - 8, 8, false);
+    for (const ml of metaWrapped) {
+      ensureSpace(11);
+      textAt(ml, ML + 2, y - 8, 8, false, 0.2, 0.24, 0.28);
+      y -= 11;
+    }
+    if (f.obs || f.reparosCampo) {
+      const obsWrapped = wrapCellText(`Obs./Reparos: ${[f.obs, f.reparosCampo].filter(Boolean).join(" | ")}`, CW - 8, 8, false);
+      for (const ol of obsWrapped) {
+        ensureSpace(11);
+        textAt(ol, ML + 2, y - 8, 8, false, 0.25, 0.25, 0.3);
+        y -= 11;
+      }
+    }
+    y -= 4;
+
+    // Tabela A: Checklist Visual + BEP/DPS
+    const chkTableRows = [];
+    if (!o.includes("only")) {
+      for (const [k, label] of CHK) {
+        const v = f.chk[k] || "Não avaliado";
+        const isBad = v === "Não";
+        const isOk = v === "Sim";
+        chkTableRows.push([
+          label,
+          {
+            t: isOk ? "CONFORME (Sim)" : (isBad ? "NÃO CONFORME (Não)" : v),
+            b: true,
+            fg: isBad ? [0.75, 0.12, 0.12] : (isOk ? [0.1, 0.5, 0.25] : [0.4, 0.44, 0.48]),
+            bg: isBad ? [0.99, 0.91, 0.91] : (isOk ? [0.89, 0.97, 0.91] : [1, 1, 1])
+          }
+        ]);
+      }
+      if (f.fachadaHora || f.telhadoHora) {
+        chkTableRows.push([
+          "Horário das fotos de Fachada e Telhado / Captação",
+          `Fachada: ${f.fachadaHora || "-"}  |  Telhado: ${f.telhadoHora || "-"}`
+        ]);
+      }
+    }
+    if (o.includes("bep") || o.includes("only")) {
+      if (o.includes("only")) {
+        chkTableRows.push(["BEP localizado e acessível?", f.bepAcess || "-"]);
+        chkTableRows.push(["Corrosão / folga nas conexões do BEP?", f.bepCorr || "-"]);
+        chkTableRows.push(["Reservatório / estrutura metálica ligado ao BEP?", f.bepResLig || "-"]);
+        chkTableRows.push(["Placa 'Risco de Choque' no local do BEP?", f.bepPlaca || "-"]);
+      }
+      chkTableRows.push([
+        "BEP: Barra de cobre, isoladores e conexões íntegros + medições",
+        `Íntegro: ${f.bepOk || "-"} | Cont.: ${f.bepC || "-"} Ohm | Terra: ${f.bepT || "-"} Ohm | Foto: ${f.bepHora || "-"}`
+      ]);
+    }
+    if (o.includes("dps")) {
+      chkTableRows.push([
+        "DPS no Quadro Geral (QDG): instalado e ligado ao BEP/Terra?",
+        `Instalado: ${f.dps || "-"} | Indicador: ${f.dpsCor || "-"}`
+      ]);
+    }
+
+    if (chkTableRows.length) {
+      drawTable(["A. Item de Verificação Visual / BEP / DPS", "Avaliação"], [350, 181.28], chkTableRows, 7.6);
+    }
+
+    // Tabela B: Descidas e Caixas (todas as colunas perfeitamente dentro de 531.28 pt!)
+    if (f.rows && f.rows.length) {
+      const activeRows = c.soPreenchidos
+        ? f.rows.filter(r => r.cont !== "" || r.terra !== "" || r.barra || r.eld || r.cx || (r.ph && r.ph.length) || r.horaFoto)
+        : f.rows;
+      const rowsToPrint = activeRows.length ? activeRows : f.rows;
+
+      const descRows = rowsToPrint.map(r => {
+        const diag = rowDiagnosis(r);
+        const cBad = !isNaN(num(r.cont)) && num(r.cont) > c.limC;
+        const tBad = !isNaN(num(r.terra)) && num(r.terra) > c.limT;
+        return [
+          {t: r.loc ? `${r.p} (${r.loc})` : r.p, b: true},
+          {t: r.barra || "-", b: r.barra === "NC", fg: r.barra === "NC" ? [0.75, 0.12, 0.12] : [0.1, 0.12, 0.14]},
+          {t: r.eld || "-", b: r.eld === "NC", fg: r.eld === "NC" ? [0.75, 0.12, 0.12] : [0.1, 0.12, 0.14]},
+          {t: r.cx || "-", b: r.cx === "NC", fg: r.cx === "NC" ? [0.75, 0.12, 0.12] : [0.1, 0.12, 0.14]},
+          {t: r.cont !== "" ? `${r.cont}` : "-", b: cBad, fg: cBad ? [0.75, 0.12, 0.12] : [0.1, 0.12, 0.14]},
+          {t: r.terra !== "" ? `${r.terra}` : "-", b: tBad, fg: tBad ? [0.75, 0.12, 0.12] : [0.1, 0.12, 0.14]},
+          r.horaFoto || (r.ph?.length ? `${r.ph.length} foto` : "-"),
+          r.pl || "-",
+          {
+            t: diag.ok ? diag.short : `${diag.short}: ${diag.detail}`,
+            b: true,
+            fg: !diag.measured ? [0.4, 0.44, 0.48] : (diag.ok ? [0.1, 0.5, 0.25] : [0.75, 0.12, 0.12]),
+            bg: !diag.measured ? [1, 1, 1] : (diag.ok ? [0.89, 0.97, 0.91] : [0.99, 0.91, 0.91])
+          }
+        ];
+      });
+
+      drawTable(
+        ["Ponto / Ref.", "Barra", "Eletrod.", "Caixa", "Cont(Ohm)", "Terra(Ohm)", "Foto(Hora)", "Planta", "Diagnóstico"],
+        [72, 36, 44, 40, 50, 50, 55, 42, 142.28],
+        descRows,
+        7.3
+      );
+    }
+
+    // Tabela C: Não Conformidades
+    const blockNCs = collectAllBlockNCs(b);
+    if (blockNCs.length) {
+      const ncRows = blockNCs.map(n => [
+        {t: n.code, b: true},
+        {t: n.ponto, b: true},
+        {t: `${n.codRef}\nSev.${n.sev}`, b: true, fg: [0.75, 0.12, 0.12], bg: [0.99, 0.91, 0.91]},
+        n.horaFoto,
+        `${n.titulo}\nReparo: ${n.detalhe}`
+      ]);
+      drawTable(
+        ["NC", "Ponto", "Cód/Sev", "Hora Foto", "Descrição da Não Conformidade e Reparo Recomendado"],
+        [44, 72, 54, 52, 309.28],
+        ncRows,
+        7.5
+      );
+    }
+
+    // D. Relatório Fotográfico (2 fotos por linha, grandes e proporcionais, com carimbo visível)
+    const blockPhotos = [];
+    for (const k of (f.fachadaPh || [])) blockPhotos.push({k, cap: `${b[1]} -- Fachada`, info: `Hora: ${f.fachadaHora || "-"}`});
+    for (const k of (f.telhadoPh || [])) blockPhotos.push({k, cap: `${b[1]} -- Telhado / Captação`, info: `Hora: ${f.telhadoHora || "-"}`});
+    for (const k of (f.bepPh || [])) blockPhotos.push({k, cap: `${b[1]} -- BEP`, info: `Cont: ${f.bepC || "-"} Ohm | Terra: ${f.bepT || "-"} Ohm | Hora: ${f.bepHora || "-"}`});
+    for (const r of (f.rows || [])) {
+      const diag = rowDiagnosis(r);
+      for (const k of (r.ph || [])) {
+        blockPhotos.push({
+          k,
+          cap: `${b[1]} -- ${r.p}${r.loc ? ` (${r.loc})` : ""}`,
+          info: `Cont: ${r.cont || "-"} Ohm | Terra: ${r.terra || "-"} Ohm | ${diag.short} | Hora: ${r.horaFoto || "-"}`
+        });
+      }
+    }
+    for (let i = 0; i < (f.ncs || []).length; i++) {
+      const n = f.ncs[i];
+      for (const k of (n.ph || [])) {
+        blockPhotos.push({
+          k,
+          cap: `${b[1]} -- NC-${String(i + 1).padStart(2, "0")} (${n.ponto || "Geral"})`,
+          info: `${n.cod || ""} Sev.${n.sev || "-"} | Hora: ${n.horaFoto || "-"} | ${n.det || ""}`
+        });
+      }
+    }
+
+    if (blockPhotos.length) {
+      ensureSpace(225);
+      textAt(`Relatório Fotográfico — ${b[1]} (${blockPhotos.length} foto(s)):`, ML, y - 10, 8.8, true, 0.12, 0.23, 0.37);
+      y -= 15;
+      let col = 0;
+      const boxW = (CW - 12) / 2; // 259.64 pt
+      const imgAreaH = 175;
+      const capAreaH = 30;
+      const totalBoxH = imgAreaH + capAreaH;
+
+      for (const item of blockPhotos) {
+        const rec = await pget(item.k);
+        if (!rec || !rec.b) continue;
+        if (col === 0) ensureSpace(totalBoxH + 10);
+        const scaled = await downscaleForPDF(rec.b);
+        if (!scaled) continue;
+
+        const imgId = "Im" + (images.length + 1);
+        images.push({id: imgId, bytes: scaled.bytes, w: scaled.w, h: scaled.h});
+
+        const bx = ML + col * (boxW + 12);
+        const byTop = y;
+        const byBottom = y - totalBoxH;
+
+        rectFill(bx, byBottom, boxW, totalBoxH, 0.98, 0.98, 0.99);
+        rectStroke(bx, byBottom, boxW, totalBoxH, 0.72, 0.76, 0.80, 0.6);
+
+        const sc = Math.min((boxW - 10) / scaled.w, (imgAreaH - 8) / scaled.h);
+        const dw = scaled.w * sc, dh = scaled.h * sc;
+        const ix = bx + (boxW - dw) / 2;
+        const iy = byTop - imgAreaH + (imgAreaH - dh) / 2;
+        curOps.push(`q ${dw.toFixed(2)} 0 0 ${dh.toFixed(2)} ${ix.toFixed(2)} ${iy.toFixed(2)} cm /${imgId} Do Q`);
+
+        const capLines = wrapCellText(item.cap, boxW - 10, 7.8, true);
+        const infoLines = wrapCellText(item.info, boxW - 10, 7.0, false);
+        textAt(capLines[0] || "", bx + 5, byBottom + 18, 7.8, true, 0.12, 0.23, 0.37);
+        textAt(infoLines[0] || "", bx + 5, byBottom + 8, 7.0, false, 0.28, 0.32, 0.36);
+
+        col++;
+        if (col === 2) {
+          col = 0;
+          y -= (totalBoxH + 10);
+        }
+      }
+      if (col > 0) y -= (totalBoxH + 10);
+    }
+
+    y -= 6;
+  }
+
+  // 4. QUADRO DE CARIMBO DA RT / ASSINATURA
+  ensureSpace(125);
+  drawSectionTitle("4. RESPONSABILIDADE TÉCNICA E CARIMBO DA RT / ART");
+  ensureSpace(95);
+  rectFill(ML, y - 85, CW, 85, 0.96, 0.97, 0.99);
+  rectStroke(ML, y - 85, CW, 85, 0.6, 0.65, 0.72, 0.8);
+  textAt("ESPAÇO RESERVADO PARA CARIMBO DO RESPONSÁVEL TÉCNICO / SELO DA ART", ML + 95, y - 16, 8.2, true, 0.35, 0.4, 0.46);
+  textAt("______________________________________________________________________", ML + 72, y - 52, 8.5, true, 0.1, 0.12, 0.15);
+  const rtLine = `Responsável Técnico: ${c.resp || "____________________________"}   |   CREA/CFT: ${c.crea || "______________"}   |   ART: ${c.art || "______________"}`;
+  textAt(rtLine, ML + 22, y - 66, 8.0, true, 0.12, 0.23, 0.37);
+  textAt(`${c.local || "Serra do Catimbau, Buíque/PE"} — Data: ${c.data || "-"}`, ML + 145, y - 78, 7.8, false, 0.35, 0.4, 0.45);
+  y -= 95;
+
+  // 5. ANEXO ESTRUTURADO PARA LEITURA AUTOMÁTICA DE IA (TEXTO LIMPO E TABULAR)
+  newPage();
+  drawSectionTitle("5. ANEXO DE DADOS ESTRUTURADOS PARA LEITURA POR IA (FORMATAÇÃO AUTOMÁTICA)");
+  const aiTextLines = buildAIStructuredPlainText(teamFilter).split("\n");
+  for (const rawLine of aiTextLines) {
+    const wrapped = wrapCellText(rawLine, CW - 8, 7.6, false);
+    for (const wl of wrapped) {
+      ensureSpace(10);
+      textAt(wl, ML + 2, y - 8, 7.6, rawLine.startsWith("===") || rawLine.startsWith("##"), 0.15, 0.18, 0.22);
+      y -= 9.8;
+    }
+  }
+
+  if (curOps.length) pages.push(curOps.join("\n"));
+
+  // Montagem binária do PDF 1.4
+  const chunks = [];
+  let offset = 0;
+  const offsets = [];
+  const enc = new TextEncoder();
+
+  function pushStr(s) {
+    const b = enc.encode(s);
+    chunks.push(b);
+    offset += b.length;
+  }
+  function pushBytes(b) {
+    chunks.push(b);
+    offset += b.length;
+  }
+  function startObj(id) {
+    offsets[id] = offset;
+    pushStr(`${id} 0 obj\n`);
+  }
+  function endObj() {
+    pushStr(`\nendobj\n`);
+  }
+
+  pushStr("%PDF-1.4\n%\xFF\xFF\xFF\xFF\n");
+
+  const firstImgObj = 5;
+  const firstPageObj = firstImgObj + images.length;
+  const pageKids = [];
+
+  startObj(1); pushStr(`<< /Type /Catalog /Pages 2 0 R >>`); endObj();
+  startObj(3); pushStr(`<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>`); endObj();
+  startObj(4); pushStr(`<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>`); endObj();
+
+  const xobjEntries = [];
+  for (let i = 0; i < images.length; i++) {
+    const oid = firstImgObj + i;
+    const im = images[i];
+    xobjEntries.push(`/${im.id} ${oid} 0 R`);
+    startObj(oid);
+    pushStr(`<< /Type /XObject /Subtype /Image /Width ${im.w} /Height ${im.h} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${im.bytes.length} >>\nstream\n`);
+    pushBytes(im.bytes);
+    pushStr(`\nendstream`);
+    endObj();
+  }
+
+  for (let i = 0; i < pages.length; i++) {
+    const pObj = firstPageObj + i * 2;
+    const cObj = pObj + 1;
+    pageKids.push(`${pObj} 0 R`);
+    const contentBytes = enc.encode(pages[i]);
+
+    startObj(pObj);
+    pushStr(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${PW.toFixed(2)} ${PH.toFixed(2)}] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> /XObject << ${xobjEntries.join(" ")} >> >> /Contents ${cObj} 0 R >>`);
+    endObj();
+
+    startObj(cObj);
+    pushStr(`<< /Length ${contentBytes.length} >>\nstream\n`);
+    pushBytes(contentBytes);
+    pushStr(`\nendstream`);
+    endObj();
+  }
+
+  startObj(2);
+  pushStr(`<< /Type /Pages /Kids [ ${pageKids.join(" ")} ] /Count ${pages.length} >>`);
+  endObj();
+
+  const totalObjs = firstPageObj + pages.length * 2;
+  const xrefPos = offset;
+  pushStr(`xref\n0 ${totalObjs}\n0000000000 65535 f \n`);
+  for (let i = 1; i < totalObjs; i++) {
+    pushStr(String(offsets[i] || 0).padStart(10, "0") + " 00000 n \n");
+  }
+  pushStr(`trailer\n<< /Size ${totalObjs} /Root 1 0 R >>\nstartxref\n${xrefPos}\n%%EOF`);
+
+  if (st) st.textContent = "";
+  const pdfBlob = new Blob(chunks, {type: "application/pdf"});
+  const eqPrefix = teamFilter == 1 ? "EquipeA_" : (teamFilter == 2 ? "EquipeB_" : "");
+  const fname = `${eqPrefix}Laudo_SPDA_${(c.cliente || "Campo").replace(/[^a-zA-Z0-9_-]/g, "_")}_${(c.data || new Date().toISOString().slice(0, 10))}.pdf`;
+  return new File([pdfBlob], fname, {type: "application/pdf"});
+}
+
+/* ============================================================================
+   GERADOR DE ARQUIVO ESTRUTURADO PARA LEITURA DE IA (.MD)
+   ============================================================================ */
+function buildAIStructuredPlainText(teamFilter = 0) {
+  const allB = getB();
+  const B = teamFilter ? allB.filter(b => b[2] == teamFilter) : allB;
+  const c = S.cfg;
+  const rep = S.reposicao || {};
+  const lines = [];
+
+  lines.push("=== DADOS DA OBRA E CRITERIOS (SPDA - NBR 5419:2015) ===");
+  lines.push(`Empresa: ${c.empresa} | Cliente: ${c.cliente} | Local: ${c.local}`);
+  lines.push(`Ref.: ${c.proposta} | Data: ${c.data} | Operadores: ${c.eq || "-"}`);
+  lines.push(`Aparelhos: Cont=${c.ap || "-"} | Terra=${c.apTerra || "-"}`);
+  lines.push(`RT: ${c.resp || "A anexar"} | CREA/CFT: ${c.crea || "-"} | ART: ${c.art || "-"}`);
+  lines.push(`Limites: Continuidade <= ${c.limC} Ohm | Terra <= ${c.limT} Ohm (tolerancia solo seco <= ${c.limTSeco || 20} Ohm)`);
+  lines.push("");
+  lines.push("=== REPOSICAO DE CAMPO E ANOTACOES LIVRES ===");
+  lines.push(`Placas instaladas: ${rep.placasQtd || 0} (Locais: ${rep.placasLocais || "-"})`);
+  lines.push(`Conectores trocados: ${rep.conectoresQtd || 0} (Locais: ${rep.conectoresLocais || "-"})`);
+  lines.push(`Outros materiais: ${rep.outros || "-"}`);
+  lines.push(`Anotacoes livres: ${rep.anotacoesLivres || "-"}`);
+  lines.push("");
+
+  for (const b of B) {
+    const bs = blockStats(b);
+    const f = bs.f;
+    if (c.soPreenchidos && !bs.isStarted && !bs.totNC) continue;
+    lines.push(`=== BLOCO [${b[0]}] ${b[1]} (${teamLabel(b[2])}) | Status: ${bs.status} ===`);
+    lines.push(`Horario: ${f.hi || "-"} a ${f.hf || "-"} | Conclusao: ${f.horaConc || "-"} | Solo: ${f.solo || "-"} | Clima: ${f.clima || "-"} | Resp: ${f.respBloco || "-"}`);
+    if (f.obs) lines.push(`Obs: ${f.obs}`);
+    if (f.reparosCampo) lines.push(`Reparos em campo: ${f.reparosCampo}`);
+    lines.push(`Fotos gerais: Fachada=${f.fachadaHora || "-"} (${(f.fachadaPh || []).join(", ") || "sem foto"}) | Telhado=${f.telhadoHora || "-"} (${(f.telhadoPh || []).join(", ") || "sem foto"})`);
+
+    const chkTxt = CHK.map(([k, l]) => `${k}=${f.chk[k] || "-"}`).join(" | ");
+    lines.push(`Checklist: ${chkTxt}`);
+    if ((b[3] || "").includes("bep") || (b[3] || "").includes("only")) {
+      lines.push(`BEP: Integro=${f.bepOk || "-"} | Cont=${f.bepC || "-"} Ohm | Terra=${f.bepT || "-"} Ohm | HoraFoto=${f.bepHora || "-"} | Arquivos=${(f.bepPh || []).join(", ") || "-"}`);
+    }
+    if ((b[3] || "").includes("dps")) {
+      lines.push(`DPS QDG: Instalado=${f.dps || "-"} | Cor=${f.dpsCor || "-"}`);
+    }
+    for (const r of f.rows) {
+      if (c.soPreenchidos && r.cont === "" && r.terra === "" && !r.barra && !r.eld && !r.cx && !(r.ph && r.ph.length)) continue;
+      const diag = rowDiagnosis(r);
+      lines.push(`  - ${r.p}${r.loc ? " (" + r.loc + ")" : ""}: Barra=${r.barra || "-"}, Eletrod=${r.eld || "-"}, Caixa=${r.cx || "-"}, Cont=${r.cont || "-"} Ohm, Terra=${r.terra || "-"} Ohm, Planta=${r.pl || "-"}, HoraFoto=${r.horaFoto || "-"}, Fotos=[${(r.ph || []).join(", ")}], Diagnostico=${diag.short}`);
+    }
+    const ncs = collectAllBlockNCs(b);
+    for (const n of ncs) {
+      lines.push(`  * ${n.code} [${n.ponto}] Cod=${n.codRef} Sev=${n.sev} HoraFoto=${n.horaFoto}: ${n.titulo} -> Reparo: ${n.detalhe}`);
+    }
+    lines.push("");
+  }
+  return lines.join("\n");
+}
+
+function buildAIStructuredMarkdown(teamFilter = 0) {
+  const allB = getB();
+  const B = teamFilter ? allB.filter(b => b[2] == teamFilter) : allB;
+  const c = S.cfg;
+  const rep = S.reposicao || {};
+  const md = [];
+
+  md.push(`# DADOS ESTRUTURADOS PARA FORMATAÇÃO DE LAUDO TÉCNICO DE SPDA (ABNT NBR 5419:2015)`);
+  md.push("");
+  md.push(`> **Instruções para a IA:** Utilize os dados estruturados abaixo (coletados em campo pela **${c.empresa}**) para redigir/formatar o Laudo Técnico Final de SPDA em padrão profissional de engenharia, mantendo rigorosamente os valores medidos em Ohms, os horários exatos das fotos carimbadas, os códigos de não conformidade (` + "`C1..C11`" + `) e deixando o bloco de assinatura/carimbo da RT ao final.`);
+  md.push("");
+  md.push(`## 1. Metadados da Obra e Critérios`);
+  md.push(`- **Cliente / Obra:** ${c.cliente}`);
+  md.push(`- **Localidade:** ${c.local}`);
+  md.push(`- **Referência / Norma:** ${c.proposta}`);
+  md.push(`- **Data da Inspeção:** ${c.data}`);
+  md.push(`- **Operadores em Campo:** ${c.eq || "-"}`);
+  md.push(`- **Instrumentos:** Continuidade: \`${c.ap || "-"}\` | Aterramento: \`${c.apTerra || "-"}\``);
+  md.push(`- **Responsável Técnico:** ${c.resp || "A preencher"} | **CREA/CFT:** ${c.crea || "-"} | **ART:** ${c.art || "-"}`);
+  md.push(`- **Critério Continuidade:** ≤ ${c.limC} Ω`);
+  md.push(`- **Critério Aterramento:** ≤ ${c.limT} Ω ideal (≤ ${c.limTSeco || 20} Ω aceitável em solo seco)`);
+  md.push("");
+  md.push(`## 2. Controle de Reposição em Campo e Anotações Livres`);
+  md.push(`- **Placas "Risco de Choque" instaladas:** ${rep.placasQtd || 0} (Locais: ${rep.placasLocais || "-"})`);
+  md.push(`- **Conectores Bimetálicos / Split-Bolt trocados:** ${rep.conectoresQtd || 0} (Locais: ${rep.conectoresLocais || "-"})`);
+  md.push(`- **Outros materiais usados / observações:** ${rep.outros || "-"}`);
+  md.push(`- **Anotações Livres (Página 18):** ${rep.anotacoesLivres || "-"}`);
+  md.push("");
+  md.push(`## 3. Quadro Geral dos Blocos`);
+  md.push(`| Cód | Edificação | Dupla | Horário | Solo / Clima | Medições | Fotos | Status |`);
+  md.push(`|---|---|---|---|---|---|---|---|`);
+  for (const b of B) {
+    const bs = blockStats(b);
+    const f = bs.f;
+    md.push(`| ${b[0]} | ${b[1]} | ${b[2]} | ${f.hi || "-"} a ${f.hf || "-"} | ${f.solo || "-"} / ${f.clima || "-"} | ${bs.totR ? `${bs.medR}/${bs.totR}` : "BEP"} | ${bs.totPh} | ${bs.status} (${bs.totNC} NC) |`);
+  }
+  md.push("");
+
+  md.push(`## 4. Detalhamento Completo por Edificação`);
+  for (const b of B) {
+    const bs = blockStats(b);
+    const f = bs.f;
+    if (c.soPreenchidos && !bs.isStarted && !bs.totNC) continue;
+
+    md.push(`### [${b[0]}] ${b[1]} — ${teamLabel(b[2])}`);
+    md.push(`- **Data:** ${f.data || c.data} | **Início:** ${f.hi || "-"} | **Fim:** ${f.hf || "-"} | **Conclusão:** ${f.horaConc || "-"}`);
+    md.push(`- **Solo:** ${f.solo || "-"} | **Clima:** ${f.clima || "-"} | **Responsável:** ${f.respBloco || "-"} | **Visto:** ${f.visto || "-"}`);
+    if (f.obs) md.push(`- **Observações:** ${f.obs}`);
+    if (f.reparosCampo) md.push(`- **Reparos feitos em campo:** ${f.reparosCampo}`);
+    md.push(`- **Foto Fachada:** Hora \`${f.fachadaHora || "-"}\` | Arquivos: \`${(f.fachadaPh || []).join(", ") || "nenhum"}\``);
+    md.push(`- **Foto Telhado/Captação:** Hora \`${f.telhadoHora || "-"}\` | Arquivos: \`${(f.telhadoPh || []).join(", ") || "nenhum"}\``);
+    md.push("");
+    md.push(`**Checklist Visual:**`);
+    for (const [k, label] of CHK) {
+      md.push(`- ${label}: **${f.chk[k] || "Não avaliado"}**`);
+    }
+    if ((b[3] || "").includes("bep") || (b[3] || "").includes("only")) {
+      md.push(`- **BEP:** Íntegro=${f.bepOk || "-"} | Continuidade=${f.bepC || "-"} Ω | Terra=${f.bepT || "-"} Ω | Hora Foto=\`${f.bepHora || "-"}\` | Arquivos=\`${(f.bepPh || []).join(", ") || "-"}\``);
+      if ((b[3] || "").includes("only")) {
+        md.push(`- **BEP Reservatório Extra:** Acessível=${f.bepAcess || "-"} | Corrosão/folga=${f.bepCorr || "-"} | Reservatório ligado=${f.bepResLig || "-"} | Placa=${f.bepPlaca || "-"}`);
+      }
+    }
+    if ((b[3] || "").includes("dps")) {
+      md.push(`- **DPS no QDG:** Instalado=${f.dps || "-"} | Indicador=${f.dpsCor || "-"}`);
+    }
+    md.push("");
+
+    if (f.rows.length) {
+      md.push(`| Ponto | Referência | Barra | Eletroduto | Caixa | Cont. (Ω) | Terra (Ω) | Hora Foto | Planta A3 | Diagnóstico | Arquivo(s) Foto |`);
+      md.push(`|---|---|---|---|---|---|---|---|---|---|---|`);
+      for (const r of f.rows) {
+        if (c.soPreenchidos && r.cont === "" && r.terra === "" && !r.barra && !r.eld && !r.cx && !(r.ph && r.ph.length)) continue;
+        const diag = rowDiagnosis(r);
+        const diagTxt = (diag.ok ? diag.short : diag.detail).replace(/\|/g, ";");
+        md.push(`| ${r.p} | ${(r.loc || "-").replace(/\|/g, "/")} | ${r.barra || "-"} | ${r.eld || "-"} | ${r.cx || "-"} | ${r.cont || "-"} | ${r.terra || "-"} | ${r.horaFoto || "-"} | ${r.pl || "-"} | ${diagTxt} | ${(r.ph || []).join(", ") || "-"} |`);
+      }
+      md.push("");
+    }
+
+    const ncs = collectAllBlockNCs(b);
+    if (ncs.length) {
+      md.push(`**Não Conformidades (${b[1]}):**`);
+      md.push(`| NC | Ponto | Cód. | Severidade | Hora Foto | Descrição | Reparo Recomendado |`);
+      md.push(`|---|---|---|---|---|---|---|`);
+      for (const n of ncs) {
+        md.push(`| ${n.code} | ${n.ponto} | ${n.codRef} | ${n.sev} | ${n.horaFoto} | ${n.titulo} | ${n.detalhe} |`);
+      }
+      md.push("");
+    }
+  }
+
+  return md.join("\n");
+}
+
+function buildAIStructuredFile(teamFilter = 0) {
+  const txt = buildAIStructuredMarkdown(teamFilter);
+  const eqPrefix = teamFilter == 1 ? "EquipeA_" : (teamFilter == 2 ? "EquipeB_" : "");
+  const fname = `${eqPrefix}Dados_SPDA_Para_IA_${(S.cfg.cliente || "Campo").replace(/[^a-zA-Z0-9_-]/g, "_")}_${(S.cfg.data || new Date().toISOString().slice(0, 10))}.md`;
+  return new File([txt], fname, {type: "text/markdown;charset=utf-8"});
+}
+
+async function downloadPDF(teamFilter = 0) {
+  const file = await buildPDFFile(teamFilter);
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(file);
+  a.download = file.name;
+  a.click();
+}
+
+async function sharePDF(teamFilter = 0) {
+  const file = await buildPDFFile(teamFilter);
+  if (navigator.canShare && navigator.canShare({files: [file]})) {
+    try {
+      await navigator.share({
+        files: [file],
+        title: "Laudo SPDA (PDF c/ Fotos) — " + (S.cfg.cliente || "Campo"),
+        text: "Segue o Laudo Técnico de Inspeção e Medição de SPDA em PDF com fotos e anexo para IA."
+      });
+      return;
+    } catch (e) {
+      if (e.name === "AbortError") return;
+    }
+  }
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(file);
+  a.download = file.name;
+  a.click();
+}
+
+function downloadAIFile(teamFilter = 0) {
+  const file = buildAIStructuredFile(teamFilter);
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(file);
+  a.download = file.name;
+  a.click();
+}
+
+async function sharePDFAndAI(teamFilter = 0) {
+  const pdfFile = await buildPDFFile(teamFilter);
+  const aiFile = buildAIStructuredFile(teamFilter);
+  const jsonFile = new File([snap()], "spda_backup_completo.json", {type: "application/json"});
+  const files = [pdfFile, aiFile, jsonFile];
+  if (navigator.canShare && navigator.canShare({files})) {
+    try {
+      await navigator.share({
+        files,
+        title: "Pacote SPDA (PDF + IA + JSON) — " + (S.cfg.cliente || "Campo"),
+        text: "PDF com fotos + Arquivo estruturado (.md) para IA + Backup JSON."
+      });
+      return;
+    } catch (e) {
+      if (e.name === "AbortError") return;
+    }
+  }
+  downloadPDF(teamFilter);
+  setTimeout(() => downloadAIFile(teamFilter), 350);
+}
+
+/* ============================================================================
+   GERADOR NATIVO DE DOCUMENTO MICROSOFT WORD (.DOCX - OPENXML ZIP)
+   ============================================================================ */
+const CRC_TABLE = (() => {
+  const t = new Uint32Array(256);
+  for (let i = 0; i < 256; i++) {
+    let c = i;
+    for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+    t[i] = c >>> 0;
+  }
+  return t;
+})();
+
+function crc32(bytes) {
+  let c = 0xFFFFFFFF;
+  for (let i = 0; i < bytes.length; i++) {
+    c = CRC_TABLE[(c ^ bytes[i]) & 0xFF] ^ (c >>> 8);
+  }
+  return (c ^ 0xFFFFFFFF) >>> 0;
+}
+
+function buildZipBlob(files) {
+  const enc = new TextEncoder();
+  const localParts = [];
+  const centralParts = [];
+  let offset = 0;
+
+  for (const f of files) {
+    const nameBytes = enc.encode(f.name);
+    const data = f.data instanceof Uint8Array ? f.data : enc.encode(String(f.data));
+    const crc = crc32(data);
+    const len = data.length;
+
+    const lhdr = new Uint8Array(30 + nameBytes.length);
+    const lv = new DataView(lhdr.buffer);
+    lv.setUint32(0, 0x04034b50, true);
+    lv.setUint16(4, 20, true);
+    lv.setUint16(6, 0x0800, true);
+    lv.setUint16(8, 0, true);
+    lv.setUint16(10, 0, true);
+    lv.setUint16(12, 0x4A21, true);
+    lv.setUint32(14, crc, true);
+    lv.setUint32(18, len, true);
+    lv.setUint32(22, len, true);
+    lv.setUint16(26, nameBytes.length, true);
+    lv.setUint16(28, 0, true);
+    lhdr.set(nameBytes, 30);
+
+    localParts.push(lhdr, data);
+
+    const chdr = new Uint8Array(46 + nameBytes.length);
+    const cv = new DataView(chdr.buffer);
+    cv.setUint32(0, 0x02014b50, true);
+    cv.setUint16(4, 20, true);
+    cv.setUint16(6, 20, true);
+    cv.setUint16(8, 0x0800, true);
+    cv.setUint16(10, 0, true);
+    cv.setUint16(12, 0, true);
+    cv.setUint16(14, 0x4A21, true);
+    cv.setUint32(16, crc, true);
+    cv.setUint32(20, len, true);
+    cv.setUint32(24, len, true);
+    cv.setUint16(28, nameBytes.length, true);
+    cv.setUint16(30, 0, true);
+    cv.setUint16(32, 0, true);
+    cv.setUint16(34, 0, true);
+    cv.setUint16(36, 0, true);
+    cv.setUint32(38, 0, true);
+    cv.setUint32(42, offset, true);
+    chdr.set(nameBytes, 46);
+
+    centralParts.push(chdr);
+    offset += lhdr.length + len;
+  }
+
+  const centralSize = centralParts.reduce((a, b) => a + b.length, 0);
+  const eocd = new Uint8Array(22);
+  const ev = new DataView(eocd.buffer);
+  ev.setUint32(0, 0x06054b50, true);
+  ev.setUint16(4, 0, true);
+  ev.setUint16(6, 0, true);
+  ev.setUint16(8, files.length, true);
+  ev.setUint16(10, files.length, true);
+  ev.setUint32(12, centralSize, true);
+  ev.setUint32(16, offset, true);
+  ev.setUint16(20, 0, true);
+
+  return new Blob([...localParts, ...centralParts, eocd], {
+    type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+  });
+}
+
+function xmlEsc(s) {
+  return String(s ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function prepareImageForWord(blob) {
+  return new Promise(res => {
+    const img = new Image();
+    img.onload = () => {
+      const k = Math.min(1, 1400 / Math.max(img.width, img.height));
+      const w = Math.round(img.width * k), h = Math.round(img.height * k);
+      const c = document.createElement("canvas");
+      c.width = w;
+      c.height = h;
+      c.getContext("2d").drawImage(img, 0, 0, w, h);
+      c.toBlob(b => {
+        const fr = new FileReader();
+        fr.onload = () => res({bytes: new Uint8Array(fr.result), w, h});
+        fr.readAsArrayBuffer(b);
+      }, "image/jpeg", 0.86);
+    };
+    img.onerror = () => res(null);
+    img.src = URL.createObjectURL(blob);
+  });
+}
+
+function wPara(text, opts = {}) {
+  const align = opts.align ? `<w:jc w:val="${opts.align}"/>` : "";
+  const spaceBefore = opts.before ?? 60;
+  const spaceAfter = opts.after ?? 80;
+  const shading = opts.bg ? `<w:shd w:val="clear" w:color="auto" w:fill="${opts.bg}"/>` : "";
+  const bold = opts.bold ? "<w:b/>" : "";
+  const italic = opts.italic ? "<w:i/>" : "";
+  const color = opts.color ? `<w:color w:val="${opts.color}"/>` : "";
+  const sz = opts.size || 20;
+  return `<w:p>
+    <w:pPr><w:spacing w:before="${spaceBefore}" w:after="${spaceAfter}"/>${align}${shading}</w:pPr>
+    <w:r><w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/>${bold}${italic}${color}<w:sz w:val="${sz}"/><w:szCs w:val="${sz}"/></w:rPr><w:t xml:space="preserve">${xmlEsc(text)}</w:t></w:r>
+  </w:p>`;
+}
+
+function wCell(contentXml, opts = {}) {
+  const width = opts.w ? `<w:tcW w:w="${opts.w}" w:type="dxa"/>` : "";
+  const span = opts.span ? `<w:gridSpan w:val="${opts.span}"/>` : "";
+  const bg = opts.bg ? `<w:shd w:val="clear" w:color="auto" w:fill="${opts.bg}"/>` : "";
+  const vAlign = `<w:vAlign w:val="${opts.vAlign || "center"}"/>`;
+  return `<w:tc><w:tcPr>${width}${span}${bg}${vAlign}</w:tcPr>${contentXml}</w:tc>`;
+}
+
+function wCellText(text, opts = {}) {
+  return wCell(wPara(text, {
+    bold: opts.bold,
+    color: opts.color,
+    size: opts.size || 18,
+    align: opts.align || "left",
+    before: 40,
+    after: 40
+  }), opts);
+}
+
+function wTable(rowsXml, colWidths = []) {
+  const grid = colWidths.length
+    ? `<w:tblGrid>${colWidths.map(w => `<w:gridCol w:w="${w}"/>`).join("")}</w:tblGrid>`
+    : "";
+  return `<w:tbl>
+    <w:tblPr>
+      <w:tblW w:w="10200" w:type="dxa"/>
+      <w:tblBorders>
+        <w:top w:val="single" w:sz="6" w:space="0" w:color="B0B8C4"/>
+        <w:left w:val="single" w:sz="6" w:space="0" w:color="B0B8C4"/>
+        <w:bottom w:val="single" w:sz="6" w:space="0" w:color="B0B8C4"/>
+        <w:right w:val="single" w:sz="6" w:space="0" w:color="B0B8C4"/>
+        <w:insideH w:val="single" w:sz="4" w:space="0" w:color="D0D7DE"/>
+        <w:insideV w:val="single" w:sz="4" w:space="0" w:color="D0D7DE"/>
+      </w:tblBorders>
+      <w:tblCellMar>
+        <w:top w:w="70" w:type="dxa"/>
+        <w:left w:w="100" w:type="dxa"/>
+        <w:bottom w:w="70" w:type="dxa"/>
+        <w:right w:w="100" w:type="dxa"/>
+      </w:tblCellMar>
+    </w:tblPr>
+    ${grid}
+    ${rowsXml.join("")}
+  </w:tbl>`;
+}
+
+function wImageRun(rId, docPrId, cxEmu, cyEmu, descr = "Foto SPDA") {
+  return `<w:p>
+    <w:pPr><w:jc w:val="center"/><w:spacing w:before="60" w:after="40"/></w:pPr>
+    <w:r>
+      <w:drawing>
+        <wp:inline distT="0" distB="0" distL="0" distR="0">
+          <wp:extent cx="${cxEmu}" cy="${cyEmu}"/>
+          <wp:docPr id="${docPrId}" name="Foto_${docPrId}" descr="${xmlEsc(descr)}"/>
+          <a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">
+            <a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture">
+              <pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture">
+                <pic:nvPicPr>
+                  <pic:cNvPr id="${docPrId}" name="Foto_${docPrId}"/>
+                  <pic:cNvPicPr/>
+                </pic:nvPicPr>
+                <pic:blipFill>
+                  <a:blip r:embed="${rId}"/>
+                  <a:stretch><a:fillRect/></a:stretch>
+                </pic:blipFill>
+                <pic:spPr>
+                  <a:xfrm><a:off x="0" y="0"/><a:ext cx="${cxEmu}" cy="${cyEmu}"/></a:xfrm>
+                  <a:prstGeom prst="rect"><a:avLst/></a:prstGeom>
+                </pic:spPr>
+              </pic:pic>
+            </a:graphicData>
+          </a:graphic>
+        </wp:inline>
+      </w:drawing>
+    </w:r>
+  </w:p>`;
+}
+
+async function buildWordDocxFile(teamFilter = 0) {
+  const st = $("#st-msg");
+  if (st) st.textContent = "Gerando Laudo editável em Word (.docx)…";
+
+  const allB = getB();
+  const B = teamFilter ? allB.filter(b => b[2] == teamFilter) : allB;
+  const c = S.cfg;
+  const teamTag = teamFilter == 1 ? "Equipe A (Dupla 1)" : (teamFilter == 2 ? "Equipe B (Dupla 2)" : "Equipes A e B (Geral)");
+
+  const mediaFiles = [];
+  let imgCounter = 0;
+  const bodyParts = [];
+
+  bodyParts.push(wTable([
+    `<w:tr>${wCell(
+      wPara(c.empresa || "TH ELÉTRICA — ENGENHARIA E LAUDOS TÉCNICOS", {bold: true, size: 22, color: "FFFFFF", align: "center", before: 60, after: 20}) +
+      wPara("LAUDO TÉCNICO DE INSPEÇÃO E MEDIÇÃO DE SPDA — ABNT NBR 5419:2015", {bold: true, size: 26, color: "FFFFFF", align: "center", before: 20, after: 40}) +
+      wPara(`SUBSISTEMAS DE CAPTAÇÃO, DESCIDAS, EQUIPOTENCIALIZAÇÃO (BEP) E ATERRAMENTO — ${teamTag.toUpperCase()}`, {bold: false, size: 18, color: "DCE6F2", align: "center", before: 0, after: 60}),
+      {w: 10200, span: 4, bg: "1F3A5F"}
+    )}</w:tr>`,
+    `<w:tr>
+      ${wCellText("CLIENTE / EMPREENDIMENTO:", {w: 2300, bold: true, bg: "F0F4F8", size: 18})}
+      ${wCellText(c.cliente || "Fazenda Amigos do Bem", {w: 3200, bold: true, size: 19})}
+      ${wCellText("DATA DA INSPEÇÃO:", {w: 2100, bold: true, bg: "F0F4F8", size: 18})}
+      ${wCellText(c.data || new Date().toISOString().slice(0, 10), {w: 2600, bold: true, size: 19})}
+    </w:tr>`,
+    `<w:tr>
+      ${wCellText("LOCALIDADE / UNIDADE:", {w: 2300, bold: true, bg: "F0F4F8", size: 18})}
+      ${wCellText(c.local || "Serra do Catimbau, Buíque/PE", {w: 3200, size: 18})}
+      ${wCellText("EQUIPE / OPERADORES:", {w: 2100, bold: true, bg: "F0F4F8", size: 18})}
+      ${wCellText(c.eq || teamTag, {w: 2600, size: 18})}
+    </w:tr>`,
+    `<w:tr>
+      ${wCellText("RESPONSÁVEL TÉCNICO:", {w: 2300, bold: true, bg: "F0F4F8", size: 18})}
+      ${wCellText(c.resp || "A preencher no carimbo", {w: 3200, size: 18})}
+      ${wCellText("REGISTRO (CREA / CFT / ART):", {w: 2100, bold: true, bg: "F0F4F8", size: 18})}
+      ${wCellText([c.crea, c.art].filter(Boolean).join(" | ") || "A anexar c/ ART", {w: 2600, size: 18})}
+    </w:tr>`,
+    `<w:tr>
+      ${wCellText("INSTRUMENTO UTILIZADO:", {w: 2300, bold: true, bg: "F0F4F8", size: 18})}
+      ${wCellText([c.ap, c.apTerra].filter(Boolean).join(" / ") || "Terrômetro Digital Calibrado", {w: 3200, size: 18})}
+      ${wCellText("LIMITES NORMATIVOS:", {w: 2100, bold: true, bg: "F0F4F8", size: 18})}
+      ${wCellText(`Continuidade <= ${c.limC} Ohm  |  Terra <= ${c.limT} Ohm`, {w: 2600, bold: true, color: "1F3A5F", size: 18})}
+    </w:tr>`
+  ], [2300, 3200, 2100, 2600]));
+
+  bodyParts.push(wPara("", {before: 40, after: 40}));
+  bodyParts.push(wPara("1. OBJETIVO, NORMAS DE REFERÊNCIA E METODOLOGIA", {bold: true, size: 22, color: "1F3A5F", before: 120, after: 60}));
+  bodyParts.push(wPara(
+    `O presente Laudo Técnico apresenta os resultados da inspeção visual em campo e dos ensaios de medição ôhmica de continuidade elétrica das descidas e de resistência de aterramento do SPDA instalado nas edificações de ${c.cliente} (${c.local}), em conformidade com a ABNT NBR 5419:2015 e NR-10.`,
+    {size: 19, before: 20, after: 80}
+  ));
+
+  bodyParts.push(wPara("2. QUADRO RESUMO GERAL DAS EDIFICAÇÕES INSPECIONADAS", {bold: true, size: 22, color: "1F3A5F", before: 100, after: 60}));
+  const summaryRows = [
+    `<w:tr>
+      ${wCellText("SIGLA", {w: 800, bold: true, color: "FFFFFF", bg: "1F3A5F", align: "center"})}
+      ${wCellText("EDIFICAÇÃO / LOCAL", {w: 3100, bold: true, color: "FFFFFF", bg: "1F3A5F"})}
+      ${wCellText("EQUIPE", {w: 1200, bold: true, color: "FFFFFF", bg: "1F3A5F", align: "center"})}
+      ${wCellText("HORÁRIO", {w: 1400, bold: true, color: "FFFFFF", bg: "1F3A5F", align: "center"})}
+      ${wCellText("SOLO", {w: 1000, bold: true, color: "FFFFFF", bg: "1F3A5F", align: "center"})}
+      ${wCellText("PONTOS", {w: 1100, bold: true, color: "FFFFFF", bg: "1F3A5F", align: "center"})}
+      ${wCellText("SITUAÇÃO TÉCNICA", {w: 1600, bold: true, color: "FFFFFF", bg: "1F3A5F", align: "center"})}
+    </w:tr>`
+  ];
+
+  let totalMeasuredPoints = 0, totalFailedPoints = 0, totalInspectedBlocks = 0;
+  for (const b of B) {
+    const bs = blockStats(b);
+    const f = bs.f;
+    if (bs.isStarted || bs.totNC > 0) totalInspectedBlocks++;
+    totalMeasuredPoints += bs.medR;
+    totalFailedPoints += bs.totNC;
+
+    let sitText = "PENDENTE", sitColor = "666666", sitBg = "F8F9FA";
+    if (bs.totNC > 0) { sitText = `COM RESTRIÇÃO (${bs.totNC} NC)`; sitColor = "B91C1C"; sitBg = "FEE2E2"; }
+    else if (bs.isCompleted || bs.medR > 0) { sitText = "APROVADO / CONFORME"; sitColor = "15803D"; sitBg = "DCFCE7"; }
+
+    summaryRows.push(`<w:tr>
+      ${wCellText(b[0], {w: 800, bold: true, align: "center"})}
+      ${wCellText(b[1], {w: 3100, bold: true})}
+      ${wCellText(b[2] == 2 ? "Equipe B" : "Equipe A", {w: 1200, align: "center"})}
+      ${wCellText(f.hi || f.hf ? `${f.hi || "--"} às ${f.hf || "--"}` : "—", {w: 1400, align: "center"})}
+      ${wCellText(f.solo || "—", {w: 1000, align: "center"})}
+      ${wCellText(bs.totR ? `${bs.medR}/${bs.totR}` : "BEP", {w: 1100, align: "center"})}
+      ${wCellText(sitText, {w: 1600, bold: true, color: sitColor, bg: sitBg, align: "center", size: 17})}
+    </w:tr>`);
+  }
+  bodyParts.push(wTable(summaryRows, [800, 3100, 1200, 1400, 1000, 1100, 1600]));
+
+  const blocksToDetail = B.filter(b => {
+    const bs = blockStats(b);
+    return S.cfg.soPreenchidos ? (bs.isStarted || bs.totNC > 0) : true;
+  });
+  const finalBlocksList = blocksToDetail.length ? blocksToDetail : B;
+
+  bodyParts.push(wPara("3. RESULTADOS DETALHADOS DE INSPEÇÃO, MEDIÇÕES E FOTOS", {bold: true, size: 22, color: "1F3A5F", before: 120, after: 60}));
+
+  for (let bi = 0; bi < finalBlocksList.length; bi++) {
+    const b = finalBlocksList[bi];
+    const bs = blockStats(b);
+    const f = bs.f;
+    const o = b[3] || "";
+
+    bodyParts.push(wTable([
+      `<w:tr>${wCell(
+        wPara(`3.${bi + 1} EDIFICAÇÃO / LOCAL: ${b[1].toUpperCase()} [CÓD: ${b[0]}] — ${teamLabel(b[2]).toUpperCase()}`, {bold: true, size: 21, color: "FFFFFF", before: 40, after: 20}) +
+        wPara(`Horário: ${f.hi || "--:--"} às ${f.hf || "--:--"} | Solo: ${f.solo || "-"} | Clima: ${f.clima || "-"} | Obs: ${f.obs || "-"}`, {size: 17, color: "E2E8F0", before: 0, after: 40}),
+        {w: 10200, bg: "1F3A5F"}
+      )}</w:tr>`
+    ], [10200]));
+
+    if (f.rows && f.rows.length) {
+      const activeRows = S.cfg.soPreenchidos
+        ? f.rows.filter(r => r.cont !== "" || r.terra !== "" || r.barra || r.eld || r.cx || (r.ph && r.ph.length))
+        : f.rows;
+      const rowsToRender = activeRows.length ? activeRows : f.rows;
+      const descTable = [
+        `<w:tr>
+          ${wCellText("PONTO / REF.", {w: 1450, bold: true, color: "FFFFFF", bg: "2B5082", align: "center", size: 16})}
+          ${wCellText("BARRA", {w: 900, bold: true, color: "FFFFFF", bg: "2B5082", align: "center", size: 16})}
+          ${wCellText("ELETROD.", {w: 950, bold: true, color: "FFFFFF", bg: "2B5082", align: "center", size: 16})}
+          ${wCellText("CAIXA", {w: 950, bold: true, color: "FFFFFF", bg: "2B5082", align: "center", size: 16})}
+          ${wCellText(`CONT. (Ω)`, {w: 1100, bold: true, color: "FFFFFF", bg: "2B5082", align: "center", size: 16})}
+          ${wCellText(`TERRA (Ω)`, {w: 1100, bold: true, color: "FFFFFF", bg: "2B5082", align: "center", size: 16})}
+          ${wCellText("HORA FOTO", {w: 1050, bold: true, color: "FFFFFF", bg: "2B5082", align: "center", size: 16})}
+          ${wCellText("PLANTA", {w: 800, bold: true, color: "FFFFFF", bg: "2B5082", align: "center", size: 16})}
+          ${wCellText("DIAGNÓSTICO", {w: 1900, bold: true, color: "FFFFFF", bg: "2B5082", align: "center", size: 16})}
+        </w:tr>`
+      ];
+
+      for (const r of rowsToRender) {
+        const diag = rowDiagnosis(r);
+        const pLabel = r.loc ? `${r.p} (${r.loc})` : r.p;
+        descTable.push(`<w:tr>
+          ${wCellText(pLabel, {w: 1450, bold: true, align: "center", size: 16})}
+          ${wCellText(r.barra || "—", {w: 900, align: "center", size: 16})}
+          ${wCellText(r.eld || "—", {w: 950, align: "center", size: 16})}
+          ${wCellText(r.cx || "—", {w: 950, align: "center", size: 16})}
+          ${wCellText(r.cont !== "" ? `${r.cont} Ω` : "—", {w: 1100, align: "center", size: 16})}
+          ${wCellText(r.terra !== "" ? `${r.terra} Ω` : "—", {w: 1100, align: "center", size: 16})}
+          ${wCellText(r.horaFoto || "—", {w: 1050, align: "center", size: 16})}
+          ${wCellText(r.pl || "—", {w: 800, align: "center", size: 16})}
+          ${wCellText(diag.ok ? diag.short : `${diag.short}: ${diag.detail}`, {
+            w: 1900, bold: true,
+            color: !diag.measured ? "64748B" : (diag.ok ? "15803D" : "B91C1C"),
+            bg: !diag.measured ? "FFFFFF" : (diag.ok ? "DCFCE7" : "FEE2E2"),
+            align: "center", size: 15
+          })}
+        </w:tr>`);
+      }
+      bodyParts.push(wTable(descTable, [1450, 900, 950, 950, 1100, 1100, 1050, 800, 1900]));
+    }
+
+    const blockPhotos = [];
+    for (const k of (f.fachadaPh || [])) blockPhotos.push({k, title: `${b[1]} — Fachada`, sub: `Hora: ${f.fachadaHora || "-"}`});
+    for (const k of (f.telhadoPh || [])) blockPhotos.push({k, title: `${b[1]} — Telhado/Captação`, sub: `Hora: ${f.telhadoHora || "-"}`});
+    for (const k of (f.bepPh || [])) blockPhotos.push({k, title: `${b[1]} — BEP`, sub: `Cont: ${f.bepC || "-"} Ω | Terra: ${f.bepT || "-"} Ω | Hora: ${f.bepHora || "-"}`});
+    for (const r of (f.rows || [])) {
+      const diag = rowDiagnosis(r);
+      for (const k of (r.ph || [])) blockPhotos.push({k, title: `${b[1]} — ${r.p}`, sub: `Cont: ${r.cont || "-"} Ω | Terra: ${r.terra || "-"} Ω (${diag.short})`});
+    }
+    for (let i = 0; i < (f.ncs || []).length; i++) {
+      const n = f.ncs[i];
+      for (const k of (n.ph || [])) blockPhotos.push({k, title: `${b[1]} — NC-${String(i + 1).padStart(2, "0")}`, sub: `${n.cod || ""} | ${n.det || ""}`});
+    }
+
+    if (blockPhotos.length) {
+      const photoRowsXml = [];
+      for (let pi = 0; pi < blockPhotos.length; pi += 2) {
+        const pair = [blockPhotos[pi], blockPhotos[pi + 1] || null];
+        const cellsXml = [];
+        for (const item of pair) {
+          if (!item) { cellsXml.push(wCell(wPara(""), {w: 5100})); continue; }
+          const rec = await pget(item.k);
+          const prep = rec && rec.b ? await prepareImageForWord(rec.b) : null;
+          if (!prep) { cellsXml.push(wCell(wPara(item.title), {w: 5100})); continue; }
+          imgCounter++;
+          const rId = `rIdImg${imgCounter}`, fileName = `image${imgCounter}.jpg`;
+          mediaFiles.push({fileName, bytes: prep.bytes, rId});
+          const maxW_EMU = 2808000, maxH_EMU = 3528000, ratio = prep.w / prep.h;
+          let cx = maxW_EMU, cy = Math.round(cx / ratio);
+          if (cy > maxH_EMU) { cy = maxH_EMU; cx = Math.round(cy * ratio); }
+          cellsXml.push(wCell(
+            wImageRun(rId, imgCounter, cx, cy, item.title) +
+            wPara(item.title, {bold: true, size: 17, align: "center", color: "1F3A5F", before: 30, after: 10}) +
+            wPara(item.sub, {size: 15, align: "center", color: "334155", before: 0, after: 10}),
+            {w: 5100, bg: "FAFAFA"}
+          ));
+        }
+        photoRowsXml.push(`<w:tr>${cellsXml.join("")}</w:tr>`);
+      }
+      bodyParts.push(wTable(photoRowsXml, [5100, 5100]));
+    }
+    bodyParts.push(wPara("", {before: 60, after: 60}));
+  }
+
+  bodyParts.push(wPara("4. RESPONSABILIDADE TÉCNICA E CARIMBO DA RT / ART", {bold: true, size: 22, color: "1F3A5F", before: 120, after: 60}));
+  bodyParts.push(wTable([
+    `<w:tr>${wCell(
+      wPara("ESPAÇO RESERVADO PARA CARIMBO DO RESPONSÁVEL TÉCNICO / SELO DA ART", {bold: true, size: 17, color: "64748B", align: "center", before: 80, after: 360}) +
+      wPara("________________________________________________________", {bold: true, size: 18, align: "center", before: 80, after: 20}) +
+      wPara(`Responsável Técnico: ${c.resp || "____________________________________"}`, {bold: true, size: 19, align: "center"}) +
+      wPara(`CREA / CFT: ${c.crea || "____________________"}   |   ART: ${c.art || "____________________"}`, {size: 18, align: "center"}),
+      {w: 10200, bg: "F8FAFC"}
+    )}</w:tr>`
+  ], [10200]));
+
+  const contentTypesXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+  <Default Extension="rels" ContentType="application/vnd.openxmlformats-officedocument.relationships+xml"/>
+  <Default Extension="xml" ContentType="application/xml"/>
+  <Default Extension="jpg" ContentType="image/jpeg"/>
+  <Default Extension="jpeg" ContentType="image/jpeg"/>
+  <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
+</Types>`;
+  const rootRelsXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>
+</Relationships>`;
+  const docRelsXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  ${mediaFiles.map(m => `<Relationship Id="${m.rId}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/${m.fileName}"/>`).join("\n  ")}
+</Relationships>`;
+  const documentXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+            xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+            xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing">
+  <w:body>
+    ${bodyParts.join("\n")}
+    <w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="850" w:right="850" w:bottom="850" w:left="850"/></w:sectPr>
+  </w:body>
+</w:document>`;
+
+  const docxBlob = buildZipBlob([
+    {name: "[Content_Types].xml", data: contentTypesXml},
+    {name: "_rels/.rels", data: rootRelsXml},
+    {name: "word/_rels/document.xml.rels", data: docRelsXml},
+    {name: "word/document.xml", data: documentXml},
+    ...mediaFiles.map(m => ({name: `word/media/${m.fileName}`, data: m.bytes}))
+  ]);
+  if (st) st.textContent = "";
+  const eqPrefix = teamFilter == 1 ? "EquipeA_" : (teamFilter == 2 ? "EquipeB_" : "");
+  const fname = `${eqPrefix}Laudo_SPDA_${(c.cliente || "Campo").replace(/[^a-zA-Z0-9_-]/g, "_")}_${(c.data || new Date().toISOString().slice(0, 10))}.docx`;
+  return new File([docxBlob], fname, {type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document"});
+}
+
+async function downloadWord(teamFilter = 0) {
+  const file = await buildWordDocxFile(teamFilter);
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(file);
+  a.download = file.name;
+  a.click();
+}
+
+async function shareWord(teamFilter = 0) {
+  const file = await buildWordDocxFile(teamFilter);
+  if (navigator.canShare && navigator.canShare({files: [file]})) {
+    try {
+      await navigator.share({files: [file], title: "Laudo SPDA (Word) — " + S.cfg.cliente});
+      return;
+    } catch (e) { if (e.name === "AbortError") return; }
+  }
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(file);
+  a.download = file.name;
+  a.click();
+}
+
+/* ============================================================================
+   RENDERIZAÇÃO PRINCIPAL DO APLICATIVO
+   ============================================================================ */
+async function render() {
+  const wrap = $("#app-wrap");
+  const B = getB();
+  const c = S.cfg;
+  const rep = S.reposicao || {};
+
+  if (view === "cfg") {
+    wrap.innerHTML = renderConfigView();
+    updateSaveIndicator();
+    return;
+  }
+  if (view && view !== "") {
+    wrap.innerHTML = renderBlockDetailView(view);
+    hydrateThumbs();
+    updateSaveIndicator();
+    return;
+  }
+
+  const filteredByTeam = filterDupla ? B.filter(b => b[2] == filterDupla) : B;
+  let doneBlocks = 0, totalDescidas = 0, measuredDescidas = 0, totalAlertas = 0;
+
+  const statsMap = {};
+  for (const b of B) {
+    const st = blockStats(b);
+    statsMap[b[0]] = st;
+    if (!filterDupla || b[2] == filterDupla) {
+      if (st.isCompleted) doneBlocks++;
+      totalDescidas += st.totR;
+      measuredDescidas += st.medR;
+      totalAlertas += st.totNC;
+    }
+  }
+
+  const libDone = LIB_CHK.filter((_, i) => S.lib && S.lib["k" + i]).length;
+  const pctBlocks = filteredByTeam.length ? Math.round((doneBlocks / filteredByTeam.length) * 100) : 0;
+  const pctMeasured = totalDescidas ? Math.round((measuredDescidas / totalDescidas) * 100) : 0;
+
+  const nextBlock = filteredByTeam.find(b => !statsMap[b[0]].isCompleted);
+  const nextSt = nextBlock ? statsMap[nextBlock[0]] : null;
+
+  const phAll = await pall();
+  const activeTeam = filterDupla || c.equipeAtiva || 1;
+
+  let tabContent = "";
+
+  if (activeTab === "blocos") {
+    const rowsHtml = filteredByTeam.filter(b => {
+      const st = statsMap[b[0]];
+      if (filterMode === "OPEN" && st.isCompleted) return false;
+      if (filterMode === "NC" && st.totNC === 0) return false;
+      if (searchQ && !b[1].toLowerCase().includes(searchQ.toLowerCase()) && !b[0].toLowerCase().includes(searchQ.toLowerCase())) return false;
+      return true;
+    }).map(b => {
+      const st = statsMap[b[0]];
+      return `
+        <tr onclick="go('${esc(b[0])}')" style="cursor:pointer">
+          <td class="n">${esc(b[0])}</td>
+          <td>
+            <b>${esc(b[1])}</b><br>
+            <small>${b[2] == 2 ? "Equipe B (Dupla 2)" : "Equipe A (Dupla 1)"} • ${st.totR ? `${st.medR}/${st.totR} descidas` : "Somente BEP"} • ${st.totPh} foto(s)</small>
+          </td>
+          <td><span class="tag ${st.status}">${st.status === "NC" ? `${st.totNC} NC` : st.status}</span></td>
+          <td class="no-strike" style="text-align:right;white-space:nowrap" onclick="event.stopPropagation()">
+            <button class="b" style="padding:5px 8px;font-size:12px" title="Editar nome do lugar" onclick="openBlockModal('${esc(b[0])}')">✎</button>
+            <button class="b" style="padding:5px 10px;font-size:12px;background:var(--navy);color:#fff;border-color:var(--navy)" onclick="go('${esc(b[0])}')">Abrir ›</button>
+          </td>
+        </tr>`;
+    }).join("");
+
+    tabContent = `
+      <section class="box">
+        <h2>
+          <span>Locais de Inspeção (${filteredByTeam.length})</span>
+          <div class="row">
+            <button class="b" style="font-size:12px;padding:5px 10px;background:#b91c1c;color:#fff;border-color:#b91c1c" onclick="downloadPDF(${filterDupla})">📄 Baixar PDF c/ Fotos</button>
+            <button class="b" style="font-size:12px;padding:5px 10px" onclick="openBlockModal()">+ Novo Local</button>
+          </div>
+        </h2>
+        <div class="filt">
+          <button data-f="0" aria-pressed="${filterDupla === 0}" onclick="filterDupla=0;render()">Todas Equipes</button>
+          <button data-f="1" aria-pressed="${filterDupla === 1}" onclick="filterDupla=1;S.cfg.equipeAtiva=1;save();render()">🅰 Equipe A</button>
+          <button data-f="2" aria-pressed="${filterDupla === 2}" onclick="filterDupla=2;S.cfg.equipeAtiva=2;save();render()">🅱 Equipe B</button>
+          <button aria-pressed="${filterMode === 'ALL'}" onclick="filterMode='ALL';render()">Todos</button>
+          <button aria-pressed="${filterMode === 'OPEN'}" onclick="filterMode='OPEN';render()">Pendentes</button>
+          <button aria-pressed="${filterMode === 'NC'}" onclick="filterMode='NC';render()">Com NC (${totalAlertas})</button>
+          <input style="max-width:210px;padding:5px 8px;font-size:13px;margin-left:auto" placeholder="🔍 Buscar local..." value="${esc(searchQ)}" oninput="searchQ=this.value;render()">
+        </div>
+        <div class="scroll">
+          <table class="tbl">
+            <thead>
+              <tr><th>Sigla</th><th>Local / Bloco</th><th>Status</th><th style="text-align:right">Ação</th></tr>
+            </thead>
+            <tbody>${rowsHtml || `<tr><td colspan="4" style="text-align:center;padding:18px;color:var(--muted)">Nenhum local para este filtro.</td></tr>`}</tbody>
+          </table>
+        </div>
+        <div style="padding:10px 12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px;border-top:1px solid var(--line)">
+          <button class="big pdf" style="margin:0" onclick="sharePDF(${filterDupla})">📄 Enviar PDF c/ Fotos (WhatsApp / Drive)</button>
+          <button class="big ai" style="margin:0" onclick="downloadAIFile(${filterDupla})">🤖 Baixar Arquivo p/ IA (.MD)</button>
+          <button class="big word" style="margin:0" onclick="downloadWord(${filterDupla})">📝 Baixar Word (.DOCX)</button>
+        </div>
+      </section>
+
+      <section class="box">
+        <h2>Controle de Reposição em Campo (Capa da Caderneta)</h2>
+        <div style="padding:12px">
+          <div class="g2">
+            <div>
+              <label>Placas "Risco de Choque" instaladas (Qtd)</label>
+              <input inputmode="numeric" placeholder="Ex.: 5" value="${esc(rep.placasQtd || "")}" oninput="setRepSilent('placasQtd',this.value)">
+            </div>
+            <div>
+              <label>Locais das Placas Instaladas</label>
+              <input placeholder="Ex.: Bloco A D02, Portaria..." value="${esc(rep.placasLocais || "")}" oninput="setRepSilent('placasLocais',this.value)">
+            </div>
+          </div>
+          <div class="g2">
+            <div>
+              <label>Conectores Bimetálicos / Split-Bolt trocados (Qtd)</label>
+              <input inputmode="numeric" placeholder="Ex.: 4" value="${esc(rep.conectoresQtd || "")}" oninput="setRepSilent('conectoresQtd',this.value)">
+            </div>
+            <div>
+              <label>Locais dos Conectores Trocados</label>
+              <input placeholder="Ex.: Bloco D, Quadra..." value="${esc(rep.conectoresLocais || "")}" oninput="setRepSilent('conectoresLocais',this.value)">
+            </div>
+          </div>
+          <label>Outros materiais usados / observações gerais</label>
+          <input placeholder="Ex.: Cabo Cu, parafusos inox, observações..." value="${esc(rep.outros || "")}" oninput="setRepSilent('outros',this.value)">
+        </div>
+      </section>`;
+  }
+
+  else if (activeTab === "prog") {
+    const progRows = filteredByTeam.map(b => {
+      const st = statsMap[b[0]];
+      const f = st.f;
+      if (filterMode !== "ALL" && filterMode !== st.status && !(filterMode === "OPEN" && !st.isCompleted)) return "";
+      return `
+        <tr class="${st.isCompleted ? "done" : ""}">
+          <td class="c"><input type="checkbox" ${st.isCompleted ? "checked" : ""} onchange="toggleBlockAllDone('${esc(b[0])}',this.checked)" title="Marcar bloco como 100% concluído"></td>
+          <td class="n" onclick="go('${esc(b[0])}')" style="cursor:pointer">${esc(b[0])}</td>
+          <td onclick="go('${esc(b[0])}')" style="cursor:pointer"><b>${esc(b[1])}</b></td>
+          <td class="mono">${b[2] == 2 ? "Eq. B" : "Eq. A"}</td>
+          <td><span class="tag ${st.status}">${st.status === "NC" ? `${st.totNC} NC` : st.status}</span></td>
+          <td class="no-strike" style="white-space:nowrap">
+            <span class="chk-pill ${f.done.vis ? "on" : ""}" onclick="toggleDone('${esc(b[0])}','vis')">Vis</span>
+            <span class="chk-pill ${f.done.med ? "on" : ""}" onclick="toggleDone('${esc(b[0])}','med')">Med (${st.medR}/${st.totR})</span>
+            <span class="chk-pill ${f.done.foto ? "on" : ""}" onclick="toggleDone('${esc(b[0])}','foto')">Foto (${st.totPh})</span>
+            <span class="chk-pill ${f.done.pl ? "on" : ""}" onclick="toggleDone('${esc(b[0])}','pl')">Planta A3</span>
+          </td>
+          <td style="font-size:.8rem;color:var(--muted)">${st.missing.length ? esc(st.missing.join(" · ")) : "✓ Completo"}</td>
+        </tr>`;
+    }).join("");
+
+    tabContent = `
+      <section class="box">
+        <h2>Painel de Controle Geral — Checkout da Caderneta</h2>
+        <div class="filt">
+          <button aria-pressed="${filterMode === 'ALL'}" onclick="filterMode='ALL';render()">Todos</button>
+          <button aria-pressed="${filterMode === 'OPEN'}" onclick="filterMode='OPEN';render()">Só Abertos</button>
+          <button aria-pressed="${filterMode === 'ANDAMENTO'}" onclick="filterMode='ANDAMENTO';render()">Em Andamento</button>
+          <button aria-pressed="${filterMode === 'NC'}" onclick="filterMode='NC';render()">Com NC</button>
+          <button aria-pressed="${filterMode === 'CONCLUIDO'}" onclick="filterMode='CONCLUIDO';render()">Concluídos</button>
+        </div>
+        <div class="scroll">
+          <table class="tbl">
+            <thead>
+              <tr><th></th><th>Cód</th><th>Edificação / Bloco</th><th>Dupla</th><th>Status</th><th>Etapas (Toque p/ marcar)</th><th>O que falta</th></tr>
+            </thead>
+            <tbody>${progRows || `<tr><td colspan="7" style="text-align:center;padding:16px">Nenhum item neste filtro.</td></tr>`}</tbody>
+          </table>
+        </div>
+        <div class="note">
+          <b>Critérios da Caderneta:</b> Continuidade <= ${c.limC} Ω | Terra <= ${c.limT} Ω ideal (<= ${c.limTSeco || 20} Ω solo seco). Pintar <b>ROSA</b> = Aprovado | Circular <b>VERMELHO</b> = Reprovado (NC).
+        </div>
+      </section>`;
+  }
+
+  else if (activeTab === "med") {
+    let medRows = "";
+    for (const b of filteredByTeam) {
+      const f = F(b[0]);
+      if ((b[3] || "").includes("bep") || (b[3] || "").includes("only")) {
+        medRows += `
+          <tr onclick="go('${esc(b[0])}')" style="cursor:pointer">
+            <td class="n">${esc(b[0])}</td>
+            <td><b>${esc(b[1])}</b> — BEP</td>
+            <td class="mono">Íntegro: ${esc(f.bepOk || "—")}</td>
+            <td class="mono"><b>${esc(f.bepC || "—")}</b> Ω</td>
+            <td class="mono"><b>${esc(f.bepT || "—")}</b> Ω</td>
+            <td class="mono">${esc(f.bepHora || "—")} (${(f.bepPh || []).length}📷)</td>
+            <td><span class="tag ${f.bepOk === "Não" ? "NC" : (f.bepC || f.bepT ? "CONCLUIDO" : "PENDENTE")}">${f.bepOk === "Não" ? "NC" : (f.bepC || f.bepT ? "MEDIDO" : "PENDENTE")}</span></td>
+          </tr>`;
+      }
+      for (const r of f.rows) {
+        const diag = rowDiagnosis(r);
+        if (filterMode === "NC" && diag.ok) continue;
+        if (filterMode === "OPEN" && diag.measured) continue;
+        medRows += `
+          <tr onclick="go('${esc(b[0])}')" style="cursor:pointer">
+            <td class="n">${esc(b[0])}·${esc(r.p)}</td>
+            <td><b>${esc(b[1])}</b> ${r.loc ? `(${esc(r.loc)})` : ""}</td>
+            <td class="mono">B:${r.barra || "-"} E:${r.eld || "-"} C:${r.cx || "-"}</td>
+            <td class="mono" style="color:${num(r.cont) > c.limC ? "var(--nc);font-weight:700" : "inherit"}">${esc(r.cont || "—")} Ω</td>
+            <td class="mono" style="color:${num(r.terra) > c.limT ? "var(--nc);font-weight:700" : "inherit"}">${esc(r.terra || "—")} Ω</td>
+            <td class="mono">${esc(r.horaFoto || "—")} · ${esc(r.pl || "—")} · ${(r.ph || []).length}📷</td>
+            <td><span class="tag ${!diag.ok ? "NC" : (diag.measured ? "CONCLUIDO" : "PENDENTE")}">${!diag.ok ? diag.detail : (diag.measured ? "APROVADO" : "ABERTO")}</span></td>
+          </tr>`;
+      }
+    }
+
+    tabContent = `
+      <section class="box">
+        <h2>Tabela Geral de Descidas e Medições (Cont. ≤ ${c.limC} Ω | Terra ≤ ${c.limT} Ω)</h2>
+        <div class="filt">
+          <button aria-pressed="${filterMode === 'ALL'}" onclick="filterMode='ALL';render()">Todas</button>
+          <button aria-pressed="${filterMode === 'OPEN'}" onclick="filterMode='OPEN';render()">Sem Medição</button>
+          <button aria-pressed="${filterMode === 'NC'}" onclick="filterMode='NC';render()">Fora do Limite / NC</button>
+        </div>
+        <div class="scroll">
+          <table class="tbl">
+            <thead>
+              <tr><th>Ponto</th><th>Bloco / Referência</th><th>Inspeção (B/E/C)</th><th>Cont. (Ω)</th><th>Terra (Ω)</th><th>Foto(Hora)/Planta</th><th>Diagnóstico</th></tr>
+            </thead>
+            <tbody>${medRows || `<tr><td colspan="7" style="text-align:center;padding:16px">Nenhum ponto para exibir.</td></tr>`}</tbody>
+          </table>
+        </div>
+      </section>`;
+  }
+
+  else if (activeTab === "ncs") {
+    let ncRows = "";
+    let idxGlobal = 1;
+    for (const b of filteredByTeam) {
+      const blockNCs = collectAllBlockNCs(b);
+      for (const n of blockNCs) {
+        ncRows += `
+          <tr onclick="go('${esc(b[0])}')" style="cursor:pointer">
+            <td class="n">NC-${String(idxGlobal++).padStart(2, "0")}</td>
+            <td><b>${esc(b[1])}</b> · <span class="mono">${esc(n.ponto)}</span></td>
+            <td>${esc(n.titulo)}</td>
+            <td><span class="tag NC">Grau ${esc(n.sev)}</span></td>
+            <td class="mono">${esc(n.horaFoto)}</td>
+            <td style="font-size:12px">${esc(n.detalhe)}</td>
+            <td class="mono">${(n.ph || []).length} 📷</td>
+          </tr>`;
+      }
+    }
+
+    tabContent = `
+      <section class="box">
+        <h2>Não Conformidades e Recomendações Técnicas Automáticas</h2>
+        <div class="scroll">
+          <table class="tbl">
+            <thead>
+              <tr><th>#</th><th>Bloco / Ponto</th><th>Desvio Constatado</th><th>Sev.</th><th>Hora Foto</th><th>Recomendação de Reparo</th><th>Fotos</th></tr>
+            </thead>
+            <tbody>${ncRows || `<tr><td colspan="7" style="text-align:center;padding:18px;color:var(--ok)">✓ Nenhuma não conformidade registrada até o momento.</td></tr>`}</tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="box">
+        <h2>Anotações Livres — Página 18 da Caderneta (Edificação • Ponto • Hora da Foto)</h2>
+        <div style="padding:12px">
+          <textarea rows="5" placeholder="Use para observações extras ou não conformidades fora das fichas. Sempre informar: Edificação • Ponto • Hora da foto." oninput="setRepSilent('anotacoesLivres',this.value)">${esc(rep.anotacoesLivres || "")}</textarea>
+        </div>
+      </section>`;
+  }
+
+  else if (activeTab === "lib") {
+    const chkRows = LIB_CHK.map((item, i) => {
+      const done = !!(S.lib && S.lib["k" + i]);
+      return `
+        <tr class="${done ? "done" : ""}">
+          <td class="c"><input type="checkbox" ${done ? "checked" : ""} onchange="toggleLib(${i},this.checked)"></td>
+          <td class="n">L${String(i + 1).padStart(2, "0")}</td>
+          <td>${esc(item)}</td>
+        </tr>`;
+    }).join("");
+
+    const snaps = getSnapshots();
+
+    tabContent = `
+      <section class="box">
+        <h2>1. Exportar PDF com Imagens + Arquivo Estruturado para IA</h2>
+        <div style="padding:12px">
+          <p style="margin:0 0 10px;font-size:13.5px;color:var(--muted)">
+            Gera o <b>PDF completo com todas as fotos carimbadas</b> (no padrão da Caderneta de Campo TH Elétrica + Quadro de Carimbo da RT + Anexo de dados limpos para IA) e também o arquivo <b>.MD estruturado</b> para qualquer IA ler e formatar o relatório definitivo com 100% de precisão.
+          </p>
+          <div class="row" style="margin-bottom:10px">
+            <span class="mono" style="font-size:12px">Escopo:</span>
+            <span class="seg">
+              <button class="${filterDupla === 0 ? "on" : ""}" onclick="filterDupla=0;render()">Completo (Equipes A + B)</button>
+              <button class="${filterDupla === 1 ? "on" : ""}" onclick="filterDupla=1;render()">Só Equipe A</button>
+              <button class="${filterDupla === 2 ? "on" : ""}" onclick="filterDupla=2;render()">Só Equipe B</button>
+            </span>
+            <label style="display:inline-flex;align-items:center;gap:6px;margin-left:auto;text-transform:none;font-size:13px;color:var(--fg)">
+              <input type="checkbox" ${c.soPreenchidos ? "checked" : ""} onchange="S.cfg.soPreenchidos=this.checked?1:0;saveNow(true);render()">
+              Ocultar blocos/linhas em branco
+            </label>
+          </div>
+          <div class="g2">
+            <button class="big pdf" onclick="sharePDF(${filterDupla})">📤 Enviar PDF c/ Fotos (WhatsApp / Drive)</button>
+            <button class="big pdf" style="background:#991b1b" onclick="downloadPDF(${filterDupla})">📥 Baixar PDF c/ Fotos no Celular</button>
+          </div>
+          <div class="g2" style="margin-top:6px">
+            <button class="big ai" onclick="downloadAIFile(${filterDupla})">🤖 Baixar Arquivo p/ IA (.MD)</button>
+            <button class="big" style="background:#15803d;color:#fff" onclick="downloadCSV(${filterDupla})">📊 Baixar Planilha (CSV — medições + NCs)</button>
+            <button class="big wa" onclick="sharePDFAndAI(${filterDupla})">📦 Enviar Pacote Completo (PDF + .MD + JSON)</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="box">
+        <h2>2. Laudo Editável em Word (.DOCX) — Pronto para Carimbo da RT</h2>
+        <div style="padding:12px">
+          <div class="g2">
+            <button class="big word" onclick="shareWord(${filterDupla})">📝 Enviar Word (.DOCX) — WhatsApp / Drive</button>
+            <button class="big word" style="background:#0f3f8a" onclick="downloadWord(${filterDupla})">📥 Baixar Word (.DOCX) no Celular</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="box">
+        <h2>3. Pastas do Google Drive por Equipe (PDF + IA + Word + Fotos HD)</h2>
+        <div style="padding:12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px">
+          <div class="card" style="margin:0">
+            <h3>🅰 Equipe A (Dupla 1)</h3>
+            <small>Blocos A, B, D, I, J, Quadra, Portaria, BEL-1/2/3</small>
+            <button class="big drv" style="margin-top:8px" onclick="sendToTeamDrive(1)">☁ Enviar Pacote p/ Drive Equipe A</button>
+            <a class="big out" href="${esc(getDriveUrl(1))}" target="_blank" rel="noopener">📁 Abrir Pasta Drive — Equipe A</a>
+          </div>
+          <div class="card" style="margin:0">
+            <h3>🅱 Equipe B (Dupla 2)</h3>
+            <small>Blocos E, G, H, K, L, N, Brinquedoteca, Alambrado</small>
+            <button class="big drv" style="margin-top:8px" onclick="sendToTeamDrive(2)">☁ Enviar Pacote p/ Drive Equipe B</button>
+            <a class="big out" href="${esc(getDriveUrl(2))}" target="_blank" rel="noopener">📁 Abrir Pasta Drive — Equipe B</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="box">
+        <h2>4. Segurança Anti-Perda de Dados & Backups (${phAll.length} fotos HD salvas)</h2>
+        <div style="padding:12px">
+          <p style="margin:0 0 8px;font-size:13px;color:var(--muted)">
+            Seus dados são gravados <b>a cada tecla digitada</b> em dois bancos simultâneos (<code>localStorage</code> + <code>IndexedDB</code>), além de 5 snapshots automáticos de segurança.
+          </p>
+          <div class="g2">
+            <button class="big out" onclick="downloadAllPhotosHD()">🖼 Baixar Todas as Fotos HD (${phAll.length})</button>
+            <button class="big out" onclick="printReport(${filterDupla})">🖨 Imprimir Visualização A4</button>
+          </div>
+          <div class="g2" style="margin-top:6px">
+            <button class="b" onclick="downloadJSONOnly()">💾 Baixar Backup JSON Agora</button>
+            <button class="b" onclick="importJSONPrompt()">📂 Restaurar de Arquivo JSON</button>
+          </div>
+          ${snaps.length ? `
+            <div style="margin-top:10px;border-top:1px solid var(--line);padding-top:8px">
+              <small><b>Snapshots Automáticos no Aparelho:</b></small>
+              <div class="row" style="margin-top:6px">
+                ${snaps.map((sn, si) => `<button class="b" style="font-size:11px;padding:4px 8px" onclick="restoreSnapshot(${si})">↺ ${esc(sn.h)}</button>`).join("")}
+              </div>
+            </div>` : ""}
+        </div>
+      </section>
+
+      <section class="box">
+        <h2>5. Checklist de Liberação de Campo (${libDone} / ${LIB_CHK.length})</h2>
+        <div class="scroll">
+          <table class="tbl"><tbody>${chkRows}</tbody></table>
+        </div>
+      </section>`;
+  }
+
+  wrap.innerHTML = `
+    <header class="top-stamp">
+      <div>
+        <h1>SPDA CAMPO · ${esc(c.cliente || "AMIGOS DO BEM")}</h1>
+        <div class="sub">${esc(c.proposta || "NBR 5419:2015")} · ${esc(c.local || "Buíque/PE")} · Cont. ≤ ${c.limC} Ω · Terra ≤ ${c.limT} Ω</div>
+      </div>
+      <div class="meta">
+        DATA: ${esc(c.data)} · ${filterDupla ? teamLabel(filterDupla) : "EQUIPES A + B"} · FOTOS HD: ${phAll.length}<br>
+        <span id="save-ind" class="save-badge">✓ Salvo ${lastSavedTimeStr || "agora"}</span>
+        <a href="javascript:void(0)" onclick="go('cfg')" style="color:var(--fg);font-weight:700;margin-left:8px">⚙ DADOS RT / OBRA</a>
+      </div>
+    </header>
+
+    <div class="prog">
+      <div class="lbl"><span>Blocos / Locais Concluídos (${filterDupla ? teamLabel(filterDupla) : "Geral"})</span><b>${doneBlocks} / ${filteredByTeam.length} (${pctBlocks}%)</b></div>
+      <div class="bar"><i style="width:${pctBlocks}%"></i></div>
+      <div class="lbl"><span>Descidas Medidas & Checklist de Liberação</span><b>${measuredDescidas} / ${totalDescidas} descidas (${pctMeasured}%) · Liberação ${libDone}/${LIB_CHK.length}</b></div>
+      <div class="bar"><i class="ok-bar" style="width:${pctMeasured}%"></i></div>
+    </div>
+
+    <div class="next" onclick="${nextBlock ? `go('${esc(nextBlock[0])}')` : `go('','lib')`}">
+      <div>
+        <div class="k">Próximo Bloco Pendente (${filterDupla ? teamLabel(filterDupla) : "Ordem de Campo"})</div>
+        <div class="v">${nextBlock ? `${esc(nextBlock[0])} · ${esc(nextBlock[1])} (${teamLabel(nextBlock[2])}) — Falta: ${esc(nextSt.missing.join(", ") || "Conferir finalização")}` : "✓ Todos os blocos concluídos! Toque aqui para exportar o PDF e o arquivo da IA."}</div>
+      </div>
+      <span class="mono" style="font-weight:700;font-size:14px">ABRIR ›</span>
+    </div>
+
+    <nav class="tabs" role="tablist">
+      <button role="tab" aria-selected="${activeTab === 'blocos'}" onclick="activeTab='blocos';render()">1. Blocos (${filteredByTeam.length})</button>
+      <button role="tab" aria-selected="${activeTab === 'prog'}" onclick="activeTab='prog';render()">2. Progresso</button>
+      <button role="tab" aria-selected="${activeTab === 'med'}" onclick="activeTab='med';render()">3. Medições (${measuredDescidas})</button>
+      <button role="tab" aria-selected="${activeTab === 'ncs'}" onclick="activeTab='ncs';render()">4. NCs (${totalAlertas})</button>
+      <button role="tab" aria-selected="${activeTab === 'lib'}" onclick="activeTab='lib';render()">5. Exportar (PDF / IA / Word)</button>
+    </nav>
+
+    <span id="st-msg" class="mono" style="color:var(--accent);font-weight:600"></span>
+
+    ${tabContent}
+
+    <div class="foot">
+      <span>Dupla gravação ativa (localStorage + IndexedDB) • Zero perda de medições.</span>
+      <div class="row">
+        <button class="b" style="padding:4px 8px;font-size:11px" onclick="go('cfg')">⚙ Dados RT / Obra</button>
+        <button class="b" style="padding:4px 8px;font-size:11px;background:#b91c1c;color:#fff;border-color:#b91c1c" onclick="downloadPDF(${filterDupla})">📄 PDF c/ Fotos</button>
+        <button class="b" style="padding:4px 8px;font-size:11px;background:var(--ai);color:#fff;border-color:var(--ai)" onclick="downloadAIFile(${filterDupla})">🤖 Arquivo IA (.MD)</button>
+        <button class="b" style="padding:4px 8px;font-size:11px;background:#15803d;color:#fff;border-color:#15803d" onclick="downloadCSV(${filterDupla})">📊 Planilha (CSV)</button>
+      </div>
+    </div>`;
+}
+
+function renderBlockDetailView(blockId) {
+  const B = getB();
+  const b = B.find(x => x[0] == blockId);
+  if (!b) { view = ""; return ""; }
+  const st = blockStats(b);
+  const f = st.f, o = b[3] || "";
+
+  let h = `
+    <header class="top-stamp">
+      <div class="row" style="width:100%;justify-content:space-between">
+        <button class="b" onclick="go('')" style="font-weight:700">← Voltar ao Painel</button>
+        <span id="save-ind" class="save-badge">✓ Salvo ${lastSavedTimeStr || "agora"}</span>
+        <span id="st-msg" class="mono" style="color:var(--accent)"></span>
+        <div class="row">
+          <button class="b" onclick="openBlockModal('${esc(blockId)}')">✎ Editar Local</button>
+          <button class="b" style="background:#b91c1c;color:#fff;border-color:#b91c1c" onclick="downloadPDF(${filterDupla})">📄 Gerar PDF</button>
+        </div>
+      </div>
+      <div style="width:100%;margin-top:4px">
+        <h1>${esc(b[1])} <span class="mono" style="font-size:1.1rem;color:var(--muted)">[${esc(b[0])}]</span></h1>
+        <div class="sub">${teamLabel(b[2])} · ${st.totR ? `${st.medR}/${st.totR} descidas medidas` : "Somente BEP"} · ${st.totPh} foto(s) HD com carimbo</div>
+      </div>
+    </header>
+
+    <div class="card">
+      <h3>Dados de Execução da Ficha</h3>
+      <div class="g2">
+        <div>
+          <label>Data deste Bloco</label>
+          <input type="date" value="${esc(f.data || S.cfg.data)}" oninput="setSilent('${esc(blockId)}','data',this.value)">
+        </div>
+        <div>
+          <label>Responsável pelo Levantamento</label>
+          <input placeholder="Nome do operador" value="${esc(f.respBloco || "")}" oninput="setSilent('${esc(blockId)}','respBloco',this.value)">
+        </div>
+      </div>
+      <div class="g2">
+        <div>
+          <label>Início <a href="javascript:void(0)" onclick="setNow('${esc(blockId)}','hi')" style="float:right;color:var(--fg)">[Agora]</a></label>
+          <input type="time" value="${esc(f.hi)}" oninput="setSilent('${esc(blockId)}','hi',this.value)">
+        </div>
+        <div>
+          <label>Fim <a href="javascript:void(0)" onclick="setNow('${esc(blockId)}','hf')" style="float:right;color:var(--fg)">[Agora]</a></label>
+          <input type="time" value="${esc(f.hf)}" oninput="setSilent('${esc(blockId)}','hf',this.value)">
+        </div>
+      </div>
+      <div class="g2" style="margin-top:4px">
+        <div>
+          <label>Condição do Solo</label>
+          ${seg(blockId, "solo", f.solo, [["Seco", "Seco"], ["Úmido", "Úmido"]])}
+        </div>
+        <div>
+          <label>Clima</label>
+          ${seg(blockId, "clima", f.clima || "", [["Sol", "Sol"], ["Nublado", "Nublado"]])}
+        </div>
+      </div>
+      <label>Observações do Local / Bloco</label>
+      <input placeholder="Observação geral deste local..." value="${esc(f.obs || "")}" oninput="setSilent('${esc(blockId)}','obs',this.value)">
+    </div>`;
+
+  if (!o.includes("only")) {
+    h += `
+      <div class="card">
+        <h3>Fotos Obrigatórias da Rotina (Fachada e Telhado)</h3>
+        <div class="g2">
+          <div>
+            <label>1. Foto da Fachada (Hora: ${esc(f.fachadaHora || "—")})</label>
+            <div class="row">
+              <button class="b" onclick="photo('${esc(blockId)}','Fachada',-1,-1,true,'fachada')">📷 Câmera (${(f.fachadaPh || []).length})</button>
+              <button class="b" onclick="photo('${esc(blockId)}','Fachada',-1,-1,false,'fachada')">🖼 Galeria</button>
+            </div>
+            ${renderThumbs(blockId, f.fachadaPh || [], "fachada", 0)}
+          </div>
+          <div>
+            <label>2. Foto do Telhado/Captação (Hora: ${esc(f.telhadoHora || "—")})</label>
+            <div class="row">
+              <button class="b" onclick="photo('${esc(blockId)}','Telhado',-1,-1,true,'telhado')">📷 Câmera (${(f.telhadoPh || []).length})</button>
+              <button class="b" onclick="photo('${esc(blockId)}','Telhado',-1,-1,false,'telhado')">🖼 Galeria</button>
+            </div>
+            ${renderThumbs(blockId, f.telhadoPh || [], "telhado", 0)}
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>A. Checklist Visual (Caderneta de Campo)</h3>
+        ${CHK.map(([k, l]) => `
+          <div style="margin:8px 0;padding-bottom:8px;border-bottom:1px solid var(--line)">
+            <div style="margin-bottom:4px;font-weight:500">${l}</div>
+            ${seg(blockId, "chk." + k, f.chk[k] || "", [["Sim", "Sim", "good"], ["Não", "Não", "bad"], ["NA", "N/A"]])}
+          </div>`).join("")}
+      </div>`;
+  }
+
+  if (o.includes("bep") || o.includes("only")) {
+    h += `
+      <div class="card">
+        <h3>BEP (Barramento de Equipotencialização)</h3>
+        ${o.includes("only") ? `
+          <div style="margin-bottom:8px">
+            <div>BEP localizado e acessível?</div>
+            ${seg(blockId, "bepAcess", f.bepAcess || "", [["Sim", "Sim", "good"], ["Não", "Não", "bad"]])}
+          </div>
+          <div style="margin-bottom:8px">
+            <div>Corrosão / folga nas conexões?</div>
+            ${seg(blockId, "bepCorr", f.bepCorr || "", [["Não", "Não", "good"], ["Sim", "Sim", "bad"]])}
+          </div>
+          <div style="margin-bottom:8px">
+            <div>Reservatório / estrutura metálica ligado ao BEP?</div>
+            ${seg(blockId, "bepResLig", f.bepResLig || "", [["Sim", "Sim", "good"], ["Não", "Não", "bad"], ["NA", "N/A"]])}
+          </div>
+          <div style="margin-bottom:8px">
+            <div>Placa "Risco de Choque" no local?</div>
+            ${seg(blockId, "bepPlaca", f.bepPlaca || "", [["Sim", "Sim", "good"], ["Não", "Não", "bad"]])}
+          </div>
+        ` : ""}
+        <div style="margin-bottom:4px">Barra de Cu, isoladores e conexões íntegros?</div>
+        ${seg(blockId, "bepOk", f.bepOk, [["Sim", "Sim", "good"], ["Não", "Não", "bad"]])}
+        <div class="g2">
+          <div>
+            <label>Continuidade BEP → malha (Ω)</label>
+            <input inputmode="decimal" placeholder="0,00" value="${esc(f.bepC)}" oninput="setSilent('${esc(blockId)}','bepC',this.value)">
+          </div>
+          <div>
+            <label>Terra no BEP (Ω)</label>
+            <input inputmode="decimal" placeholder="0,00" value="${esc(f.bepT || "")}" oninput="setSilent('${esc(blockId)}','bepT',this.value)">
+          </div>
+        </div>
+        <div class="g2" style="margin-top:6px">
+          <div>
+            <label>Hora da Foto do BEP</label>
+            <input placeholder="HH:MM:SS" value="${esc(f.bepHora || "")}" oninput="setSilent('${esc(blockId)}','bepHora',this.value)">
+          </div>
+          <div style="display:flex;align-items:flex-end;gap:6px">
+            <button class="b" onclick="photo('${esc(blockId)}','BEP',-1,-1,true,'bep')">📷 Câmera HD (${(f.bepPh || []).length})</button>
+            <button class="b" onclick="photo('${esc(blockId)}','BEP',-1,-1,false,'bep')">🖼</button>
+          </div>
+        </div>
+        ${renderThumbs(blockId, f.bepPh || [], "bep", 0)}
+      </div>`;
+  }
+
+  if (o.includes("dps")) {
+    h += `
+      <div class="card">
+        <h3>DPS no Quadro Geral (QDG)</h3>
+        <div class="g2">
+          <div>
+            <label>Instalado e ligado ao BEP/Terra?</label>
+            ${seg(blockId, "dps", f.dps, [["Sim", "Sim", "good"], ["Não", "Não", "bad"]])}
+          </div>
+          <div>
+            <label>Indicador Visual</label>
+            ${seg(blockId, "dpsCor", f.dpsCor || "", [["Verde", "Verde", "good"], ["Vermelho", "Vermelho", "bad"]])}
+          </div>
+        </div>
+      </div>`;
+  }
+
+  if (f.rows.length || !o.includes("only")) {
+    h += `<h3>B. Descidas e Caixas de Inspeção (Sentido Horário)</h3>`;
+    f.rows.forEach((r, i) => {
+      const j = judge(r);
+      const hasNC = j.length || [r.barra, r.eld, r.cx].includes("NC");
+      const isOk = !hasNC && (r.cont !== "" || r.terra !== "");
+      const cl = hasNC ? "nc" : (isOk ? "ok" : "");
+      h += `
+        <div id="row-card-${i}" class="card d ${cl}">
+          <div class="row">
+            <input class="inline-edit" value="${esc(r.p)}" title="Código da descida" oninput="setSilent('${esc(blockId)}','rows.${i}.p',this.value)">
+            <input class="grow" style="padding:5px 8px;font-size:13px" placeholder="Referência / Nome (ex.: Fachada N)" value="${esc(r.loc || "")}" oninput="setSilent('${esc(blockId)}','rows.${i}.loc',this.value)">
+            <span class="row-badges">${j.map(x => `<span class="tag NC">${esc(x)}</span>`).join("")}</span>
+          </div>
+          ${[["barra", "Barra + fixação"], ["eld", "Eletroduto + placa"], ["cx", "Caixa + bimetálico"]].map(([k, l]) => `
+            <div class="row" style="margin-top:6px">
+              <small class="grow" style="font-size:13px">${l}</small>
+              ${seg(blockId, `rows.${i}.${k}`, r[k], [["OK", "OK", "good"], ["NC", "NC", "bad"]])}
+            </div>`).join("")}
+          <div class="g2" style="margin-top:6px">
+            <div>
+              <label>Continuidade (Ω) ≤ ${S.cfg.limC}</label>
+              <input inputmode="decimal" placeholder="Ex: 0.12" value="${esc(r.cont)}" oninput="setSilent('${esc(blockId)}','rows.${i}.cont',this.value)">
+            </div>
+            <div>
+              <label>Terra (Ω) ≤ ${S.cfg.limT}</label>
+              <input inputmode="decimal" placeholder="Ex: 4.5" value="${esc(r.terra)}" oninput="setSilent('${esc(blockId)}','rows.${i}.terra',this.value)">
+            </div>
+          </div>
+          <div class="g2" style="margin-top:6px">
+            <div>
+              <label>Hora da Foto (automática ao fotografar)</label>
+              <input placeholder="HH:MM:SS" value="${esc(r.horaFoto || "")}" oninput="setSilent('${esc(blockId)}','rows.${i}.horaFoto',this.value)">
+            </div>
+            <div style="display:flex;align-items:flex-end;gap:6px">
+              <label style="display:inline-flex;align-items:center;gap:6px;margin:0;padding:8px 0;text-transform:none;font-size:13px;color:var(--fg)">
+                <input type="checkbox" ${r.fotoVisorOk ? "checked" : ""} onchange="set('${esc(blockId)}','rows.${i}.fotoVisorOk',this.checked?1:0,0)"> Foto Visor OK
+              </label>
+            </div>
+          </div>
+          <div class="row" style="margin-top:8px">
+            <button class="b" onclick="photo('${esc(blockId)}','${esc(r.p)}',${i},-1,true)">📷 Foto HD (${(r.ph || []).length})</button>
+            <button class="b" onclick="photo('${esc(blockId)}','${esc(r.p)}',${i},-1,false)">🖼</button>
+            ${seg(blockId, `rows.${i}.pl`, r.pl, [["Rosa", "Rosa", "pink"], ["Verm", "Verm", "bad"]])}
+            <span class="grow"></span>
+            <button class="b" style="color:var(--nc)" onclick="if(confirm('Remover ${esc(r.p)}?')){F('${esc(blockId)}').rows.splice(${i},1);saveNow(true);render()}">✕</button>
+          </div>
+          ${renderThumbs(blockId, r.ph || [], "row", i)}
+        </div>`;
+    });
+    h += `<button class="b" style="width:100%;margin-bottom:10px" onclick="F('${esc(blockId)}').rows.push(newRow('${esc(blockId)}'));saveNow(true);render()">+ Adicionar Descida</button>`;
+  }
+
+  h += `
+    <div class="card">
+      <h3>C. Não Conformidades e Reparos Feitos em Campo</h3>
+      <label>Reparos feitos em campo (material / local)</label>
+      <input placeholder="Ex.: Instalada 1 placa Risco de Choque e trocado 1 conector em D02" value="${esc(f.reparosCampo || "")}" oninput="setSilent('${esc(blockId)}','reparosCampo',this.value)" style="margin-bottom:10px">
+      ${f.ncs.map((n, i) => `
+        <div class="card d nc">
+          <div class="row">
+            <b class="grow mono">NC-${String(i + 1).padStart(2, "0")}</b>
+            <button class="b" style="color:var(--nc);padding:4px 8px;font-size:12px" onclick="F('${esc(blockId)}').ncs.splice(${i},1);saveNow(true);render()">Excluir</button>
+          </div>
+          <div class="g2">
+            <div>
+              <label>Ponto / Descida</label>
+              <input placeholder="Ex.: D03, Topo..." value="${esc(n.ponto)}" oninput="setSilent('${esc(blockId)}','ncs.${i}.ponto',this.value)">
+            </div>
+            <div>
+              <label>Código da NC</label>
+              <select onchange="set('${esc(blockId)}','ncs.${i}.cod',this.value);if(COD[this.value])set('${esc(blockId)}','ncs.${i}.sev',COD[this.value][1],1)">
+                <option value="">— Selecione —</option>
+                ${Object.entries(COD).map(([k, v]) => `<option value="${k}" ${n.cod == k ? "selected" : ""}>${k} - ${v[0]}</option>`).join("")}
+              </select>
+            </div>
+          </div>
+          <div class="g2">
+            <div>
+              <label>Severidade</label>
+              ${seg(blockId, `ncs.${i}.sev`, n.sev, [["A", "A (Crítica)", "bad"], ["B", "B (Média)"], ["C", "C (Leve)"]])}
+            </div>
+            <div>
+              <label>Hora da Foto</label>
+              <input placeholder="HH:MM:SS" value="${esc(n.horaFoto || "")}" oninput="setSilent('${esc(blockId)}','ncs.${i}.horaFoto',this.value)">
+            </div>
+          </div>
+          <label>Detalhe / Reparo Feito</label>
+          <textarea rows="2" placeholder="Descreva o problema e o reparo..." oninput="setSilent('${esc(blockId)}','ncs.${i}.det',this.value)">${esc(n.det)}</textarea>
+          <div class="row" style="margin-top:6px">
+            <button class="b" onclick="photo('${esc(blockId)}','NC-${i + 1}',-1,${i},true)">📷 Câmera HD (${(n.ph || []).length})</button>
+            <button class="b" onclick="photo('${esc(blockId)}','NC-${i + 1}',-1,${i},false)">🖼 Galeria</button>
+          </div>
+          ${renderThumbs(blockId, n.ph || [], "nc", i)}
+        </div>`).join("")}
+      <button class="b" style="width:100%" onclick="F('${esc(blockId)}').ncs.push({ponto:'',cod:'',sev:'',horaFoto:'',det:'',ph:[]});saveNow(true);render()">+ Adicionar Não Conformidade</button>
+    </div>
+
+    <div class="card">
+      <h3>D. Fechamento do Bloco</h3>
+      <div class="g2" style="margin-bottom:8px">
+        <div>
+          <label>Hora de Conclusão <a href="javascript:void(0)" onclick="setNow('${esc(blockId)}','horaConc')" style="float:right;color:var(--fg)">[Agora]</a></label>
+          <input type="time" value="${esc(f.horaConc || "")}" oninput="setSilent('${esc(blockId)}','horaConc',this.value)">
+        </div>
+        <div>
+          <label>Visto / Conferente</label>
+          <input placeholder="Iniciais / Visto" value="${esc(f.visto || "")}" oninput="setSilent('${esc(blockId)}','visto',this.value)">
+        </div>
+      </div>
+      ${[["vis", "Inspeção visual concluída"], ["med", "Medições concluídas"], ["foto", "Fotos em HD c/ carimbo registradas"], ["pl", "Pintado na planta A3 (Rosa = OK / Vermelho = NC)"]].map(([k, l]) => `
+        <label style="display:flex;gap:10px;align-items:center;font-size:14px;color:var(--fg);padding:5px 0;text-transform:none">
+          <input type="checkbox" ${f.done[k] ? "checked" : ""} onchange="F('${esc(blockId)}').done.${k}=this.checked?1:0;saveNow(true);render()">
+          ${l}
+        </label>`).join("")}
+      <button class="big" style="margin-top:10px" onclick="go('')">✓ Salvar e Voltar ao Painel</button>
+    </div>`;
+
+  return h;
+}
+
+function renderConfigView() {
+  const c = S.cfg;
+  return `
+    <header class="top-stamp">
+      <div class="row" style="width:100%;justify-content:space-between">
+        <button class="b" onclick="go('')">← Voltar ao Painel</button>
+        <span id="save-ind" class="save-badge">✓ Salvo ${lastSavedTimeStr || "agora"}</span>
+        <b>DADOS DA RT, OBRA E CONFIGURAÇÕES</b>
+      </div>
+    </header>
+
+    <div class="card">
+      <h3>Dados do Responsável Técnico (Quadro de Carimbo da RT)</h3>
+      <label>Nome da Empresa / Cabeçalho</label>
+      <input value="${esc(c.empresa)}" oninput="setCfgSilent('empresa',this.value)">
+      <div class="g2">
+        <div>
+          <label>Nome do Responsável Técnico</label>
+          <input value="${esc(c.resp || "")}" placeholder="Ex.: Eng. ..." oninput="setCfgSilent('resp',this.value)">
+        </div>
+        <div>
+          <label>Registro Profissional (CREA / CFT)</label>
+          <input value="${esc(c.crea || "")}" placeholder="Ex.: CREA-PE ..." oninput="setCfgSilent('crea',this.value)">
+        </div>
+      </div>
+      <div class="g2">
+        <div>
+          <label>Número da ART / TRT</label>
+          <input value="${esc(c.art || "")}" placeholder="Nº da ART" oninput="setCfgSilent('art',this.value)">
+        </div>
+        <div>
+          <label>Aparelho Continuidade (Modelo/Série)</label>
+          <input value="${esc(c.ap)}" placeholder="Ex.: Terrômetro / Microhmímetro" oninput="setCfgSilent('ap',this.value)">
+        </div>
+      </div>
+      <label>Aparelho Aterramento (Modelo/Série)</label>
+      <input value="${esc(c.apTerra || "")}" placeholder="Ex.: Hikari HTR-770 / Minipa MTR-1522" oninput="setCfgSilent('apTerra',this.value)">
+    </div>
+
+    <div class="card">
+      <h3>Dados do Cliente / Obra e Limites</h3>
+      <label>Cliente / Obra</label>
+      <input value="${esc(c.cliente)}" oninput="setCfgSilent('cliente',this.value)">
+      <div class="g2">
+        <div>
+          <label>Cidade / Unidade</label>
+          <input value="${esc(c.local || "")}" oninput="setCfgSilent('local',this.value)">
+        </div>
+        <div>
+          <label>Data da Inspeção</label>
+          <input type="date" value="${esc(c.data || "")}" oninput="setCfgSilent('data',this.value)">
+        </div>
+      </div>
+      <label>Referência / Norma</label>
+      <input value="${esc(c.proposta || "")}" oninput="setCfgSilent('proposta',this.value)">
+      <label>Operadores / Equipe de Campo</label>
+      <input value="${esc(c.eq)}" placeholder="Nomes dos profissionais em campo" oninput="setCfgSilent('eq',this.value)">
+      <div class="g2">
+        <div>
+          <label>Limite Continuidade (Ω)</label>
+          <input inputmode="decimal" value="${c.limC}" oninput="setCfgSilent('limC',num(this.value)||0.2)">
+        </div>
+        <div>
+          <label>Limite Terra Ideal / Solo Seco (Ω)</label>
+          <input inputmode="decimal" value="${c.limT}" oninput="setCfgSilent('limT',num(this.value)||10)">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Qualidade da Foto e Carimbo Automático</h3>
+      <label>Resolução das Fotos Capturadas</label>
+      <select onchange="setCfgSilent('resFoto',parseInt(this.value))">
+        <option value="0" ${c.resFoto == 0 ? "selected" : ""}>Resolução Original Máxima da Câmera (12MP / 48MP)</option>
+        <option value="2560" ${(c.resFoto == 2560 || !c.resFoto) ? "selected" : ""}>Quad HD / 4K (2560 px — Recomendado)</option>
+        <option value="1920" ${c.resFoto == 1920 ? "selected" : ""}>Full HD (1920 px)</option>
+      </select>
+      <label style="display:flex;gap:10px;align-items:center;font-size:14px;color:var(--fg);margin-top:10px;text-transform:none">
+        <input type="checkbox" ${c.carimboOn !== 0 ? "checked" : ""} onchange="setCfgSilent('carimboOn',this.checked?1:0)">
+        Gravar carimbo escuro na foto (<b>Bloco--Ponto</b> + <b>Data/Hora</b> + <b>Leitura Ω</b>)
+      </label>
+      <label style="display:flex;gap:10px;align-items:center;font-size:14px;color:var(--fg);margin-top:8px;text-transform:none">
+        <input type="checkbox" ${c.autoSaveGallery !== 0 ? "checked" : ""} onchange="setCfgSilent('autoSaveGallery',this.checked?1:0)">
+        Salvar cópia automática na Galeria / Downloads do celular ao fotografar
+      </label>
+    </div>
+
+    <div class="card">
+      <h3>Pastas do Google Drive por Equipe</h3>
+      <label>Link da Pasta Drive — Equipe A</label>
+      <input value="${esc(c.driveA || DRIVE_FOLDERS[1].url)}" oninput="setCfgSilent('driveA',this.value)">
+      <label>Link da Pasta Drive — Equipe B</label>
+      <input value="${esc(c.driveB || DRIVE_FOLDERS[2].url)}" oninput="setCfgSilent('driveB',this.value)">
+    </div>
+
+    <div class="card">
+      <h3>Gerenciar Locais e Reset</h3>
+      <div class="row">
+        <button class="b" onclick="openBlockModal()">+ Adicionar Local</button>
+        <button class="b" onclick="resetDefaultBlocks()">Restaurar Locais Padrão</button>
+        <button class="b" style="color:var(--nc)" onclick="clearAllData()">Zerar Todos os Dados</button>
+      </div>
+    </div>`;
+}
+
+function openBlockModal(editId) {
+  const B = getB();
+  const ex = editId ? B.find(x => x[0] === editId) : null;
+  const id = ex ? ex[0] : "";
+  const nome = ex ? ex[1] : "";
+  const dupla = ex ? ex[2] : (filterDupla || S.cfg.equipeAtiva || 1);
+  const opts = ex ? (ex[3] || "") : "";
+  const hasBep = opts.includes("bep");
+  const hasDps = opts.includes("dps");
+  const isOnly = opts.includes("only");
+  const qtdDesc = editId && S.f[editId] ? S.f[editId].rows.length : 10;
+
+  $("#modal-root").innerHTML = `
+    <div class="modal-bg" onclick="closeModal()">
+      <div class="modal" onclick="event.stopPropagation()">
+        <h3 style="margin-top:0">${ex ? "Editar Local / Bloco" : "Novo Local / Bloco"}</h3>
+        <div class="g2">
+          <div>
+            <label>Sigla / Código</label>
+            <input id="mb-id" value="${esc(id)}" placeholder="Ex.: M, Galp1" ${ex ? "readonly style='opacity:.7'" : ""}>
+          </div>
+          <div>
+            <label>Equipe Responsável</label>
+            <select id="mb-dupla">
+              <option value="1" ${dupla == 1 ? "selected" : ""}>Equipe A (Dupla 1)</option>
+              <option value="2" ${dupla == 2 ? "selected" : ""}>Equipe B (Dupla 2)</option>
+            </select>
+          </div>
+        </div>
+        <label>Nome do Lugar / Edifício (vai no Laudo e no carimbo da foto)</label>
+        <input id="mb-nome" value="${esc(nome)}" placeholder="Ex.: Bloco A, Subestação...">
+        ${!ex ? `
+          <label>Quantidade inicial de descidas</label>
+          <input id="mb-qtd" type="number" min="0" max="60" value="${qtdDesc}">
+        ` : ""}
+        <div style="margin-top:10px">
+          <label>Configuração do Local</label>
+          <label style="display:flex;gap:8px;align-items:center;font-size:14px;color:var(--fg);text-transform:none">
+            <input type="checkbox" id="mb-bep" ${hasBep ? "checked" : ""}> Possui BEP (Barramento de Equipotencialização)
+          </label>
+          <label style="display:flex;gap:8px;align-items:center;font-size:14px;color:var(--fg);text-transform:none">
+            <input type="checkbox" id="mb-dps" ${hasDps ? "checked" : ""}> Verificar DPS no QDG
+          </label>
+          <label style="display:flex;gap:8px;align-items:center;font-size:14px;color:var(--fg);text-transform:none">
+            <input type="checkbox" id="mb-only" ${isOnly ? "checked" : ""}> Somente BEP / Aterramento (sem descidas)
+          </label>
+        </div>
+        <div class="row" style="margin-top:14px">
+          ${ex ? `<button class="b" style="color:var(--nc)" onclick="deleteBlock('${esc(id)}')">🗑 Excluir</button>` : ""}
+          <span class="grow"></span>
+          <button class="b" onclick="closeModal()">Cancelar</button>
+          <button class="b" style="background:var(--fg);color:var(--bg)" onclick="saveBlockModal('${esc(editId || "")}')">Salvar</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function saveBlockModal(editId) {
+  const B = getB();
+  let id = ($("#mb-id").value || "").trim().replace(/[^a-zA-Z0-9_-]/g, "");
+  const nome = ($("#mb-nome").value || "").trim();
+  const dupla = parseInt($("#mb-dupla").value) || 1;
+  const flags = [];
+  if ($("#mb-bep").checked) flags.push("bep");
+  if ($("#mb-dps").checked) flags.push("dps");
+  if ($("#mb-only").checked) flags.push("only");
+  const optStr = flags.join(" ");
+
+  if (!nome) { alert("Informe o nome do local/bloco."); return; }
+  if (!id) id = nome.slice(0, 4).toUpperCase().replace(/\s+/g, "") + Math.floor(Math.random() * 90 + 10);
+
+  if (editId) {
+    const idx = B.findIndex(x => x[0] === editId);
+    if (idx >= 0) {
+      B[idx] = [editId, nome, dupla, optStr, B[idx][4] ?? 10];
+      if (S.f[editId]) S.f[editId].dupla = dupla;
+    }
+  } else {
+    if (B.some(x => x[0] === id)) { alert("Já existe um local com a sigla " + id + "."); return; }
+    const qtd = Math.max(0, Math.min(60, parseInt($("#mb-qtd")?.value ?? 10)));
+    B.push([id, nome, dupla, optStr, qtd]);
+    const f = F(id);
+    f.rows = rowsFor([id, nome, dupla, optStr, qtd]);
+  }
+  saveNow(true);
+  closeModal();
+  render();
+}
+
+function deleteBlock(id) {
+  if (!confirm("Remover este local da lista?")) return;
+  S.blocos = getB().filter(x => x[0] !== id);
+  delete S.f[id];
+  saveNow(true);
+  closeModal();
+  if (view === id) view = "";
+  render();
+}
+
+function setNow(id, field) {
+  const now = new Date().toTimeString().slice(0, 5);
+  set(id, field, now, 1);
+}
+
+function snap() {
+  return JSON.stringify({
+    gerado: new Date().toISOString(),
+    cfg: {...S.cfg, tok: undefined},
+    reposicao: S.reposicao,
+    blocos: getB(),
+    lib: S.lib,
+    f: S.f
+  }, null, 2);
+}
+
+async function downloadAllPhotosHD() {
+  const ks = await pkeys();
+  if (!ks.length) { alert("Nenhuma foto salva no aparelho ainda."); return; }
+  for (const k of ks) {
+    const p = await pget(k);
+    if (!p || !p.b) continue;
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(p.b);
+    a.download = k;
+    a.click();
+    await new Promise(r => setTimeout(r, 220));
+  }
+}
+
+async function sendToTeamDrive(teamNum = 1) {
+  const teamKey = teamNum == 2 ? "EquipeB" : "EquipeA";
+  const folderUrl = getDriveUrl(teamNum);
+  const pdfFile = await buildPDFFile(teamNum);
+  const aiFile = buildAIStructuredFile(teamNum);
+  const wordFile = await buildWordDocxFile(teamNum);
+  const jsonFile = new File([snap()], `${teamKey}_spda_dados.json`, {type: "application/json"});
+  const files = [pdfFile, aiFile, wordFile, jsonFile];
+  const ks = await pkeys();
+  const B = getB();
+  for (const k of ks) {
+    const p = await pget(k);
+    if (!p || !p.b) continue;
+    const blk = B.find(x => x[0] === p.id);
+    if (blk && blk[2] != teamNum) continue;
+    files.push(new File([p.b], k, {type: "image/jpeg"}));
+  }
+
+  if (navigator.canShare && navigator.canShare({files})) {
+    try {
+      await navigator.share({
+        files,
+        title: `SPDA ${teamLabel(teamNum)} — ${S.cfg.cliente}`,
+        text: `Pasta Drive ${teamLabel(teamNum)}: ${folderUrl}`
+      });
+      for (const k of ks) {
+        const p = await pget(k);
+        const blk = B.find(x => x[0] === p.id);
+        if (blk && blk[2] != teamNum) continue;
+        p.s = 1;
+        await pset(k, p);
+      }
+      render();
+      return;
+    } catch (e) { if (e.name === "AbortError") return; }
+  }
+
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(pdfFile);
+  a.download = pdfFile.name;
+  a.click();
+  setTimeout(() => window.open(folderUrl, "_blank"), 400);
+}
+
+function downloadJSONOnly() {
+  const blob = new Blob([snap()], {type: "application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `spda_dados_${(S.cfg.cliente || "campo").replace(/\s+/g, "_")}.json`;
+  a.click();
+}
+
+function importJSONPrompt() {
+  const inp = document.createElement("input");
+  inp.type = "file";
+  inp.accept = ".json,application/json";
+  inp.onchange = async () => {
+    if (!inp.files || !inp.files[0]) return;
+    try {
+      const txt = await inp.files[0].text();
+      const data = JSON.parse(txt);
+      if (data.cfg) S.cfg = {...S.cfg, ...data.cfg};
+      if (data.reposicao) S.reposicao = {...S.reposicao, ...data.reposicao};
+      if (Array.isArray(data.blocos)) S.blocos = data.blocos;
+      if (data.lib) S.lib = data.lib;
+      if (data.f) S.f = data.f;
+      saveNow(true);
+      alert("Dados importados com sucesso!");
+      go("");
+    } catch (e) {
+      alert("Arquivo JSON inválido.");
+    }
+  };
+  inp.click();
+}
+
+function restoreSnapshot(idx) {
+  const snaps = getSnapshots();
+  if (!snaps[idx]) return;
+  if (!confirm(`Restaurar os dados do snapshot automático salvo às ${snaps[idx].h}?`)) return;
+  try {
+    const parsed = JSON.parse(snaps[idx].data);
+    S = parsed;
+    saveNow(false);
+    alert("Snapshot restaurado!");
+    go("");
+  } catch (e) {
+    alert("Erro ao restaurar snapshot.");
+  }
+}
+
+function resetDefaultBlocks() {
+  if (!confirm("Restaurar a lista de locais padrão das plantas RV00 (Bloco A até Alambrado)?")) return;
+  S.blocos = DEFAULT_B.map(x => [...x]);
+  saveNow(true);
+  render();
+}
+
+async function clearAllData() {
+  if (!confirm("ATENÇÃO: Isso apagará todas as medições e fotos salvas neste aparelho. Confirmar?")) return;
+  S.f = {};
+  S.lib = {};
+  S.reposicao = { placasQtd: "", placasLocais: "", conectoresQtd: "", conectoresLocais: "", outros: "", anotacoesLivres: "" };
+  const ks = await pkeys();
+  for (const k of ks) await pdel(k);
+  photoURLCache = {};
+  localStorage.removeItem(LS_STATE_KEY);
+  localStorage.removeItem(LS_SNAPS_KEY);
+  saveNow(false);
+  go("");
+}
+
+async function printReport(teamFilter = 0) {
+  const allB = getB(), c = S.cfg;
+  const B = teamFilter ? allB.filter(b => b[2] == teamFilter) : allB;
+  let html = `
+    <div style="background:#1F3A5F;color:#fff;padding:12px 16px;margin-bottom:14px">
+      <div style="font-size:12px;opacity:.9">${esc(c.empresa)}</div>
+      <h2 style="margin:4px 0">LAUDO TÉCNICO DE INSPEÇÃO E MEDIÇÃO DE SPDA — ABNT NBR 5419:2015</h2>
+      <div style="font-size:12px">
+        <b>Cliente:</b> ${esc(c.cliente)} (${esc(c.local)}) |
+        <b>Data:</b> ${esc(c.data)} |
+        <b>Limites:</b> Cont. <= ${c.limC} Ω / Terra <= ${c.limT} Ω
+      </div>
+    </div>`;
+
+  for (const b of B) {
+    const bs = blockStats(b);
+    const f = bs.f;
+    if (c.soPreenchidos && !bs.isStarted && !bs.totNC) continue;
+    const blockNCs = collectAllBlockNCs(b);
+    const photos = [];
+    for (const k of (f.fachadaPh || [])) photos.push({k, cap: `${b[1]} — Fachada (${f.fachadaHora || "-"})`});
+    for (const k of (f.telhadoPh || [])) photos.push({k, cap: `${b[1]} — Telhado (${f.telhadoHora || "-"})`});
+    for (const k of (f.bepPh || [])) photos.push({k, cap: `${b[1]} — BEP (${f.bepHora || "-"})`});
+    for (const r of (f.rows || [])) for (const k of (r.ph || [])) photos.push({k, cap: `${b[1]} — ${r.p} (${r.horaFoto || "-"})`});
+    for (let i = 0; i < (f.ncs || []).length; i++) for (const k of (f.ncs[i].ph || [])) photos.push({k, cap: `${b[1]} — NC-${i + 1}`});
+
+    const rowsToRender = c.soPreenchidos
+      ? f.rows.filter(r => r.cont !== "" || r.terra !== "" || r.barra || r.eld || r.cx || (r.ph && r.ph.length))
+      : f.rows;
+
+    html += `
+      <div class="p-card">
+        <h3 style="margin:0 0 6px;color:#1F3A5F">${esc(b[1])} [${esc(b[0])}] — ${teamLabel(b[2])}</h3>
+        <div><b>Horário:</b> ${esc(f.hi || "-")} às ${esc(f.hf || "-")} | <b>Solo:</b> ${esc(f.solo || "-")} | <b>Clima:</b> ${esc(f.clima || "-")}</div>
+        ${rowsToRender.length ? `
+          <table class="p-tbl">
+            <thead><tr><th>Ponto / Ref.</th><th>Barra</th><th>Eletrod.</th><th>Caixa</th><th>Cont. (Ω)</th><th>Terra (Ω)</th><th>Foto(Hora)</th><th>Planta</th><th>Diagnóstico</th></tr></thead>
+            <tbody>
+              ${rowsToRender.map(r => {
+                const diag = rowDiagnosis(r);
+                return `<tr>
+                  <td><b>${esc(r.p)}</b> ${r.loc ? `(${esc(r.loc)})` : ""}</td>
+                  <td>${esc(r.barra || "-")}</td>
+                  <td>${esc(r.eld || "-")}</td>
+                  <td>${esc(r.cx || "-")}</td>
+                  <td>${esc(r.cont || "-")}</td>
+                  <td>${esc(r.terra || "-")}</td>
+                  <td>${esc(r.horaFoto || "-")}</td>
+                  <td>${esc(r.pl || "-")}</td>
+                  <td style="font-weight:bold;color:${diag.ok ? "#15803D" : "#B91C1C"}">${esc(diag.ok ? diag.short : `${diag.short}: ${diag.detail}`)}</td>
+                </tr>`;
+              }).join("")}
+            </tbody>
+          </table>` : ""}
+        ${blockNCs.length ? `
+          <div style="margin-top:8px"><b>Não Conformidades:</b>
+            <table class="p-tbl">
+              <thead><tr><th>Item</th><th>Ponto</th><th>Sev.</th><th>Desvio</th><th>Recomendação Técnica</th></tr></thead>
+              <tbody>${blockNCs.map(n => `<tr><td><b>${esc(n.code)}</b></td><td>${esc(n.ponto)}</td><td><b>${esc(n.sev)}</b></td><td>${esc(n.titulo)}</td><td>${esc(n.detalhe)}</td></tr>`).join("")}</tbody>
+            </table>
+          </div>` : ""}
+        ${photos.length ? `<div class="p-grid-ph">${photos.map(p => `<div class="p-ph"><img data-ph="${esc(p.k)}"><div style="font-size:11px;font-weight:600;margin-top:4px">${esc(p.cap)}</div></div>`).join("")}</div>` : ""}
+      </div>`;
+  }
+
+  $("#print-area").innerHTML = html;
+  await hydrateThumbs();
+  setTimeout(() => window.print(), 250);
+}
+
+(async () => {
+  db = await idb();
+  let lsRaw = null;
+  try { lsRaw = localStorage.getItem(LS_STATE_KEY); } catch (e) {}
+  const idbState = await kget("S");
+  const best = loadBestState(lsRaw, idbState);
+  if (best) S = best;
+
+  S.cfg = {
+    empresa: "TH ELÉTRICA — ENGENHARIA E LAUDOS TÉCNICOS",
+    cliente: "Fazenda Amigos do Bem",
+    local: "Serra do Catimbau, Buíque/PE",
+    proposta: "Projeto SPDA Bom Contato RV00 (24/11/2025) • ABNT NBR 5419:2015",
+    data: new Date().toISOString().slice(0, 10),
+    equipeAtiva: 1,
+    driveA: DRIVE_FOLDERS[1].url,
+    driveB: DRIVE_FOLDERS[2].url,
+    resFoto: 2560,
+    carimboOn: 1,
+    autoSaveGallery: 1,
+    soPreenchidos: 1,
+    resp: "",
+    crea: "",
+    art: "",
+    limC: 0.2,
+    limT: 10,
+    limTSeco: 20,
+    url: "",
+    tok: "",
+    eq: "",
+    ap: "",
+    apTerra: "",
+    ...S.cfg
+  };
+  S.reposicao = {
+    placasQtd: "",
+    placasLocais: "",
+    conectoresQtd: "",
+    conectoresLocais: "",
+    outros: "",
+    anotacoesLivres: "",
+    ...(S.reposicao || {})
+  };
+  S.lib ??= {};
+  getB();
+  saveNow(false);
+
+  if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  }
+  navigator.storage && navigator.storage.persist && navigator.storage.persist();
+  render();
+})();
+</script>
+</body>
+</html>
