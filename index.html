@@ -284,6 +284,7 @@ const DRIVE_FOLDERS = {
 
 // [sigla, nome, dupla, flags, qtdDescidasPadrao, prefixo, pontosExtras]
 // Quantidades conforme plantas Bom Contato RV00 (24/11/2025), FL01–FL15
+const APP_VER = "v10 · 27/11";
 const LAYOUT_VER = "plantas-rv00-2025-11-24";
 const DEFAULT_B = [
   ["A","Bloco A",1,"",14],                         // FL02
@@ -645,6 +646,10 @@ function F(id) {
   f.rows ??= [];
   f.done ??= {vis: 0, med: 0, foto: 0, pl: 0};
   f.rows.forEach(r => { r.ph ??= []; r.horaFoto ??= ""; });
+  f.pares ??= [];   // continuidade entre pontos / massas metálicas
+  f.terras ??= [];  // terrômetro — 3 leituras (D1/D2/D3)
+  f.pares.forEach(x => { x.ph ??= []; });
+  f.terras.forEach(x => { x.ph ??= []; });
   return f;
 }
 
@@ -655,6 +660,93 @@ const num = v => {
 };
 // Leitura preenchida mas não numérica (OL, aberto, ---, ∞) = circuito aberto / sem leitura válida
 const badRead = v => String(v ?? "").trim() !== "" && isNaN(num(v));
+// ---------- Instrumentos (miliohmímetro, terrômetro, termômetro) ----------
+const INST = [
+  ["c", "Miliohmímetro (continuidade)", "Corrente de ensaio 1 A a 10 A, frequência diferente de 60 Hz e múltiplos (NBR 5419-3)."],
+  ["t", "Terrômetro (resistência de aterramento)", "Método da queda de potencial — NBR 15749."],
+  ["th", "Termômetro / higrômetro (condição ambiente)", "Registro de temperatura e umidade no momento das medições."]
+];
+function instObj(k) { S.cfg.inst ??= {}; return S.cfg.inst[k] ??= {fab: "", mod: "", ser: "", cert: ""}; }
+function setInst(k, key, v) { instObj(k)[key] = v; saveNow(false); }
+function instStr(k) {
+  const o = (S.cfg.inst || {})[k] || {};
+  const legacy = k === "c" ? S.cfg.ap : (k === "t" ? S.cfg.apTerra : "");
+  let t = [o.fab, o.mod].filter(Boolean).join(" ");
+  if (o.ser) t += ` | Nº série ${o.ser}`;
+  if (o.cert) t += ` | Cert. calibração ${o.cert}`;
+  return t.trim() || legacy || "";
+}
+const NORMAS = [
+  "ABNT NBR 5419-1:2015 — Proteção contra descargas atmosféricas — Parte 1: Princípios gerais",
+  "ABNT NBR 5419-2:2015 — Parte 2: Gerenciamento de risco",
+  "ABNT NBR 5419-3:2015 — Parte 3: Danos físicos a estruturas e perigos à vida",
+  "ABNT NBR 5419-4:2015 — Parte 4: Sistemas elétricos e eletrônicos internos na estrutura",
+  "ABNT NBR 15749 — Medição de resistência de aterramento e de potenciais na superfície do solo",
+  "ABNT NBR 6323 — Galvanização de produtos de aço ou ferro fundido",
+  "ABNT NBR 13571 — Haste de aterramento aço-cobreado e acessórios",
+  "NR-10 — Segurança em instalações e serviços em eletricidade"
+];
+const CONCLUSAO_PADRAO = [
+  "Novas inspeções e medições devem ser realizadas dentro de um ano, após alterações ou reparos na estrutura, ou quando houver suspeita de que a estrutura foi atingida por descarga atmosférica (NBR 5419-3:2015, item 7.3.1).",
+  "Recomenda-se implantar programa de manutenção com rotina específica para cada componente do SPDA, mantendo a integridade das instalações e sua adequação às normas técnicas.",
+  "Este documento deve fazer parte do Prontuário das Instalações Elétricas (NR-10)."
+];
+// ---------- Continuidade entre pontos e terrômetro 3 leituras ----------
+function parIssue(x) {
+  if (badRead(x.v)) return `sem leitura válida ("${x.v}")`;
+  const v = num(x.v);
+  return !isNaN(v) && v > S.cfg.limC ? `${x.v} Ohm > ${S.cfg.limC}` : "";
+}
+function terraIssue(x) {
+  if (badRead(x.d2)) return `sem leitura válida ("${x.d2}")`;
+  const v = num(x.d2);
+  return !isNaN(v) && v > S.cfg.limT ? `${x.d2} Ohm > ${S.cfg.limT}` : "";
+}
+// Variação de D1 e D3 em relação a D2 (62%) — acima de ~10% indica estacas mal posicionadas
+function terraSpread(x) {
+  const a = num(x.d1), m = num(x.d2), z = num(x.d3);
+  if ([a, m, z].some(isNaN) || !m) return null;
+  return Math.round(Math.max(Math.abs(a - m), Math.abs(z - m)) / m * 100);
+}
+// Critério de redução do nº de medições de continuidade (referência: NBR 5419-3):
+// >= 50% dos pontos medidos, mesma ordem de grandeza e nenhum valor > 1 Ohm
+function reducaoInfo(f) {
+  const tot = (f.rows || []).length;
+  if (!tot) return null;
+  const vals = f.rows.map(r => num(r.cont)).filter(v => !isNaN(v));
+  const abertos = f.rows.filter(r => badRead(r.cont)).length;
+  const pct = Math.round(vals.length / tot * 100);
+  const pos = vals.filter(v => v > 0);
+  const mx = vals.length ? Math.max(...vals) : 0;
+  const mn = pos.length ? Math.min(...pos) : 0;
+  const mesmaOrdem = !pos.length || mx / mn < 10;
+  const motivos = [];
+  if (pct < 50) motivos.push(`medido ${pct}% (precisa >= 50%)`);
+  if (mx > 1) motivos.push(`há valor > 1 Ohm (${String(mx).replace(".", ",")})`);
+  if (abertos) motivos.push(`${abertos} leitura(s) aberta(s)`);
+  if (!mesmaOrdem) motivos.push("valores fora da mesma ordem de grandeza");
+  return {tot, n: vals.length, pct, ok: !motivos.length, motivos};
+}
+function addLista(id, lista) {
+  const f = F(id);
+  f[lista].push(lista === "pares" ? {de: "", para: "", v: "", hora: "", ph: []} : {ponto: "", d1: "", d2: "", d3: "", dist: "", hora: "", ph: []});
+  saveNow(true);
+  render();
+}
+function setLista(id, lista, i, key, v) {
+  const f = F(id);
+  if (!f[lista][i]) return;
+  f[lista][i][key] = v;
+  if (["v", "d2"].includes(key) && v && !f[lista][i].hora) f[lista][i].hora = new Date().toTimeString().slice(0, 5);
+  saveNow(false);
+}
+function delLista(id, lista, i) {
+  if (!confirm("Remover esta medição?")) return;
+  F(id)[lista].splice(i, 1);
+  saveNow(true);
+  render();
+}
+
 // Avaliação do BEP/BEL (continuidade, terra, integridade e corrosão)
 function bepIssues(f) {
   const out = [], refs = [], recs = [];
@@ -757,6 +849,35 @@ function collectAllBlockNCs(b) {
     }
   });
 
+  (f.pares || []).forEach(x => {
+    const e = parIssue(x);
+    if (!e) return;
+    list.push({
+      code: `NC-${String(list.length + 1).padStart(2, "0")}`,
+      ponto: `${x.de || "?"} → ${x.para || "?"}`,
+      codRef: "C1",
+      horaFoto: x.hora || "—",
+      titulo: `Continuidade entre pontos: ${e}`,
+      sev: "A",
+      detalhe: COD.C1[2],
+      ph: x.ph || []
+    });
+  });
+  (f.terras || []).forEach(x => {
+    const e = terraIssue(x);
+    if (!e) return;
+    list.push({
+      code: `NC-${String(list.length + 1).padStart(2, "0")}`,
+      ponto: `Terrômetro ${x.ponto || ""}`.trim(),
+      codRef: "C10",
+      horaFoto: x.hora || "—",
+      titulo: `Resistência de aterramento (D2 = 62%): ${e}`,
+      sev: "A",
+      detalhe: COD.C10[2],
+      ph: x.ph || []
+    });
+  });
+
   const bi = bepIssues(f);
   if (bi.out.length) {
     list.push({
@@ -781,15 +902,18 @@ function blockStats(b) {
   const totR = f.rows.length;
   const medR = f.rows.filter(r => r.cont !== "" || r.terra !== "" || r.barra || r.eld || r.cx).length;
   const ncsRows = f.rows.filter(r => judge(r).length || [r.barra, r.eld, r.cx].includes("NC")).length;
-  const totNC = f.ncs.length + ncsRows + (bepIssues(f).out.length ? 1 : 0);
+  const totNC = f.ncs.length + ncsRows + (bepIssues(f).out.length ? 1 : 0) +
+    f.pares.filter(parIssue).length + f.terras.filter(terraIssue).length;
   const totPh = (f.fachadaPh || []).length + (f.telhadoPh || []).length + (f.bepPh || []).length +
     f.rows.reduce((a, r) => a + (r.ph || []).length, 0) +
-    f.ncs.reduce((a, n) => a + (n.ph || []).length, 0);
+    f.ncs.reduce((a, n) => a + (n.ph || []).length, 0) +
+    f.pares.reduce((a, x) => a + (x.ph || []).length, 0) +
+    f.terras.reduce((a, x) => a + (x.ph || []).length, 0);
   const chkCount = Object.values(f.chk || {}).filter(Boolean).length;
 
   const isCompleted = !!(f.done && f.done.vis && f.done.med && f.done.foto && f.done.pl) ||
     (isOnly ? (f.bepOk && (f.bepC || f.bepT) && totPh > 0) : (totR > 0 && medR === totR && chkCount >= 4 && totPh > 0));
-  const isStarted = !!(medR > 0 || chkCount > 0 || totPh > 0 || f.bepOk || f.bepC || f.bepT || f.hi || f.done.vis || f.done.med || f.reparosCampo);
+  const isStarted = !!(medR > 0 || chkCount > 0 || totPh > 0 || f.bepOk || f.bepC || f.bepT || f.hi || f.done.vis || f.done.med || f.reparosCampo || f.pares.length || f.terras.length);
 
   let status = "PENDENTE";
   if (totNC > 0 && !f.done.pl) status = "NC";
@@ -952,6 +1076,8 @@ function getPhotoDestinationOptions(blockId) {
       ni: idx
     });
   });
+  (f.pares || []).forEach((x, idx) => opts.push({key: `par:-1:${idx}`, label: `Cont. ${x.de || "?"} → ${x.para || "?"}`, ponto: "Continuidade", kind: "par", ri: -1, ni: idx}));
+  (f.terras || []).forEach((x, idx) => opts.push({key: `ter:-1:${idx}`, label: `Terrômetro ${x.ponto || idx + 1}`, ponto: "Terrometro", kind: "ter", ri: -1, ni: idx}));
   return opts;
 }
 
@@ -986,6 +1112,8 @@ function removePhotoRefFromBlock(blockId, photoName) {
   rm(f.bepPh);
   (f.rows || []).forEach(r => rm(r.ph));
   (f.ncs || []).forEach(n => rm(n.ph));
+  (f.pares || []).forEach(x => rm(x.ph));
+  (f.terras || []).forEach(x => rm(x.ph));
 }
 
 function addPhotoRefToBlock(blockId, kind, ri, ni, photoName, horaFotoStr) {
@@ -1000,6 +1128,11 @@ function addPhotoRefToBlock(blockId, kind, ri, ni, photoName, horaFotoStr) {
     if (!f.rows[ri].ph.includes(photoName)) f.rows[ri].ph.push(photoName);
     if (horaFotoStr) f.rows[ri].horaFoto = horaFotoStr;
     f.rows[ri].fotoVisorOk = 1;
+  } else if ((kind === "par" || kind === "ter") && ni >= 0 && f[kind === "par" ? "pares" : "terras"][ni]) {
+    const x = f[kind === "par" ? "pares" : "terras"][ni];
+    x.ph ??= [];
+    if (!x.ph.includes(photoName)) x.ph.push(photoName);
+    if (horaFotoStr && !x.hora) x.hora = horaFotoStr.slice(0, 5);
   } else if (kind === "nc" && ni >= 0 && f.ncs[ni]) {
     f.ncs[ni].ph ??= [];
     if (!f.ncs[ni].ph.includes(photoName)) f.ncs[ni].ph.push(photoName);
@@ -1035,6 +1168,14 @@ function downloadCSV(teamFilter = 0) {
     (f.rows || []).forEach(r => {
       const d = rowDiagnosis(r);
       med.push([pr, b[0], b[1], eq, f.data, r.p, r.loc, r.barra, r.eld, r.cx, r.cont, r.terra, d.short, d.measured ? d.detail : "", r.horaFoto, (r.ph || []).length, r.obs]);
+    });
+    f.pares.forEach(x => {
+      const e = parIssue(x);
+      med.push([pr, b[0], b[1], eq, f.data, `${x.de || "?"} -> ${x.para || "?"}`, "Continuidade entre pontos", "", "", "", x.v, "", x.v === "" ? "NÃO MEDIDO" : (e ? "REPROVADO (NC)" : "APROVADO (OK)"), e, x.hora, (x.ph || []).length, ""]);
+    });
+    f.terras.forEach(x => {
+      const e = terraIssue(x);
+      med.push([pr, b[0], b[1], eq, f.data, x.ponto, "Terrômetro (D2 = 62%)", "", "", "", "", x.d2, x.d2 === "" ? "NÃO MEDIDO" : (e ? "REPROVADO (NC)" : "APROVADO (OK)"), e, x.hora, (x.ph || []).length, `D1=${x.d1 || "-"}; D2=${x.d2 || "-"}; D3=${x.d3 || "-"}; dist=${x.dist || "-"} m; T=${f.temp || "-"} °C; UR=${f.umid || "-"}%`]);
     });
     collectAllBlockNCs(b).forEach(n => {
       ncs.push([pr, b[0], b[1], eq, n.code, n.ponto, n.codRef, n.sev, n.titulo, n.detalhe, n.horaFoto, (n.ph || []).length]);
@@ -1250,6 +1391,8 @@ async function delPhoto(id, kind, idx, pi, name) {
   else if (kind === "telhado") (f.telhadoPh || []).splice(pi, 1);
   else if (kind === "row") f.rows[idx].ph.splice(pi, 1);
   else if (kind === "nc") (f.ncs[idx].ph || []).splice(pi, 1);
+  else if (kind === "par") (f.pares[idx].ph || []).splice(pi, 1);
+  else if (kind === "ter") (f.terras[idx].ph || []).splice(pi, 1);
   await pdel(name);
   if (photoURLCache[name]) {
     URL.revokeObjectURL(photoURLCache[name]);
@@ -1451,6 +1594,14 @@ async function attachPhotoBlob(id, ponto, ri, ni, blobOrFile, kindOverride = "",
     if (r.cont !== "") parts.push(`Cont: ${r.cont} Ohm`);
     if (r.terra !== "") parts.push(`Terra: ${r.terra} Ohm`);
     if (parts.length) extraMeasure = parts.join("  |  ");
+  } else if (kindOverride === "par" && f.pares[ni]) {
+    const x = f.pares[ni];
+    subLabel = `Cont. ${x.de || "?"} - ${x.para || "?"}`;
+    if (x.v !== "") extraMeasure = `Continuidade: ${x.v} Ohm`;
+  } else if (kindOverride === "ter" && f.terras[ni]) {
+    const x = f.terras[ni];
+    subLabel = `Terrometro ${x.ponto || ""}`;
+    extraMeasure = `D1 ${x.d1 || "-"} | D2 ${x.d2 || "-"} | D3 ${x.d3 || "-"} Ohm`;
   } else if (kindOverride === "bep" || ponto === "BEP") {
     const parts = [];
     if (f.bepC !== "") parts.push(`Cont BEP: ${f.bepC} Ohm`);
@@ -2231,7 +2382,7 @@ async function buildPDFFile(teamFilter = 0) {
       {t: `EQUIPE / OPERADORES: ${c.eq || "-"}`}
     ],
     [
-      {t: `APARELHO (CONTINUIDADE / TERRA): ${c.ap || "-"} ${c.apTerra ? "/ " + c.apTerra : ""}`},
+      {t: `INSTRUMENTOS: Miliohmímetro: ${instStr("c") || "-"}  |  Terrômetro: ${instStr("t") || "-"}`},
       {t: `CRITÉRIOS: Continuidade <= ${c.limC} Ohm  |  Terra <= ${c.limT} Ohm (<= ${c.limTSeco || 20} Ohm solo seco)`}
     ],
     [
@@ -2253,7 +2404,7 @@ async function buildPDFFile(teamFilter = 0) {
       {t: b[1], b: true},
       `Eq. ${b[2] == 2 ? "B (2)" : "A (1)"}`,
       f.hi || f.hf ? `${f.hi || "--"}-${f.hf || "--"}` : "-",
-      [f.solo, f.clima].filter(Boolean).join("/") || "-",
+      [f.solo, f.clima, f.temp ? f.temp + "°C" : ""].filter(Boolean).join("/") || "-",
       bs.totR ? `${bs.medR}/${bs.totR}` : "BEP",
       `${bs.totPh} foto(s)`,
       stObj
@@ -2403,6 +2554,30 @@ async function buildPDFFile(teamFilter = 0) {
       );
     }
 
+    // Tabela B1: critério de redução + condição ambiente
+    {
+      const ri0 = reducaoInfo(f);
+      const amb = [f.temp ? `Temperatura: ${f.temp} °C` : "", f.umid ? `Umidade: ${f.umid}%` : ""].filter(Boolean).join("  |  ");
+      const linhas = [];
+      if (amb) linhas.push([{t: "Condição ambiente", b: true}, amb]);
+      if (ri0 && ri0.n) linhas.push([{t: "Critério de redução (continuidade)", b: true}, ri0.ok
+        ? {t: `Atendido: ${ri0.n}/${ri0.tot} pontos medidos (${ri0.pct}%), todos <= 1 Ohm e na mesma ordem de grandeza.`, fg: [0.1, 0.5, 0.25]}
+        : `Não atendido: ${ri0.motivos.join("; ")}.`]);
+      if (linhas.length) drawTable([], [150, 381.28], linhas, 7.4);
+    }
+    // Tabela B2: continuidade entre pontos / massas
+    if (f.pares.length) {
+      drawTable(["B2. Continuidade entre pontos (De)", "Para", "Resistência (Ohm)", "Hora", "Situação"], [130, 130, 80, 50, 141.28],
+        f.pares.map(x => { const e = parIssue(x); return [{t: x.de || "-", b: true}, x.para || "-", {t: x.v || "-", b: !!e, fg: e ? [0.75, 0.12, 0.12] : [0.1, 0.12, 0.14]}, x.hora || "-",
+          {t: x.v === "" ? "NÃO MEDIDO" : (e ? `NC: ${e}` : "CONFORME"), b: true, fg: x.v === "" ? [0.4, 0.44, 0.48] : (e ? [0.75, 0.12, 0.12] : [0.1, 0.5, 0.25])}]; }), 7.4);
+    }
+    // Tabela B3: terrômetro 3 leituras
+    if (f.terras.length) {
+      drawTable(["B3. Terrômetro — Ponto", "Dist. (m)", "D1 (Ohm)", "D2 62% (Ohm)", "D3 (Ohm)", "Resultado"], [110, 55, 60, 70, 60, 176.28],
+        f.terras.map(x => { const e = terraIssue(x), sp = terraSpread(x); return [{t: x.ponto || "-", b: true}, x.dist || "-", x.d1 || "-", {t: x.d2 || "-", b: true, fg: e ? [0.75, 0.12, 0.12] : [0.1, 0.12, 0.14]}, x.d3 || "-",
+          {t: x.d2 === "" ? "NÃO MEDIDO" : (e ? `NC: ${e}` : `CONFORME (R = ${x.d2} Ohm)`) + (sp !== null && sp > 10 ? ` | variação D1/D3 ${sp}%` : ""), b: true, fg: x.d2 === "" ? [0.4, 0.44, 0.48] : (e ? [0.75, 0.12, 0.12] : [0.1, 0.5, 0.25])}]; }), 7.4);
+    }
+
     // Tabela C: Não Conformidades
     const blockNCs = collectAllBlockNCs(b);
     if (blockNCs.length) {
@@ -2426,6 +2601,8 @@ async function buildPDFFile(teamFilter = 0) {
     for (const k of (f.fachadaPh || [])) blockPhotos.push({k, cap: `${b[1]} -- Fachada`, info: `Hora: ${f.fachadaHora || "-"}`});
     for (const k of (f.telhadoPh || [])) blockPhotos.push({k, cap: `${b[1]} -- Telhado / Captação`, info: `Hora: ${f.telhadoHora || "-"}`});
     for (const k of (f.bepPh || [])) blockPhotos.push({k, cap: `${b[1]} -- BEP`, info: `Cont: ${f.bepC || "-"} Ohm | Terra: ${f.bepT || "-"} Ohm | Hora: ${f.bepHora || "-"}`});
+    for (const x of f.pares) for (const k of (x.ph || [])) blockPhotos.push({k, cap: `${b[1]} -- Continuidade ${x.de || "?"} - ${x.para || "?"}`, info: `${x.v || "-"} Ohm | Hora: ${x.hora || "-"}`});
+    for (const x of f.terras) for (const k of (x.ph || [])) blockPhotos.push({k, cap: `${b[1]} -- Terrômetro ${x.ponto || ""}`, info: `D1 ${x.d1 || "-"} | D2 ${x.d2 || "-"} | D3 ${x.d3 || "-"} Ohm`});
     for (const r of (f.rows || [])) {
       const diag = rowDiagnosis(r);
       for (const k of (r.ph || [])) {
@@ -2496,6 +2673,27 @@ async function buildPDFFile(teamFilter = 0) {
 
     y -= 6;
   }
+
+  // 3B. NORMAS, INSTRUMENTOS, MÉTODO E CONCLUSÃO
+  newPage();
+  drawSectionTitle("NORMAS, INSTRUMENTOS, MÉTODO DE MEDIÇÃO E CONCLUSÃO");
+  drawTable(["Documentos e normas de referência"], [CW], [
+    ...(c.art ? [[`ART nº ${c.art} — Anotação de Responsabilidade Técnica`]] : []),
+    ...NORMAS.map(n => [n])
+  ], 7.6);
+  drawTable(["Instrumento", "Fabricante / Modelo / Nº série / Certificado de calibração"], [170, 361.28],
+    INST.map(([k, nome]) => [{t: nome, b: true}, instStr(k) || "A preencher"]), 7.6);
+  drawTable(["Método de medição"], [CW], [
+    [`Continuidade elétrica: resistência ôhmica medida entre trechos e pontos diferentes do SPDA e massas metálicas, com instrumento que fornece corrente de 1 A a 10 A em frequência diferente de 60 Hz e múltiplos. Critério de aceitação: <= ${c.limC} Ohm.`],
+    ["Redução do número de medições: admitida quando a medição em pelo menos 50% dos pontos resulta em valores na mesma ordem de grandeza e nenhum valor maior que 1 Ohm."],
+    [`Resistência de aterramento: método da queda de potencial (NBR 15749), com três leituras (D1, D2 e D3) e resultado adotado em D2 (62%). Critério de referência: <= ${c.limT} Ohm.`]
+  ], 7.6);
+  drawTable(["Conclusão"], [CW], CONCLUSAO_PADRAO.map(t => [t]), 7.8);
+  drawTable(["Anexos"], [CW], [
+    [`ART nº ${c.art || "____________"}`],
+    [`Certificado de calibração do miliohmímetro nº ${instObj("c").cert || "____________"}`],
+    [`Certificado de calibração do terrômetro nº ${instObj("t").cert || "____________"}`]
+  ], 7.6);
 
   // 4. QUADRO DE CARIMBO DA RT / ASSINATURA
   ensureSpace(125);
@@ -2619,7 +2817,8 @@ function buildAIStructuredPlainText(teamFilter = 0) {
   lines.push("=== DADOS DA OBRA E CRITERIOS (SPDA - NBR 5419:2015) ===");
   lines.push(`Empresa: ${c.empresa} | Cliente: ${c.cliente} | Local: ${c.local}`);
   lines.push(`Ref.: ${c.proposta} | Data: ${c.data} | Operadores: ${c.eq || "-"}`);
-  lines.push(`Aparelhos: Cont=${c.ap || "-"} | Terra=${c.apTerra || "-"}`);
+  lines.push(`Instrumentos: ${INST.map(([k, n]) => `${n}=${instStr(k) || "-"}`).join(" | ")}`);
+  lines.push(`Normas: ${NORMAS.map(n => n.split(" — ")[0]).join("; ")}`);
   lines.push(`RT: ${c.resp || "A anexar"} | CREA/CFT: ${c.crea || "-"} | ART: ${c.art || "-"}`);
   lines.push(`Limites: Continuidade <= ${c.limC} Ohm | Terra <= ${c.limT} Ohm (tolerancia solo seco <= ${c.limTSeco || 20} Ohm)`);
   lines.push("");
@@ -2635,7 +2834,10 @@ function buildAIStructuredPlainText(teamFilter = 0) {
     const f = bs.f;
     if (c.soPreenchidos && !bs.isStarted && !bs.totNC) continue;
     lines.push(`=== BLOCO [${b[0]}] ${b[1]} (${teamLabel(b[2])}) | Status: ${bs.status} ===`);
-    lines.push(`Horario: ${f.hi || "-"} a ${f.hf || "-"} | Conclusao: ${f.horaConc || "-"} | Solo: ${f.solo || "-"} | Clima: ${f.clima || "-"} | Resp: ${f.respBloco || "-"}`);
+    lines.push(`Horario: ${f.hi || "-"} a ${f.hf || "-"} | Conclusao: ${f.horaConc || "-"} | Solo: ${f.solo || "-"} | Clima: ${f.clima || "-"} | Temp: ${f.temp || "-"} C | UR: ${f.umid || "-"}% | Resp: ${f.respBloco || "-"}`);
+    { const ri0 = reducaoInfo(f); if (ri0 && ri0.n) lines.push(`Criterio de reducao: ${ri0.ok ? "ATENDIDO" : "nao atendido (" + ri0.motivos.join("; ") + ")"}`); }
+    for (const x of f.pares) lines.push(`  - Continuidade ${x.de || "?"} -> ${x.para || "?"}: ${x.v || "-"} Ohm | Hora ${x.hora || "-"} | ${parIssue(x) ? "NC " + parIssue(x) : (x.v ? "CONFORME" : "NAO MEDIDO")}`);
+    for (const x of f.terras) lines.push(`  - Terrometro ${x.ponto || "?"}: D1=${x.d1 || "-"} D2(62%)=${x.d2 || "-"} D3=${x.d3 || "-"} Ohm | Dist=${x.dist || "-"} m | ${terraIssue(x) ? "NC " + terraIssue(x) : (x.d2 ? "CONFORME" : "NAO MEDIDO")}`);
     if (f.obs) lines.push(`Obs: ${f.obs}`);
     if (f.reparosCampo) lines.push(`Reparos em campo: ${f.reparosCampo}`);
     lines.push(`Fotos gerais: Fachada=${f.fachadaHora || "-"} (${(f.fachadaPh || []).join(", ") || "sem foto"}) | Telhado=${f.telhadoHora || "-"} (${(f.telhadoPh || []).join(", ") || "sem foto"})`);
@@ -2679,7 +2881,9 @@ function buildAIStructuredMarkdown(teamFilter = 0) {
   md.push(`- **Referência / Norma:** ${c.proposta}`);
   md.push(`- **Data da Inspeção:** ${c.data}`);
   md.push(`- **Operadores em Campo:** ${c.eq || "-"}`);
-  md.push(`- **Instrumentos:** Continuidade: \`${c.ap || "-"}\` | Aterramento: \`${c.apTerra || "-"}\``);
+  INST.forEach(([k, n]) => md.push(`- **${n}:** ${instStr(k) || "-"}`));
+  md.push(`- **Normas:** ${NORMAS.map(n => n.split(" — ")[0]).join("; ")}`);
+  md.push(`- **Conclusão padrão:** ${CONCLUSAO_PADRAO.join(" ")}`);
   md.push(`- **Responsável Técnico:** ${c.resp || "A preencher"} | **CREA/CFT:** ${c.crea || "-"} | **ART:** ${c.art || "-"}`);
   md.push(`- **Critério Continuidade:** ≤ ${c.limC} Ω`);
   md.push(`- **Critério Aterramento:** ≤ ${c.limT} Ω ideal (≤ ${c.limTSeco || 20} Ω aceitável em solo seco)`);
@@ -2708,7 +2912,16 @@ function buildAIStructuredMarkdown(teamFilter = 0) {
 
     md.push(`### [${b[0]}] ${b[1]} — ${teamLabel(b[2])}`);
     md.push(`- **Data:** ${f.data || c.data} | **Início:** ${f.hi || "-"} | **Fim:** ${f.hf || "-"} | **Conclusão:** ${f.horaConc || "-"}`);
-    md.push(`- **Solo:** ${f.solo || "-"} | **Clima:** ${f.clima || "-"} | **Responsável:** ${f.respBloco || "-"} | **Visto:** ${f.visto || "-"}`);
+    md.push(`- **Solo:** ${f.solo || "-"} | **Clima:** ${f.clima || "-"} | **Temp.:** ${f.temp || "-"} °C | **UR:** ${f.umid || "-"}% | **Responsável:** ${f.respBloco || "-"} | **Visto:** ${f.visto || "-"}`);
+    { const ri0 = reducaoInfo(f); if (ri0 && ri0.n) md.push(`- **Critério de redução:** ${ri0.ok ? "atendido" : "não atendido — " + ri0.motivos.join("; ")}`); }
+    if (f.pares.length) {
+      md.push("", "| Continuidade De | Para | Ω | Hora | Situação |", "|---|---|---|---|---|");
+      f.pares.forEach(x => md.push(`| ${x.de || "-"} | ${x.para || "-"} | ${x.v || "-"} | ${x.hora || "-"} | ${parIssue(x) ? "NC " + parIssue(x) : (x.v ? "CONFORME" : "NÃO MEDIDO")} |`));
+    }
+    if (f.terras.length) {
+      md.push("", "| Terrômetro Ponto | Dist. (m) | D1 | D2 (62%) | D3 | Situação |", "|---|---|---|---|---|---|");
+      f.terras.forEach(x => md.push(`| ${x.ponto || "-"} | ${x.dist || "-"} | ${x.d1 || "-"} | ${x.d2 || "-"} | ${x.d3 || "-"} | ${terraIssue(x) ? "NC " + terraIssue(x) : (x.d2 ? "CONFORME" : "NÃO MEDIDO")} |`));
+    }
     if (f.obs) md.push(`- **Observações:** ${f.obs}`);
     if (f.reparosCampo) md.push(`- **Reparos feitos em campo:** ${f.reparosCampo}`);
     md.push(`- **Foto Fachada:** Hora \`${f.fachadaHora || "-"}\` | Arquivos: \`${(f.fachadaPh || []).join(", ") || "nenhum"}\``);
@@ -3074,7 +3287,7 @@ async function buildWordDocxFile(teamFilter = 0) {
     </w:tr>`,
     `<w:tr>
       ${wCellText("INSTRUMENTO UTILIZADO:", {w: 2300, bold: true, bg: "F0F4F8", size: 18})}
-      ${wCellText([c.ap, c.apTerra].filter(Boolean).join(" / ") || "Terrômetro Digital Calibrado", {w: 3200, size: 18})}
+      ${wCellText([instStr("c") && "Miliohmímetro: " + instStr("c"), instStr("t") && "Terrômetro: " + instStr("t")].filter(Boolean).join(" / ") || "A preencher", {w: 3200, size: 18})}
       ${wCellText("LIMITES NORMATIVOS:", {w: 2100, bold: true, bg: "F0F4F8", size: 18})}
       ${wCellText(`Continuidade <= ${c.limC} Ohm  |  Terra <= ${c.limT} Ohm`, {w: 2600, bold: true, color: "1F3A5F", size: 18})}
     </w:tr>`
@@ -3141,7 +3354,7 @@ async function buildWordDocxFile(teamFilter = 0) {
     bodyParts.push(wTable([
       `<w:tr>${wCell(
         wPara(`3.${bi + 1} EDIFICAÇÃO / LOCAL: ${b[1].toUpperCase()} [CÓD: ${b[0]}] — ${teamLabel(b[2]).toUpperCase()}`, {bold: true, size: 21, color: "FFFFFF", before: 40, after: 20}) +
-        wPara(`Horário: ${f.hi || "--:--"} às ${f.hf || "--:--"} | Solo: ${f.solo || "-"} | Clima: ${f.clima || "-"} | Obs: ${f.obs || "-"}`, {size: 17, color: "E2E8F0", before: 0, after: 40}),
+        wPara(`Horário: ${f.hi || "--:--"} às ${f.hf || "--:--"} | Solo: ${f.solo || "-"} | Clima: ${f.clima || "-"}${f.temp ? " | " + f.temp + " °C" : ""}${f.umid ? " | UR " + f.umid + "%" : ""} | Obs: ${f.obs || "-"}`, {size: 17, color: "E2E8F0", before: 0, after: 40}),
         {w: 10200, bg: "1F3A5F"}
       )}</w:tr>`
     ], [10200]));
@@ -3187,11 +3400,38 @@ async function buildWordDocxFile(teamFilter = 0) {
       }
       bodyParts.push(wTable(descTable, [1450, 900, 950, 950, 1100, 1100, 1050, 800, 1900]));
     }
+    {
+      const ri0 = reducaoInfo(f);
+      if (ri0 && ri0.n) bodyParts.push(wPara(ri0.ok
+        ? `Critério de redução atendido: ${ri0.n}/${ri0.tot} pontos medidos (${ri0.pct}%), todos ≤ 1 Ω e na mesma ordem de grandeza.`
+        : `Critério de redução não atendido: ${ri0.motivos.join("; ")}.`, {size: 16, color: ri0.ok ? "15803D" : "64748B", before: 40, after: 40}));
+      const hd = (t, w) => wCellText(t, {w, bold: true, color: "FFFFFF", bg: "2B5082", align: "center", size: 16});
+      if (f.pares.length) {
+        const rows = [`<w:tr>${hd("DE", 2200)}${hd("PARA", 2200)}${hd("RESIST. (Ω)", 1500)}${hd("HORA", 1100)}${hd("SITUAÇÃO", 3200)}</w:tr>`];
+        for (const x of f.pares) {
+          const e = parIssue(x);
+          rows.push(`<w:tr>${wCellText(x.de || "—", {w: 2200, bold: true, size: 16})}${wCellText(x.para || "—", {w: 2200, size: 16})}${wCellText(x.v || "—", {w: 1500, align: "center", size: 16})}${wCellText(x.hora || "—", {w: 1100, align: "center", size: 16})}${wCellText(x.v === "" ? "NÃO MEDIDO" : (e ? "NC: " + e : "CONFORME"), {w: 3200, bold: true, size: 15, color: e ? "B91C1C" : "15803D", bg: e ? "FEE2E2" : "DCFCE7", align: "center"})}</w:tr>`);
+        }
+        bodyParts.push(wPara("Continuidade elétrica entre pontos / massas metálicas", {bold: true, size: 18, color: "1F3A5F", before: 60, after: 30}));
+        bodyParts.push(wTable(rows, [2200, 2200, 1500, 1100, 3200]));
+      }
+      if (f.terras.length) {
+        const rows = [`<w:tr>${hd("PONTO", 2000)}${hd("DIST. (m)", 1000)}${hd("D1 (Ω)", 1200)}${hd("D2 62% (Ω)", 1400)}${hd("D3 (Ω)", 1200)}${hd("RESULTADO", 3400)}</w:tr>`];
+        for (const x of f.terras) {
+          const e = terraIssue(x), sp = terraSpread(x);
+          rows.push(`<w:tr>${wCellText(x.ponto || "—", {w: 2000, bold: true, size: 16})}${wCellText(x.dist || "—", {w: 1000, align: "center", size: 16})}${wCellText(x.d1 || "—", {w: 1200, align: "center", size: 16})}${wCellText(x.d2 || "—", {w: 1400, align: "center", bold: true, size: 16})}${wCellText(x.d3 || "—", {w: 1200, align: "center", size: 16})}${wCellText((x.d2 === "" ? "NÃO MEDIDO" : (e ? "NC: " + e : `CONFORME (R = ${x.d2} Ω)`)) + (sp !== null && sp > 10 ? ` | variação D1/D3 ${sp}%` : ""), {w: 3400, bold: true, size: 15, color: e ? "B91C1C" : "15803D", bg: e ? "FEE2E2" : "DCFCE7", align: "center"})}</w:tr>`);
+        }
+        bodyParts.push(wPara("Resistência de aterramento — terrômetro (queda de potencial, 3 leituras)", {bold: true, size: 18, color: "1F3A5F", before: 60, after: 30}));
+        bodyParts.push(wTable(rows, [2000, 1000, 1200, 1400, 1200, 3400]));
+      }
+    }
 
     const blockPhotos = [];
     for (const k of (f.fachadaPh || [])) blockPhotos.push({k, title: `${b[1]} — Fachada`, sub: `Hora: ${f.fachadaHora || "-"}`});
     for (const k of (f.telhadoPh || [])) blockPhotos.push({k, title: `${b[1]} — Telhado/Captação`, sub: `Hora: ${f.telhadoHora || "-"}`});
     for (const k of (f.bepPh || [])) blockPhotos.push({k, title: `${b[1]} — BEP`, sub: `Cont: ${f.bepC || "-"} Ω | Terra: ${f.bepT || "-"} Ω | Hora: ${f.bepHora || "-"}`});
+    for (const x of f.pares) for (const k of (x.ph || [])) blockPhotos.push({k, title: `${b[1]} — Continuidade ${x.de || "?"} → ${x.para || "?"}`, sub: `${x.v || "-"} Ω | Hora: ${x.hora || "-"}`});
+    for (const x of f.terras) for (const k of (x.ph || [])) blockPhotos.push({k, title: `${b[1]} — Terrômetro ${x.ponto || ""}`, sub: `D1 ${x.d1 || "-"} | D2 ${x.d2 || "-"} | D3 ${x.d3 || "-"} Ω`});
     for (const r of (f.rows || [])) {
       const diag = rowDiagnosis(r);
       for (const k of (r.ph || [])) blockPhotos.push({k, title: `${b[1]} — ${r.p}`, sub: `Cont: ${r.cont || "-"} Ω | Terra: ${r.terra || "-"} Ω (${diag.short})`});
@@ -3230,6 +3470,22 @@ async function buildWordDocxFile(teamFilter = 0) {
     }
     bodyParts.push(wPara("", {before: 60, after: 60}));
   }
+
+  bodyParts.push(wPara("NORMAS, INSTRUMENTOS, MÉTODO DE MEDIÇÃO E CONCLUSÃO", {bold: true, size: 22, color: "1F3A5F", before: 120, after: 60}));
+  bodyParts.push(wPara("Documentos e normas de referência", {bold: true, size: 19, before: 40, after: 20}));
+  if (c.art) bodyParts.push(wPara(`• ART nº ${c.art} — Anotação de Responsabilidade Técnica`, {size: 18, before: 0, after: 10}));
+  NORMAS.forEach(n => bodyParts.push(wPara(`• ${n}`, {size: 18, before: 0, after: 10})));
+  bodyParts.push(wPara("Instrumentos utilizados", {bold: true, size: 19, before: 60, after: 20}));
+  INST.forEach(([k, nome]) => bodyParts.push(wPara(`• ${nome}: ${instStr(k) || "A preencher"}`, {size: 18, before: 0, after: 10})));
+  bodyParts.push(wPara("Método de medição", {bold: true, size: 19, before: 60, after: 20}));
+  bodyParts.push(wPara(`Continuidade elétrica: resistência ôhmica medida entre trechos e pontos diferentes do SPDA e massas metálicas, com instrumento que fornece corrente de 1 A a 10 A em frequência diferente de 60 Hz e múltiplos. Critério de aceitação: ≤ ${c.limC} Ω. A redução do número de medições é admitida quando a medição em pelo menos 50% dos pontos resulta em valores na mesma ordem de grandeza e nenhum valor maior que 1 Ω.`, {size: 18, before: 0, after: 20}));
+  bodyParts.push(wPara(`Resistência de aterramento: método da queda de potencial (NBR 15749), com três leituras (D1, D2 e D3) e resultado adotado em D2 (62%). Critério de referência: ≤ ${c.limT} Ω.`, {size: 18, before: 0, after: 20}));
+  bodyParts.push(wPara("Conclusão", {bold: true, size: 19, before: 60, after: 20}));
+  CONCLUSAO_PADRAO.forEach(t => bodyParts.push(wPara(t, {size: 18, before: 0, after: 20})));
+  bodyParts.push(wPara("Anexos", {bold: true, size: 19, before: 60, after: 20}));
+  bodyParts.push(wPara(`• ART nº ${c.art || "____________"}`, {size: 18, before: 0, after: 10}));
+  bodyParts.push(wPara(`• Certificado de calibração do miliohmímetro nº ${instObj("c").cert || "____________"}`, {size: 18, before: 0, after: 10}));
+  bodyParts.push(wPara(`• Certificado de calibração do terrômetro nº ${instObj("t").cert || "____________"}`, {size: 18, before: 0, after: 10}));
 
   bodyParts.push(wPara("4. RESPONSABILIDADE TÉCNICA E CARIMBO DA RT / ART", {bold: true, size: 22, color: "1F3A5F", before: 120, after: 60}));
   bodyParts.push(wTable([
@@ -3682,7 +3938,7 @@ async function render() {
   wrap.innerHTML = `
     <header class="top-stamp">
       <div>
-        <h1>SPDA CAMPO · ${esc(c.cliente || "AMIGOS DO BEM")}</h1>
+        <h1>SPDA CAMPO · ${esc(c.cliente || "AMIGOS DO BEM")} <span class="mono" style="font-size:.75rem;background:#fd6301;color:#fff;padding:2px 6px;border-radius:4px;vertical-align:middle">${APP_VER}</span></h1>
         <div class="sub">${esc(c.proposta || "NBR 5419:2015")} · ${esc(c.local || "Buíque/PE")} · Cont. ≤ ${c.limC} Ω · Terra ≤ ${c.limT} Ω</div>
       </div>
       <div class="meta">
@@ -3784,6 +4040,16 @@ function renderBlockDetailView(blockId) {
         <div>
           <label>Clima</label>
           ${seg(blockId, "clima", f.clima || "", [["Sol", "Sol"], ["Nublado", "Nublado"]])}
+        </div>
+      </div>
+      <div class="g2" style="margin-top:4px">
+        <div>
+          <label>Temperatura ambiente (°C)</label>
+          <input inputmode="decimal" placeholder="Ex.: 31" value="${esc(f.temp || "")}" oninput="setSilent('${esc(blockId)}','temp',this.value)">
+        </div>
+        <div>
+          <label>Umidade relativa (%)</label>
+          <input inputmode="decimal" placeholder="Ex.: 55" value="${esc(f.umid || "")}" oninput="setSilent('${esc(blockId)}','umid',this.value)">
         </div>
       </div>
       <label>Observações do Local / Bloco</label>
@@ -3891,6 +4157,12 @@ function renderBlockDetailView(blockId) {
 
   if (f.rows.length || !o.includes("only")) {
     h += `<h3>B. Descidas e Caixas de Inspeção (Sentido Horário)</h3>`;
+    const ri0 = reducaoInfo(f);
+    if (ri0) {
+      h += ri0.ok
+        ? `<div class="card ok" style="padding:8px 10px;font-size:13px"><b>✓ Critério de redução atendido</b> — ${ri0.n}/${ri0.tot} medidos (${ri0.pct}%), todos ≤ 1 Ω e na mesma ordem de grandeza. Pode reduzir o nº de medições de continuidade neste bloco (registrar no laudo).</div>`
+        : `<div class="card" style="padding:8px 10px;font-size:13px"><b>Redução de medições:</b> ainda não — ${esc(ri0.motivos.join("; "))}.</div>`;
+    }
     f.rows.forEach((r, i) => {
       const j = judge(r);
       const hasNC = j.length || [r.barra, r.eld, r.cx].includes("NC");
@@ -3911,7 +4183,8 @@ function renderBlockDetailView(blockId) {
           <div class="g2" style="margin-top:6px">
             <div>
               <label>Continuidade (Ω) ≤ ${S.cfg.limC}</label>
-              <input inputmode="decimal" placeholder="Ex: 0.12" value="${esc(r.cont)}" oninput="setSilent('${esc(blockId)}','rows.${i}.cont',this.value)">
+              <input inputmode="decimal" placeholder="Ex: 0,080" value="${esc(r.cont)}" oninput="setSilent('${esc(blockId)}','rows.${i}.cont',this.value)">
+              <small style="display:block;font-size:10.5px;color:var(--muted);margin-top:2px">Em Ω: 80 mΩ = 0,080 · aberto = OL</small>
             </div>
             <div>
               <label>Terra (Ω) ≤ ${S.cfg.limT}</label>
@@ -3940,6 +4213,63 @@ function renderBlockDetailView(blockId) {
         </div>`;
     });
     h += `<button class="b" style="width:100%;margin-bottom:10px" onclick="F('${esc(blockId)}').rows.push(newRow('${esc(blockId)}'));saveNow(true);render()">+ Adicionar Descida</button>`;
+  }
+
+  {
+    const bid = esc(blockId);
+    h += `<h3>B2. Continuidade entre pontos / massas metálicas (miliohmímetro)</h3>
+      <small style="display:block;margin:-4px 0 8px;color:var(--muted)">Ex.: D01 → D02, D05 → Portão, D06 → Poste, BEP → Malha. Limite ≤ ${S.cfg.limC} Ω. Leitura aberta: digite OL.</small>`;
+    f.pares.forEach((x, i) => {
+      const e = parIssue(x);
+      h += `
+        <div class="card d ${e ? "nc" : (x.v !== "" ? "ok" : "")}">
+          <div class="g2">
+            <div><label>De</label><input placeholder="Ex.: D05" value="${esc(x.de)}" oninput="setLista('${bid}','pares',${i},'de',this.value)"></div>
+            <div><label>Para</label><input placeholder="Ex.: Portão" value="${esc(x.para)}" oninput="setLista('${bid}','pares',${i},'para',this.value)"></div>
+          </div>
+          <div class="g2" style="margin-top:6px">
+            <div><label>Resistência (Ω) · 80 mΩ = 0,080</label><input inputmode="decimal" placeholder="Ex.: 0,080" value="${esc(x.v)}" oninput="setLista('${bid}','pares',${i},'v',this.value)"></div>
+            <div><label>Hora</label><input placeholder="HH:MM" value="${esc(x.hora || "")}" oninput="setLista('${bid}','pares',${i},'hora',this.value)"></div>
+          </div>
+          ${e ? `<span class="tag NC" style="margin-top:6px;display:inline-block">${esc(e)}</span>` : ""}
+          <div class="row" style="margin-top:8px">
+            <button class="b" onclick="photo('${bid}','Continuidade',-1,${i},true,'par')">📷 Foto (${(x.ph || []).length})</button>
+            <button class="b" onclick="photo('${bid}','Continuidade',-1,${i},false,'par')">🖼</button>
+            <span class="grow"></span>
+            <button class="b" style="color:var(--nc)" onclick="delLista('${bid}','pares',${i})">✕</button>
+          </div>
+          ${renderThumbs(blockId, x.ph || [], "par", i)}
+        </div>`;
+    });
+    h += `<button class="b" style="width:100%;margin-bottom:12px" onclick="addLista('${bid}','pares')">+ Medição de continuidade entre pontos</button>`;
+
+    h += `<h3>B3. Resistência de aterramento — terrômetro (3 leituras)</h3>
+      <small style="display:block;margin:-4px 0 8px;color:var(--muted)">Queda de potencial (NBR 15749): D1, D2 e D3 com a estaca de potencial a ~52%, 62% e 72% da distância da estaca de corrente. Resultado = D2. Limite ≤ ${S.cfg.limT} Ω.</small>`;
+    f.terras.forEach((x, i) => {
+      const e = terraIssue(x), sp = terraSpread(x);
+      h += `
+        <div class="card d ${e ? "nc" : (x.d2 !== "" ? "ok" : "")}">
+          <div class="g2">
+            <div><label>Ponto</label><input placeholder="Ex.: D07 / Caixa 3" value="${esc(x.ponto)}" oninput="setLista('${bid}','terras',${i},'ponto',this.value)"></div>
+            <div><label>Dist. estaca corrente (m)</label><input inputmode="decimal" placeholder="Ex.: 40" value="${esc(x.dist || "")}" oninput="setLista('${bid}','terras',${i},'dist',this.value)"></div>
+          </div>
+          <div class="g3" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:6px">
+            <div><label>D1 (Ω)</label><input inputmode="decimal" value="${esc(x.d1)}" oninput="setLista('${bid}','terras',${i},'d1',this.value)"></div>
+            <div><label>D2 62% (Ω)</label><input inputmode="decimal" value="${esc(x.d2)}" oninput="setLista('${bid}','terras',${i},'d2',this.value)"></div>
+            <div><label>D3 (Ω)</label><input inputmode="decimal" value="${esc(x.d3)}" oninput="setLista('${bid}','terras',${i},'d3',this.value)"></div>
+          </div>
+          ${e ? `<span class="tag NC" style="margin-top:6px;display:inline-block">${esc(e)}</span>` : ""}
+          ${sp !== null && sp > 10 ? `<small style="display:block;margin-top:6px;color:#b45309">⚠ D1/D3 variam ${sp}% em relação a D2 — conferir posição das estacas e repetir se possível.</small>` : ""}
+          <div class="row" style="margin-top:8px">
+            <button class="b" onclick="photo('${bid}','Terrometro',-1,${i},true,'ter')">📷 Foto (${(x.ph || []).length})</button>
+            <button class="b" onclick="photo('${bid}','Terrometro',-1,${i},false,'ter')">🖼</button>
+            <span class="grow"></span>
+            <button class="b" style="color:var(--nc)" onclick="delLista('${bid}','terras',${i})">✕</button>
+          </div>
+          ${renderThumbs(blockId, x.ph || [], "ter", i)}
+        </div>`;
+    });
+    h += `<button class="b" style="width:100%;margin-bottom:12px" onclick="addLista('${bid}','terras')">+ Medição com terrômetro</button>`;
   }
 
   h += `
@@ -4040,13 +4370,29 @@ function renderConfigView() {
           <label>Número da ART / TRT</label>
           <input value="${esc(c.art || "")}" placeholder="Nº da ART" oninput="setCfgSilent('art',this.value)">
         </div>
-        <div>
-          <label>Aparelho Continuidade (Modelo/Série)</label>
-          <input value="${esc(c.ap)}" placeholder="Ex.: Terrômetro / Microhmímetro" oninput="setCfgSilent('ap',this.value)">
-        </div>
+        <div></div>
       </div>
-      <label>Aparelho Aterramento (Modelo/Série)</label>
-      <input value="${esc(c.apTerra || "")}" placeholder="Ex.: Hikari HTR-770 / Minipa MTR-1522" oninput="setCfgSilent('apTerra',this.value)">
+    </div>
+
+    <div class="card">
+      <h3>Instrumentos Utilizados (vão para o laudo)</h3>
+      ${INST.map(([k, nome, req]) => {
+        const o = instObj(k);
+        return `
+        <div style="border-top:1px solid var(--line);padding-top:8px;margin-top:8px">
+          <b style="font-size:13px">${nome}</b>
+          <small style="display:block;color:var(--muted);margin-bottom:4px">${req}</small>
+          <div class="g2">
+            <div><label>Fabricante</label><input value="${esc(o.fab)}" oninput="setInst('${k}','fab',this.value)"></div>
+            <div><label>Modelo</label><input value="${esc(o.mod)}" oninput="setInst('${k}','mod',this.value)"></div>
+          </div>
+          <div class="g2">
+            <div><label>Nº de série</label><input value="${esc(o.ser)}" oninput="setInst('${k}','ser',this.value)"></div>
+            <div><label>Nº certificado de calibração</label><input value="${esc(o.cert)}" oninput="setInst('${k}','cert',this.value)"></div>
+          </div>
+        </div>`;
+      }).join("")}
+      ${c.ap || c.apTerra ? `<small style="display:block;margin-top:8px;color:var(--muted)">Registro antigo: ${esc([c.ap, c.apTerra].filter(Boolean).join(" / "))}</small>` : ""}
     </div>
 
     <div class="card">
