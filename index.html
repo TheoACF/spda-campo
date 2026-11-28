@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#1F3A5F">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap">
+<link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap">
 <style>
 :root{
   --bg:#f5f6f4;--panel:#ffffff;--fg:#1c2421;--muted:#5f6b66;--line:#d6dbd8;
@@ -284,8 +284,8 @@ const DRIVE_FOLDERS = {
 
 // [sigla, nome, dupla, flags, qtdDescidasPadrao, prefixo, pontosExtras]
 // Quantidades conforme plantas Bom Contato RV00 (24/11/2025), FL01–FL15
-const APP_VER = "v10 · 27/11";
-const LAYOUT_VER = "plantas-rv00-2025-11-24";
+const APP_VER = "v10.2 · 27/11";
+const LAYOUT_VER = "plantas-rv00-2025-11-24-b"; // -b: completa descidas faltantes em blocos com dados
 const DEFAULT_B = [
   ["A","Bloco A",1,"",14],                         // FL02
   ["B","Bloco B (auditório)",1,"",16],             // FL03
@@ -433,6 +433,7 @@ const tx = (st, m, f) => new Promise(r => {
     const t = db.transaction(st, m), o = f(t.objectStore(st));
     t.oncomplete = () => r(o && o.result);
     t.onerror = () => r(null);
+    t.onabort = () => r(null);
   } catch (e) {
     r(null);
   }
@@ -464,8 +465,10 @@ function getSnapshots() {
   }
 }
 
-function saveNow(forceSnapshot = false) {
-  S.updatedAt = Date.now();
+let outraAbaAtiva = false;
+function saveNow(forceSnapshot = false, keepTs = false) {
+  if (outraAbaAtiva) return; // outra aba gravou mais novo: esta não pode sobrescrever
+  if (!keepTs || !S.updatedAt) S.updatedAt = Date.now();
   lastSavedTimeStr = new Date(S.updatedAt).toTimeString().slice(0, 8);
   const serialized = JSON.stringify(S);
 
@@ -502,10 +505,20 @@ function save() {
   idbTimer = setTimeout(() => saveNow(false), 120);
 }
 
-window.addEventListener("pagehide", () => saveNow(true));
-window.addEventListener("beforeunload", () => saveNow(true));
+// Duas abas abertas: quando a outra grava, esta para de gravar e recarrega com os dados novos
+window.addEventListener("storage", e => {
+  if (e.key !== LS_STATE_KEY || !e.newValue || outraAbaAtiva) return;
+  let nv = 0;
+  try { nv = JSON.parse(e.newValue).updatedAt || 0; } catch (err) { return; }
+  if (nv <= (S.updatedAt || 0)) return; // gravação antiga (ex.: a própria página recarregando) — ignorar
+  outraAbaAtiva = true;
+  alert("O app está aberto em outra aba/janela. Esta aba vai recarregar para não apagar os dados. Use só uma aba.");
+  location.reload();
+});
+window.addEventListener("pagehide", () => saveNow(true, true));
+window.addEventListener("beforeunload", () => saveNow(true, true));
 document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "hidden") saveNow(true);
+  if (document.visibilityState === "hidden") saveNow(true, true);
 });
 
 function countFilledMetrics(st) {
@@ -582,7 +595,11 @@ function blockHasData(f) {
   if (!f) return false;
   if ((f.rows || []).some(rowHasData)) return true;
   if ((f.ncs || []).length || (f.fachadaPh || []).length || (f.telhadoPh || []).length || (f.bepPh || []).length) return true;
-  return ["bepC","bepT","obs","data","hi"].some(k => String(f[k] ?? "") !== "");
+  if ((f.pares || []).length || (f.terras || []).length) return true;
+  if (f.chk && Object.values(f.chk).some(v => v !== "" && v != null)) return true;
+  if (f.done && Object.values(f.done).some(Boolean)) return true;
+  return ["bepC","bepT","obs","data","hi","hf","horaConc","solo","clima","temp","umid","respBloco","reparosCampo","visto",
+          "bepOk","bepAcess","bepCorr","bepResLig","bepPlaca","dps","dpsCor"].some(k => String(f[k] ?? "") !== "");
 }
 
 function migrateLayout() {
@@ -590,13 +607,40 @@ function migrateLayout() {
   const oldB = Array.isArray(S.blocos) ? S.blocos : [];
   const nb = DEFAULT_B.map(x => [...x]);
   Object.keys(S.f || {}).forEach(id => {
-    if (!blockHasData(S.f[id])) { delete S.f[id]; return; }
+    // Nunca apagar dados na migração. Bloco antigo sem nenhum dado e fora do layout novo é descartado; os demais ficam.
+    if (!nb.some(x => x[0] === id) && !blockHasData(S.f[id])) { delete S.f[id]; return; }
     if (!nb.some(x => x[0] === id)) {
       const ob = oldB.find(x => x[0] === id);
       if (ob) nb.push(ob);
     }
   });
   S.blocos = nb;
+  // Blocos que já tinham dados ficam com as linhas antigas: completa as que faltam (ex.: Bloco A com 8 em vez de 14)
+  nb.forEach(def => {
+    const f = S.f[def[0]];
+    if (!f || !Array.isArray(f.rows)) return;
+    const have = new Set(f.rows.map(r => String(r.p)));
+    const pre = def[5] || "D";
+    // Só completa se a numeração existente for a original intacta (D01..Dn, sem renomear/apagar no meio)
+    const reNum = new RegExp("^" + pre + "(\\d+)$");
+    const nums = f.rows.map(r => (String(r.p).match(reNum) || [])[1]).filter(Boolean).map(Number);
+    const intacta = nums.length > 0 && nums.every((v, i) => v === i + 1) && f.rows.slice(0, nums.length).every(r => reNum.test(String(r.p)));
+    const expectedNum = (typeof def[4] === "number" ? def[4] : 0);
+    if (!intacta || nums.length >= expectedNum) return;
+    rowsFor(def).forEach(r => {
+      if (have.has(String(r.p))) return;
+      // descidas numeradas entram antes dos captores; o resto vai no fim
+      const isNum = new RegExp("^" + pre + "\\d+$").test(r.p);
+      let at = f.rows.length;
+      if (isNum) {
+        const k = f.rows.findIndex(x => !new RegExp("^" + pre + "\\d+$").test(String(x.p)) || parseInt(String(x.p).slice(pre.length)) > parseInt(r.p.slice(pre.length)));
+        if (k >= 0) at = k;
+      }
+      if (!isNum) return; // captores/extras: não reinsere (podem ter sido removidos de propósito)
+      f.rows.splice(at, 0, r);
+      have.add(String(r.p));
+    });
+  });
   S.cfg.layoutVer = LAYOUT_VER;
 }
 
@@ -654,9 +698,14 @@ function F(id) {
 }
 
 const num = v => {
-  let t = String(v ?? "").trim();
-  if (t.includes(",")) t = t.replace(/\./g, "").replace(",", ".");
-  return parseFloat(t);
+  let t = String(v ?? "").replace(/\u2126/g, "Ω").trim().replace(/\s+(?=[mMΩoO])/g, "");
+  if (t === "") return NaN;
+  let mult = 1;
+  const mu = t.match(/^(.*?)(m(?:Ω|ohms?)?|Ω|ohms?)$/i);
+  if (mu && /\d[.,]?$/.test(mu[1].trim())) { t = mu[1].trim(); if (/^m/i.test(mu[2])) mult = 0.001; }
+  if (t.includes(",")) t = t.replace(/\.(?=\d{3}(\D|$))/g, "").replace(",", ".");
+  if (!/^\d*\.?\d+$/.test(t) && !/^\d+\.$/.test(t)) return NaN; // texto inteiro tem que ser número >= 0
+  return parseFloat(t) * mult;
 };
 // Leitura preenchida mas não numérica (OL, aberto, ---, ∞) = circuito aberto / sem leitura válida
 const badRead = v => String(v ?? "").trim() !== "" && isNaN(num(v));
@@ -1577,6 +1626,7 @@ function processPhotoHDWithStamp(file, stampLine1, stampLine2, stampLine3 = "", 
 
       c.toBlob(blob => res(blob), "image/jpeg", 0.92);
     };
+    img.onerror = () => res(null);
     img.src = URL.createObjectURL(file);
   });
 }
@@ -1617,17 +1667,23 @@ async function attachPhotoBlob(id, ponto, ri, ni, blobOrFile, kindOverride = "",
 
   // Salva 2 versões: (1) Original limpa em HD para permitir editar depois sem perder a foto, (2) Versão carimbada final
   const rawBlob = await prepareRawPhotoBlob(blobOrFile);
-  const bl = await processPhotoHDWithStamp(rawBlob, stampLine1, stampLine2, extraMeasure, {
+  const bl0 = await processPhotoHDWithStamp(rawBlob, stampLine1, stampLine2, extraMeasure, {
     noteText: opts.noteText || "",
     notePos: opts.notePos || "bottom",
     noteColor: opts.noteColor || "yellow"
   });
 
+  if (!bl0) {
+    alert("Não foi possível abrir esta foto (formato não suportado ou arquivo corrompido). Tire a foto de novo.");
+    return null;
+  }
+  const bl = bl0;
   const hh = horaFotoStr.replace(/:/g, "");
   const cleanPonto = String(ponto).replace(/[^a-zA-Z0-9_-]/g, "");
-  const name = `${id}_${cleanPonto}_${d.toISOString().slice(0, 10)}_${hh}_${Math.random().toString(36).slice(2, 5)}.jpg`;
+  const dLocal = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  const name = `${id}_${cleanPonto}_${dLocal}_${hh}_${Math.random().toString(36).slice(2, 5)}.jpg`;
 
-  await pset(name, {
+  const gravou = await pset(name, {
     b: bl,
     rawBlob,
     id,
@@ -1645,6 +1701,10 @@ async function attachPhotoBlob(id, ponto, ri, ni, blobOrFile, kindOverride = "",
     t: d.toISOString(),
     s: 0
   });
+  if (!gravou) {
+    alert("⚠ A FOTO NÃO FOI SALVA: armazenamento do celular cheio ou bloqueado.\nLibere espaço (apague vídeos/fotos antigas) e tire de novo. Não use aba anônima.");
+    return null;
+  }
 
   addPhotoRefToBlock(id, resolvedKind, ri ?? -1, ni ?? -1, name, horaFotoStr);
   saveNow(true);
@@ -2141,9 +2201,13 @@ function openNativeCapture(id, ponto, ri = -1, ni = -1, useCam = true, kindOverr
     if (st) st.textContent = "Processando foto HD com carimbo…";
 
     for (const file of i.files) {
-      await attachPhotoBlob(id, ponto, ri, ni, file, kindOverride, null, {
-        autoDownloadGallery: useCam
-      });
+      try {
+        await attachPhotoBlob(id, ponto, ri, ni, file, kindOverride, null, {
+          autoDownloadGallery: useCam
+        });
+      } catch (e) {
+        alert("Erro ao processar foto: " + (e && e.message ? e.message : e));
+      }
     }
     if (st) st.textContent = "";
     render();
@@ -4281,7 +4345,7 @@ function renderBlockDetailView(blockId) {
         <div class="card d nc">
           <div class="row">
             <b class="grow mono">NC-${String(i + 1).padStart(2, "0")}</b>
-            <button class="b" style="color:var(--nc);padding:4px 8px;font-size:12px" onclick="F('${esc(blockId)}').ncs.splice(${i},1);saveNow(true);render()">Excluir</button>
+            <button class="b" style="color:var(--nc);padding:4px 8px;font-size:12px" onclick="if(confirm('Excluir esta NC?')){F('${esc(blockId)}').ncs.splice(${i},1);saveNow(true);render()}">Excluir</button>
           </div>
           <div class="g2">
             <div>
@@ -4651,6 +4715,10 @@ function importJSONPrompt() {
     try {
       const txt = await inp.files[0].text();
       const data = JSON.parse(txt);
+      if (!data || typeof data !== "object" || (data.f && typeof data.f !== "object")) throw new Error("formato");
+      if (data.f && Object.values(data.f).some(f => !f || typeof f !== "object" || (f.rows !== undefined && !Array.isArray(f.rows)))) throw new Error("formato");
+      if (data.blocos !== undefined && !Array.isArray(data.blocos)) throw new Error("formato");
+      if (!confirm("ATENÇÃO: restaurar este arquivo SUBSTITUI todos os dados deste celular pelos do arquivo (as fotos não vêm no arquivo).\n\nFaça antes um Backup JSON deste celular se tiver medições aqui.\n\nContinuar?")) return;
       if (data.cfg) S.cfg = {...S.cfg, ...data.cfg};
       if (data.reposicao) S.reposicao = {...S.reposicao, ...data.reposicao};
       if (Array.isArray(data.blocos)) S.blocos = data.blocos;
@@ -4785,7 +4853,7 @@ async function printReport(teamFilter = 0) {
     cliente: "Fazenda Amigos do Bem",
     local: "Serra do Catimbau, Buíque/PE",
     proposta: "Projeto SPDA Bom Contato RV00 (24/11/2025) • ABNT NBR 5419:2015",
-    data: new Date().toISOString().slice(0, 10),
+    data: new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10),
     equipeAtiva: 1,
     driveA: DRIVE_FOLDERS[1].url,
     driveB: DRIVE_FOLDERS[2].url,
@@ -4817,7 +4885,7 @@ async function printReport(teamFilter = 0) {
   };
   S.lib ??= {};
   getB();
-  saveNow(false);
+  saveNow(false, true); // não muda o carimbo de tempo ao abrir (evita "pingue-pongue" entre duas abas)
 
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
     navigator.serviceWorker.register("sw.js").catch(() => {});
