@@ -100,6 +100,7 @@ input[type=checkbox]{width:18px;height:18px;accent-color:var(--ok);cursor:pointe
 .tag.CONCLUIDO{color:var(--ok)}
 .tag.ANDAMENTO{color:var(--info)}
 .tag.NC{color:var(--nc)}
+.tag.OK{color:var(--ok)}
 .tag.PENDENTE{color:var(--muted)}
 .note{padding:10px 14px;color:var(--muted);font-size:.82rem;border-top:1px solid var(--line)}
 .card{background:var(--panel);border:1px solid var(--line);padding:12px;margin-bottom:10px}
@@ -284,7 +285,7 @@ const DRIVE_FOLDERS = {
 
 // [sigla, nome, dupla, flags, qtdDescidasPadrao, prefixo, pontosExtras]
 // Quantidades conforme plantas Bom Contato RV00 (24/11/2025), FL01–FL15
-const APP_VER = "v10.2 · 27/11";
+const APP_VER = "v10.3 · 27/11";
 const LAYOUT_VER = "plantas-rv00-2025-11-24-b"; // -b: completa descidas faltantes em blocos com dados
 const DEFAULT_B = [
   ["A","Bloco A",1,"",14],                         // FL02
@@ -697,6 +698,7 @@ function F(id) {
   return f;
 }
 
+const hojeLocal = (d = new Date()) => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
 const num = v => {
   let t = String(v ?? "").replace(/\u2126/g, "Ω").trim().replace(/\s+(?=[mMΩoO])/g, "");
   if (t === "") return NaN;
@@ -776,6 +778,33 @@ function reducaoInfo(f) {
   if (!mesmaOrdem) motivos.push("valores fora da mesma ordem de grandeza");
   return {tot, n: vals.length, pct, ok: !motivos.length, motivos};
 }
+const quickSug = {}, editPar = {}, openRow = {};
+function proxCodigo(c) {
+  const m = String(c || "").match(/^(.*?)(\d+)$/);
+  if (!m) return "";
+  return m[1] + String(parseInt(m[2], 10) + 1).padStart(m[2].length, "0");
+}
+function addParRapido(id) {
+  const de = (document.getElementById("q-de") || {}).value || "";
+  const para = (document.getElementById("q-para") || {}).value || "";
+  const v = (document.getElementById("q-v") || {}).value || "";
+  if (!de.trim() || !para.trim()) { alert("Preencha De e Para."); return; }
+  if (!v.trim()) { alert("Digite o valor medido (Ω). Leitura aberta: OL."); document.getElementById("q-v").focus(); return; }
+  F(id).pares.push({de: de.trim(), para: para.trim(), v: v.trim(), hora: new Date().toTimeString().slice(0, 5), ph: []});
+  // sugere o próximo trecho da sequência (D01→D02 vira D02→D03)
+  const ehDesc = /\d+$/.test(para.trim());
+  quickSug[id] = ehDesc ? {de: para.trim(), para: proxCodigo(para.trim())} : {de: de.trim(), para: ""};
+  editPar[id] = -1;
+  saveNow(true);
+  render();
+  setTimeout(() => { const q = document.getElementById(quickSug[id].para ? "q-v" : "q-para"); if (q) q.focus(); }, 30);
+}
+function abrirRow(id, i) {
+  openRow[id] = i;
+  render();
+  if (i >= 0) setTimeout(() => { const c = document.getElementById(`row-card-${i}`); if (c) c.scrollIntoView({block: "start", behavior: "smooth"}); }, 40);
+}
+
 function addLista(id, lista) {
   const f = F(id);
   f[lista].push(lista === "pares" ? {de: "", para: "", v: "", hora: "", ph: []} : {ponto: "", d1: "", d2: "", d3: "", dist: "", hora: "", ph: []});
@@ -1212,25 +1241,25 @@ function downloadCSV(teamFilter = 0) {
   B.forEach(b => {
     const f = F(b[0]), pr = PRANCHA[b[0]] || "", eq = f.dupla == 2 ? "B" : "A";
     if ((b[3] || "").includes("bep")) {
-      med.push([pr, b[0], b[1], eq, f.data, "BEP/BEL", "", "", "", "", f.bepC, f.bepT, "", "", f.bepHora, (f.bepPh || []).length, `Estado: ${f.bepOk || "-"} | Acesso: ${f.bepAcess || "-"} | Corrosão: ${f.bepCorr || "-"} | Ligações: ${f.bepResLig || "-"} | Placa: ${f.bepPlaca || "-"}`]);
+      med.push([pr, b[0], b[1], eq, f.data || S.cfg.data, "BEP/BEL", "", "", "", "", f.bepC, f.bepT, "", "", f.bepHora, (f.bepPh || []).length, `Estado: ${f.bepOk || "-"} | Acesso: ${f.bepAcess || "-"} | Corrosão: ${f.bepCorr || "-"} | Ligações: ${f.bepResLig || "-"} | Placa: ${f.bepPlaca || "-"}`]);
     }
     (f.rows || []).forEach(r => {
       const d = rowDiagnosis(r);
-      med.push([pr, b[0], b[1], eq, f.data, r.p, r.loc, r.barra, r.eld, r.cx, r.cont, r.terra, d.short, d.measured ? d.detail : "", r.horaFoto, (r.ph || []).length, r.obs]);
+      med.push([pr, b[0], b[1], eq, f.data || S.cfg.data, r.p, r.loc, r.barra, r.eld, r.cx, r.cont, r.terra, d.short, d.measured ? d.detail : "", r.horaFoto, (r.ph || []).length, r.obs]);
     });
     f.pares.forEach(x => {
       const e = parIssue(x);
-      med.push([pr, b[0], b[1], eq, f.data, `${x.de || "?"} -> ${x.para || "?"}`, "Continuidade entre pontos", "", "", "", x.v, "", x.v === "" ? "NÃO MEDIDO" : (e ? "REPROVADO (NC)" : "APROVADO (OK)"), e, x.hora, (x.ph || []).length, ""]);
+      med.push([pr, b[0], b[1], eq, f.data || S.cfg.data, `${x.de || "?"} -> ${x.para || "?"}`, "Continuidade entre pontos", "", "", "", x.v, "", x.v === "" ? "NÃO MEDIDO" : (e ? "REPROVADO (NC)" : "APROVADO (OK)"), e, x.hora, (x.ph || []).length, ""]);
     });
     f.terras.forEach(x => {
       const e = terraIssue(x);
-      med.push([pr, b[0], b[1], eq, f.data, x.ponto, "Terrômetro (D2 = 62%)", "", "", "", "", x.d2, x.d2 === "" ? "NÃO MEDIDO" : (e ? "REPROVADO (NC)" : "APROVADO (OK)"), e, x.hora, (x.ph || []).length, `D1=${x.d1 || "-"}; D2=${x.d2 || "-"}; D3=${x.d3 || "-"}; dist=${x.dist || "-"} m; T=${f.temp || "-"} °C; UR=${f.umid || "-"}%`]);
+      med.push([pr, b[0], b[1], eq, f.data || S.cfg.data, x.ponto, "Terrômetro (D2 = 62%)", "", "", "", "", x.d2, x.d2 === "" ? "NÃO MEDIDO" : (e ? "REPROVADO (NC)" : "APROVADO (OK)"), e, x.hora, (x.ph || []).length, `D1=${x.d1 || "-"}; D2=${x.d2 || "-"}; D3=${x.d3 || "-"}; dist=${x.dist || "-"} m; T=${f.temp || "-"} °C; UR=${f.umid || "-"}%`]);
     });
     collectAllBlockNCs(b).forEach(n => {
       ncs.push([pr, b[0], b[1], eq, n.code, n.ponto, n.codRef, n.sev, n.titulo, n.detalhe, n.horaFoto, (n.ph || []).length]);
     });
   });
-  const tag = (S.cfg.data || new Date().toISOString().slice(0, 10)) + (teamFilter ? "_Equipe" + (teamFilter == 2 ? "B" : "A") : "");
+  const tag = (S.cfg.data || hojeLocal()) + (teamFilter ? "_Equipe" + (teamFilter == 2 ? "B" : "A") : "");
   saveToDeviceGallery(csvBlob(med), `SPDA_medicoes_${tag}.csv`);
   setTimeout(() => saveToDeviceGallery(csvBlob(ncs), `SPDA_NCs_${tag}.csv`), 600);
 }
@@ -2063,7 +2092,7 @@ function startCamVideoRecording() {
     // Salva vídeo na galeria do celular + captura um frame carimbado para constar no relatório PDF
     const vBlob = new Blob(camState.chunks, { type: rec.mimeType || "video/webm" });
     const d = new Date();
-    const vName = `${camState.id}_${camState.ponto}_${d.toISOString().slice(0, 10)}_${d.toTimeString().slice(0, 8).replace(/:/g, "")}.webm`;
+    const vName = `${camState.id}_${camState.ponto}_${hojeLocal(d)}_${d.toTimeString().slice(0, 8).replace(/:/g, "")}.webm`;
     saveToDeviceGallery(vBlob, vName);
 
     const vid = $("#cam-video");
@@ -2864,7 +2893,7 @@ async function buildPDFFile(teamFilter = 0) {
   if (st) st.textContent = "";
   const pdfBlob = new Blob(chunks, {type: "application/pdf"});
   const eqPrefix = teamFilter == 1 ? "EquipeA_" : (teamFilter == 2 ? "EquipeB_" : "");
-  const fname = `${eqPrefix}Laudo_SPDA_${(c.cliente || "Campo").replace(/[^a-zA-Z0-9_-]/g, "_")}_${(c.data || new Date().toISOString().slice(0, 10))}.pdf`;
+  const fname = `${eqPrefix}Laudo_SPDA_${(c.cliente || "Campo").replace(/[^a-zA-Z0-9_-]/g, "_")}_${(c.data || hojeLocal())}.pdf`;
   return new File([pdfBlob], fname, {type: "application/pdf"});
 }
 
@@ -3036,7 +3065,7 @@ function buildAIStructuredMarkdown(teamFilter = 0) {
 function buildAIStructuredFile(teamFilter = 0) {
   const txt = buildAIStructuredMarkdown(teamFilter);
   const eqPrefix = teamFilter == 1 ? "EquipeA_" : (teamFilter == 2 ? "EquipeB_" : "");
-  const fname = `${eqPrefix}Dados_SPDA_Para_IA_${(S.cfg.cliente || "Campo").replace(/[^a-zA-Z0-9_-]/g, "_")}_${(S.cfg.data || new Date().toISOString().slice(0, 10))}.md`;
+  const fname = `${eqPrefix}Dados_SPDA_Para_IA_${(S.cfg.cliente || "Campo").replace(/[^a-zA-Z0-9_-]/g, "_")}_${(S.cfg.data || hojeLocal())}.md`;
   return new File([txt], fname, {type: "text/markdown;charset=utf-8"});
 }
 
@@ -3335,7 +3364,7 @@ async function buildWordDocxFile(teamFilter = 0) {
       ${wCellText("CLIENTE / EMPREENDIMENTO:", {w: 2300, bold: true, bg: "F0F4F8", size: 18})}
       ${wCellText(c.cliente || "Fazenda Amigos do Bem", {w: 3200, bold: true, size: 19})}
       ${wCellText("DATA DA INSPEÇÃO:", {w: 2100, bold: true, bg: "F0F4F8", size: 18})}
-      ${wCellText(c.data || new Date().toISOString().slice(0, 10), {w: 2600, bold: true, size: 19})}
+      ${wCellText(c.data || hojeLocal(), {w: 2600, bold: true, size: 19})}
     </w:tr>`,
     `<w:tr>
       ${wCellText("LOCALIDADE / UNIDADE:", {w: 2300, bold: true, bg: "F0F4F8", size: 18})}
@@ -3597,7 +3626,7 @@ async function buildWordDocxFile(teamFilter = 0) {
   ]);
   if (st) st.textContent = "";
   const eqPrefix = teamFilter == 1 ? "EquipeA_" : (teamFilter == 2 ? "EquipeB_" : "");
-  const fname = `${eqPrefix}Laudo_SPDA_${(c.cliente || "Campo").replace(/[^a-zA-Z0-9_-]/g, "_")}_${(c.data || new Date().toISOString().slice(0, 10))}.docx`;
+  const fname = `${eqPrefix}Laudo_SPDA_${(c.cliente || "Campo").replace(/[^a-zA-Z0-9_-]/g, "_")}_${(c.data || hojeLocal())}.docx`;
   return new File([docxBlob], fname, {type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document"});
 }
 
@@ -4057,6 +4086,69 @@ function renderBlockDetailView(blockId) {
   const st = blockStats(b);
   const f = st.f, o = b[3] || "";
 
+  let b2h = "";
+  // ===== 1º: CONTINUIDADE PONTO → PONTO (miliohmímetro) — entrada rápida =====
+  {
+    const bid = esc(blockId);
+    const codes = f.rows.map(r => r.p);
+    let sug = quickSug[blockId];
+    if (!sug) {
+      const last = f.pares[f.pares.length - 1];
+      if (last && /\d+$/.test(last.para)) sug = {de: last.para, para: proxCodigo(last.para)};
+      else if (last) sug = {de: last.de, para: ""};
+      else sug = {de: codes[0] || "", para: codes[1] || ""};
+    }
+    b2h += `<h3>B2. Continuidade ponto → ponto (miliohmímetro)</h3>
+      <div class="card" style="padding:10px">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:6px;align-items:end">
+          <div><label>De</label><input id="q-de" list="dl-pts" autocomplete="off" placeholder="D01" value="${esc(sug.de)}"></div>
+          <div><label>Para</label><input id="q-para" list="dl-pts" autocomplete="off" placeholder="D02" value="${esc(sug.para)}"></div>
+          <div><label>Ω</label><input id="q-v" inputmode="decimal" autocomplete="off" placeholder="0,03" onkeydown="if(event.key==='Enter'){event.preventDefault();addParRapido('${bid}')}"></div>
+          <button class="b" style="height:42px;min-width:52px;font-size:20px;font-weight:700;background:#fd6301;color:#fff;border-color:#fd6301" onclick="addParRapido('${bid}')">+</button>
+        </div>
+        <datalist id="dl-pts">${[...codes, "Portão", "Poste", "BEP", "Malha", "Alambrado", "Telhado", "Esquadria"].map(c => `<option value="${esc(c)}">`).join("")}</datalist>
+        <div class="row" style="margin-top:6px;gap:4px;flex-wrap:wrap">
+          <small style="color:var(--muted)">Para:</small>
+          ${["Portão", "Poste", "BEP", "Malha", "Alambrado"].map(c => `<button class="b" style="padding:3px 8px;font-size:12px" onclick="document.getElementById('q-para').value='${c}';document.getElementById('q-v').focus()">${c}</button>`).join("")}
+        </div>
+        <small style="display:block;margin-top:6px;color:var(--muted)">Digite o valor e toque <b>+</b> (ou Enter). O próximo já vem preenchido (D02 → D03…). Limite ≤ ${S.cfg.limC} Ω · 80 mΩ = 0,080 · aberto = OL</small>
+      </div>`;
+    if (f.pares.length) {
+      b2h += `<div class="card" style="padding:4px 8px">`;
+      f.pares.forEach((x, i) => {
+        const e = parIssue(x);
+        if (editPar[blockId] === i) {
+          b2h += `
+          <div style="border:2px solid #fd6301;border-radius:6px;padding:8px;margin:6px 0">
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
+              <div><label>De</label><input value="${esc(x.de)}" oninput="setLista('${bid}','pares',${i},'de',this.value)"></div>
+              <div><label>Para</label><input value="${esc(x.para)}" oninput="setLista('${bid}','pares',${i},'para',this.value)"></div>
+              <div><label>Ω</label><input inputmode="decimal" value="${esc(x.v)}" oninput="setLista('${bid}','pares',${i},'v',this.value)"></div>
+            </div>
+            <div class="row" style="margin-top:6px">
+              <button class="b" onclick="photo('${bid}','Continuidade',-1,${i},true,'par')">📷 Foto (${(x.ph || []).length})</button>
+              <button class="b" onclick="photo('${bid}','Continuidade',-1,${i},false,'par')">🖼</button>
+              <span class="grow"></span>
+              <button class="b" onclick="editPar['${bid}']=-1;render()">✓ Pronto</button>
+              <button class="b" style="color:var(--nc)" onclick="delLista('${bid}','pares',${i})">✕</button>
+            </div>
+            ${renderThumbs(blockId, x.ph || [], "par", i)}
+          </div>`;
+        } else {
+          b2h += `
+          <div class="row" style="padding:6px 0;border-bottom:1px solid var(--line);gap:6px">
+            <span style="font-family:var(--mono,monospace);font-weight:700;min-width:0" class="grow">${esc(x.de || "?")} → ${esc(x.para || "?")}</span>
+            <b style="color:${e ? "var(--nc)" : "inherit"}">${esc(x.v || "—")}${x.v ? " Ω" : ""}</b>
+            ${e ? `<span class="tag NC">NC</span>` : (x.v !== "" ? `<span class="tag OK">OK</span>` : "")}
+            <button class="b" style="padding:4px 8px" onclick="photo('${bid}','Continuidade',-1,${i},true,'par')">📷${(x.ph || []).length ? " " + (x.ph || []).length : ""}</button>
+            <button class="b" style="padding:4px 8px" onclick="editPar['${bid}']=${i};render()">✏</button>
+          </div>`;
+        }
+      });
+      b2h += `</div>`;
+    }
+  }
+
   let h = `
     <header class="top-stamp">
       <div class="row" style="width:100%;justify-content:space-between">
@@ -4073,6 +4165,7 @@ function renderBlockDetailView(blockId) {
         <div class="sub">${teamLabel(b[2])} · ${st.totR ? `${st.medR}/${st.totR} descidas medidas` : "Somente BEP"} · ${st.totPh} foto(s) HD com carimbo</div>
       </div>
     </header>
+    ${b2h}
 
     <div class="card">
       <h3>Dados de Execução da Ficha</h3>
@@ -4227,13 +4320,32 @@ function renderBlockDetailView(blockId) {
         ? `<div class="card ok" style="padding:8px 10px;font-size:13px"><b>✓ Critério de redução atendido</b> — ${ri0.n}/${ri0.tot} medidos (${ri0.pct}%), todos ≤ 1 Ω e na mesma ordem de grandeza. Pode reduzir o nº de medições de continuidade neste bloco (registrar no laudo).</div>`
         : `<div class="card" style="padding:8px 10px;font-size:13px"><b>Redução de medições:</b> ainda não — ${esc(ri0.motivos.join("; "))}.</div>`;
     }
+    if (openRow[blockId] === undefined) {
+      const k = f.rows.findIndex(r => !rowHasData(r));
+      openRow[blockId] = k >= 0 ? k : -1;
+    }
     f.rows.forEach((r, i) => {
       const j = judge(r);
       const hasNC = j.length || [r.barra, r.eld, r.cx].includes("NC");
       const isOk = !hasNC && (r.cont !== "" || r.terra !== "");
       const cl = hasNC ? "nc" : (isOk ? "ok" : "");
+      if (openRow[blockId] !== i) {
+        const mk = v => v === "OK" ? "✓" : (v === "NC" ? "✗" : "·");
+        h += `
+        <div id="row-card-${i}" class="card d ${cl}" style="padding:8px 10px;margin-bottom:6px;cursor:pointer" onclick="abrirRow('${esc(blockId)}',${i})">
+          <div class="row" style="gap:8px">
+            <b style="min-width:44px">${esc(r.p)}</b>
+            <small class="grow" style="color:var(--muted);overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${esc(r.loc || "")}</small>
+            <small style="font-family:var(--mono,monospace)">B${mk(r.barra)} E${mk(r.eld)} C${mk(r.cx)}</small>
+            <b style="min-width:52px;text-align:right">${r.cont !== "" ? esc(r.cont) + " Ω" : "—"}</b>
+            <small>${(r.ph || []).length ? "📷" + (r.ph || []).length : ""}</small>
+            ${hasNC ? `<span class="tag NC">NC</span>` : (isOk ? `<span class="tag OK">OK</span>` : "")}
+          </div>
+        </div>`;
+        return;
+      }
       h += `
-        <div id="row-card-${i}" class="card d ${cl}">
+        <div id="row-card-${i}" class="card d ${cl}" style="border:2px solid #fd6301">
           <div class="row">
             <input class="inline-edit" value="${esc(r.p)}" title="Código da descida" oninput="setSilent('${esc(blockId)}','rows.${i}.p',this.value)">
             <input class="grow" style="padding:5px 8px;font-size:13px" placeholder="Referência / Nome (ex.: Fachada N)" value="${esc(r.loc || "")}" oninput="setSilent('${esc(blockId)}','rows.${i}.loc',this.value)">
@@ -4274,38 +4386,19 @@ function renderBlockDetailView(blockId) {
             <button class="b" style="color:var(--nc)" onclick="if(confirm('Remover ${esc(r.p)}?')){F('${esc(blockId)}').rows.splice(${i},1);saveNow(true);render()}">✕</button>
           </div>
           ${renderThumbs(blockId, r.ph || [], "row", i)}
+          <div class="row" style="margin-top:8px;gap:6px">
+            <button class="b" ${i === 0 ? "disabled" : ""} onclick="abrirRow('${esc(blockId)}',${i - 1})">‹ Anterior</button>
+            <button class="b" onclick="openRow['${esc(blockId)}']=-1;render()">Fechar</button>
+            <span class="grow"></span>
+            <button class="b" style="background:#fd6301;color:#fff;border-color:#fd6301;font-weight:700" onclick="abrirRow('${esc(blockId)}',${i + 1 < f.rows.length ? i + 1 : -1})">${i + 1 < f.rows.length ? "Próxima ›" : "Concluir ✓"}</button>
+          </div>
         </div>`;
     });
-    h += `<button class="b" style="width:100%;margin-bottom:10px" onclick="F('${esc(blockId)}').rows.push(newRow('${esc(blockId)}'));saveNow(true);render()">+ Adicionar Descida</button>`;
+    h += `<button class="b" style="width:100%;margin-bottom:10px" onclick="F('${esc(blockId)}').rows.push(newRow('${esc(blockId)}'));openRow['${esc(blockId)}']=F('${esc(blockId)}').rows.length-1;saveNow(true);render()">+ Adicionar Descida</button>`;
   }
 
   {
     const bid = esc(blockId);
-    h += `<h3>B2. Continuidade entre pontos / massas metálicas (miliohmímetro)</h3>
-      <small style="display:block;margin:-4px 0 8px;color:var(--muted)">Ex.: D01 → D02, D05 → Portão, D06 → Poste, BEP → Malha. Limite ≤ ${S.cfg.limC} Ω. Leitura aberta: digite OL.</small>`;
-    f.pares.forEach((x, i) => {
-      const e = parIssue(x);
-      h += `
-        <div class="card d ${e ? "nc" : (x.v !== "" ? "ok" : "")}">
-          <div class="g2">
-            <div><label>De</label><input placeholder="Ex.: D05" value="${esc(x.de)}" oninput="setLista('${bid}','pares',${i},'de',this.value)"></div>
-            <div><label>Para</label><input placeholder="Ex.: Portão" value="${esc(x.para)}" oninput="setLista('${bid}','pares',${i},'para',this.value)"></div>
-          </div>
-          <div class="g2" style="margin-top:6px">
-            <div><label>Resistência (Ω) · 80 mΩ = 0,080</label><input inputmode="decimal" placeholder="Ex.: 0,080" value="${esc(x.v)}" oninput="setLista('${bid}','pares',${i},'v',this.value)"></div>
-            <div><label>Hora</label><input placeholder="HH:MM" value="${esc(x.hora || "")}" oninput="setLista('${bid}','pares',${i},'hora',this.value)"></div>
-          </div>
-          ${e ? `<span class="tag NC" style="margin-top:6px;display:inline-block">${esc(e)}</span>` : ""}
-          <div class="row" style="margin-top:8px">
-            <button class="b" onclick="photo('${bid}','Continuidade',-1,${i},true,'par')">📷 Foto (${(x.ph || []).length})</button>
-            <button class="b" onclick="photo('${bid}','Continuidade',-1,${i},false,'par')">🖼</button>
-            <span class="grow"></span>
-            <button class="b" style="color:var(--nc)" onclick="delLista('${bid}','pares',${i})">✕</button>
-          </div>
-          ${renderThumbs(blockId, x.ph || [], "par", i)}
-        </div>`;
-    });
-    h += `<button class="b" style="width:100%;margin-bottom:12px" onclick="addLista('${bid}','pares')">+ Medição de continuidade entre pontos</button>`;
 
     h += `<h3>B3. Resistência de aterramento — terrômetro (3 leituras)</h3>
       <small style="display:block;margin:-4px 0 8px;color:var(--muted)">Queda de potencial (NBR 15749): D1, D2 e D3 com a estaca de potencial a ~52%, 62% e 72% da distância da estaca de corrente. Resultado = D2. Limite ≤ ${S.cfg.limT} Ω.</small>`;
